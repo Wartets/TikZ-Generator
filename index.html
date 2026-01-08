@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+	<meta charset="UTF-8">
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<title>TikZ Generator</title>
+	<link rel="stylesheet" href="style.css">
+</head>
+<body>
+	<div class="sidebar">
+		<div class="header">
+			<h1>TikZ Generator</h1>
+		</div>
+		
+		<div class="scroll-content">
+			<div class="section-title">Outils de dessin</div>
+			<div class="tools-grid">
+				<button class="tool-btn" data-tool="select" onclick="setTool('select')">Sélection</button>
+				<button class="tool-btn active" data-tool="line" onclick="setTool('line')">Ligne</button>
+				<button class="tool-btn" data-tool="rect" onclick="setTool('rect')">Rectangle</button>
+				<button class="tool-btn" data-tool="circle" onclick="setTool('circle')">Cercle</button>
+				<button class="tool-btn" data-tool="ellipse" onclick="setTool('ellipse')">Ellipse</button>
+				<button class="tool-btn" data-tool="triangle" onclick="setTool('triangle')">Triangle</button>
+				<button class="tool-btn" data-tool="grid" onclick="setTool('grid')">Grille</button>
+				<button class="tool-btn" data-tool="axes" onclick="setTool('axes')">Axes</button>
+				<button class="tool-btn" data-tool="arc" onclick="setTool('arc')">Arc</button>
+				<button class="tool-btn" data-tool="curve" onclick="setTool('curve')">Courbe</button>
+			</div>
+
+			<div class="section-title">Paramètres</div>
+			
+			<div class="control-group">
+				<label>Style de trait</label>
+				<select id="lineStyle" onchange="updateSettings()">
+					<option value="solid">Trait plein</option>
+					<option value="dashed">Tirets</option>
+					<option value="dotted">Points</option>
+					<option value="densely dashed">Tirets serrés</option>
+				</select>
+			</div>
+
+			<div class="control-group">
+				<label>Flèches</label>
+				<select id="arrowStyle" onchange="updateSettings()">
+					<option value="none">Aucune</option>
+					<option value="->">Fin</option>
+					<option value="<-">Début</option>
+					<option value="<->">Double</option>
+					<option value="-stealth">Stealth</option>
+					<option value="-latex">LaTeX</option>
+				</select>
+			</div>
+
+			<div class="control-group">
+				<div class="slider-row">
+					<label>Épaisseur</label>
+					<span id="widthValue">1pt</span>
+				</div>
+				<input type="range" id="lineWidth" min="0.1" max="5" step="0.1" value="1" oninput="updateSettings()">
+			</div>
+
+			<div class="control-group">
+				<div class="slider-row">
+					<label>Opacité</label>
+					<span id="opacityValue">100%</span>
+				</div>
+				<input type="range" id="opacity" min="0.1" max="1" step="0.1" value="1" oninput="updateSettings()">
+			</div>
+
+			<div class="color-row">
+				<div class="color-input">
+					<label>Trait</label>
+					<input type="color" id="strokeColor" value="#2c2c2c" onchange="updateSettings()">
+				</div>
+				<div class="color-input">
+					<label>Remplissage</label>
+					<div class="fill-toggle">
+						<input type="color" id="fillColor" value="#e0dcd3" onchange="updateSettings()">
+						<input type="checkbox" id="hasFill" onchange="updateSettings()">
+					</div>
+				</div>
+			</div>
+
+			<div class="actions">
+				<button class="btn-secondary" onclick="undo()">Annuler</button>
+				<button class="btn-danger" onclick="clearAll()">Tout effacer</button>
+			</div>
+
+			<div class="output-area">
+				<textarea id="output" readonly spellcheck="false"></textarea>
+				<button class="btn-primary" onclick="copyToClipboard()">Copier le code LaTeX</button>
+			</div>
+		</div>
+	</div>
+
+	<div class="canvas-container">
+		<canvas id="canvas"></canvas>
+		<div class="status-bar">
+			<span id="coords">x: 0, y: 0</span>
+		</div>
+	</div>
+
+	<script src="script.js"></script>
+</body>
+</html>

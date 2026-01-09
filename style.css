@@ -148,7 +148,7 @@ body {
 	display: grid;
 	grid-template-columns: repeat(3, 1fr);
 	gap: 10px;
-	margin-bottom: 32px;
+	margin-bottom: 8px;
 }
 
 .tool-btn {
@@ -406,7 +406,7 @@ button.btn-primary {
 	width: 100%;
 	margin-bottom: 12px;
 	margin-top: 0;
-	box-shadow: 0 4px 15px var(--accent-glow);
+	box-shadow: 0 4px 5px var(--accent-glow);
 }
 button.btn-primary:hover { 
 	background: var(--accent-hover);
@@ -422,11 +422,9 @@ button:disabled {
 
 #clearBtn {
 	width: 100%;
-	margin-top: 8px;
 	display: flex;
 	align-items: center;
 	justify-content: center;
-	gap: 8px;
 }
 
 .canvas-actions {
@@ -599,4 +597,59 @@ canvas {
 .tool-btn i.ti-text-size {
 	font-family: serif;
 	font-weight: bold;
+}
+
+.tabs-nav {
+	display: flex;
+	gap: 4px;
+	margin-bottom: 15px;
+	border-bottom: 1px solid var(--glass-border);
+	padding-bottom: 8px;
+	overflow-x: auto;
+	scrollbar-width: none;
+}
+
+.tabs-nav::-webkit-scrollbar {
+	display: none;
+}
+
+.tab-btn {
+	background: transparent;
+	border: none;
+	color: var(--text-muted);
+	padding: 6px 12px;
+	cursor: pointer;
+	font-size: 0.75rem;
+	border-radius: var(--radius-sm);
+	white-space: nowrap;
+	transition: all 0.2s;
+	font-weight: 500;
+	flex-shrink: 0;
+}
+
+.tab-btn:hover {
+	color: var(--text-main);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.tab-btn.active {
+	background: var(--glass-highlight);
+	color: var(--accent);
+	font-weight: 600;
+	box-shadow: 0 0 5px rgba(94, 106, 210, 0.1);
+	border: 1px solid var(--glass-border);
+}
+
+.tab-content {
+	display: none;
+	animation: fadeIn 0.3s ease;
+}
+
+.tab-content.active {
+	display: block;
+}
+
+@keyframes fadeIn {
+	from { opacity: 0; transform: translateY(5px); }
+	to { opacity: 1; transform: translateY(0); }
 }

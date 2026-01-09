@@ -54,10 +54,30 @@
 			
 			<div class="section-wrapper collapsed">
 				<div class="section-title">
-					<span>Circuits</span>
+					<span>Bibliothèques</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
-				<div id="tools-circuits" class="tools-grid section-content"></div>
+				<div class="section-content">
+					<div class="tabs-nav">
+						<button class="tab-btn active" data-tab="circuits">Circuits</button>
+						<button class="tab-btn" data-tab="optics">Optique</button>
+						<button class="tab-btn" data-tab="logic">Logique</button>
+						<button class="tab-btn" data-tab="flowchart">Flow</button>
+					</div>
+					
+					<div id="tab-circuits" class="tab-content active">
+						<div id="tools-circuits" class="tools-grid"></div>
+					</div>
+					<div id="tab-optics" class="tab-content">
+						<div id="tools-optics" class="tools-grid"></div>
+					</div>
+					<div id="tab-logic" class="tab-content">
+						<div id="tools-logic" class="tools-grid"></div>
+					</div>
+					<div id="tab-flowchart" class="tab-content">
+						<div id="tools-flowchart" class="tools-grid"></div>
+					</div>
+				</div>
 			</div>
 			
 			<div id="settings-wrapper" class="section-wrapper collapsed">
@@ -95,6 +115,7 @@
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-latex.min.js"></script>
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
+	<script src="configs.js"></script>
 	<script src="script.js"></script>
 </body>
 </html>

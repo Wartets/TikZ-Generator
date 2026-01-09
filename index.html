@@ -4,10 +4,17 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>TikZ Generator</title>
+	<link rel="icon" href="https://wartets.github.io/N-Body-Problem/image/browser-icon.png">
+	<link rel="apple-touch-icon" href="https://wartets.github.io/Wartets/img/app-icon.jpg">
+	<meta name="robots" content="index, follow">
+	<meta name="apple-mobile-web-app-capable" content="yes">
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
 	<script src="https://unpkg.com/@phosphor-icons/web"></script>
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/themes/prism-tomorrow.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.css">
+	<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 </head>
 <body>
 	<div class="sidebar">
@@ -16,35 +23,78 @@
 		</div>
 		
 		<div class="scroll-content">
-			<div class="section-title">Général</div>
-			<div id="tools-general" class="tools-grid"></div>
-
-			<div class="section-title">Dessin</div>
-			<div id="tools-drawing" class="tools-grid"></div>
-
-			<div class="section-title">Paramètres</div>
-			<div id="settings-container"></div>
+			<div class="section-wrapper collapsed">
+				<div class="section-title">
+					<span>Paramètres de la figure</span>
+					<i class="ti ti-chevron-down toggle-icon"></i>
+				</div>
+				<div id="global-settings-container" class="section-content"></div>
+			</div>
 			
-			<div class="actions">
-				<button class="btn-secondary" id="undoBtn">Annuler</button>
-				<button class="btn-secondary" id="redoBtn">Rétablir</button>
-				<button class="btn-danger" id="clearBtn">Tout effacer</button>
+			<div class="section-wrapper">
+				<div class="section-title">
+					<span>Général</span>
+					<i class="ti ti-chevron-down toggle-icon"></i>
+				</div>
+				<div class="section-content">
+					<div id="tools-general" class="tools-grid"></div>
+					<button class="btn-danger" id="clearBtn">
+						<i class="ti ti-trash"></i> Tout effacer
+					</button>
+				</div>
 			</div>
 
-			<div class="output-area">
-				<textarea id="output" readonly spellcheck="false"></textarea>
-				<button class="btn-primary" id="copyBtn">Copier le code LaTeX</button>
+			<div class="section-wrapper">
+				<div class="section-title">
+					<span>Dessin</span>
+					<i class="ti ti-chevron-down toggle-icon"></i>
+				</div>
+				<div id="tools-drawing" class="tools-grid section-content"></div>
+			</div>
+			
+			<div class="section-wrapper collapsed">
+				<div class="section-title">
+					<span>Circuits</span>
+					<i class="ti ti-chevron-down toggle-icon"></i>
+				</div>
+				<div id="tools-circuits" class="tools-grid section-content"></div>
+			</div>
+			
+			<div id="settings-wrapper" class="section-wrapper collapsed">
+				<div class="section-title">
+					<span>Paramètres de style</span>
+					<i class="ti ti-chevron-down toggle-icon"></i>
+				</div>
+				<div id="settings-container" class="section-content"></div>
+			</div>
+		</div>
+
+		<div class="output-area">
+			<button class="btn-primary" id="copyBtn">Copier le code LaTeX</button>
+			<div class="code-editor-container">
+				<pre class="line-numbers"><code id="output" class="language-latex"></code></pre>
 			</div>
 		</div>
 	</div>
 
 	<div class="canvas-container">
 		<canvas id="canvas"></canvas>
+		<div class="canvas-actions">
+			<button class="floating-btn" id="undoBtn" title="Annuler">
+				<i class="ti ti-arrow-back-up"></i>
+			</button>
+			<button class="floating-btn" id="redoBtn" title="Rétablir">
+				<i class="ti ti-arrow-forward-up"></i>
+			</button>
+		</div>
 		<div class="status-bar">
 			<span id="coords">x: 0, y: 0</span>
 		</div>
 	</div>
 
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/components/prism-latex.min.js"></script>
+	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/plugins/line-numbers/prism-line-numbers.min.js"></script>
 	<script src="script.js"></script>
 </body>
 </html>

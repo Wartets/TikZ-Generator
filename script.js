@@ -3,6 +3,38 @@ const ctx = canvas.getContext('2d');
 const output = document.getElementById('output');
 const coordsDisplay = document.getElementById('coords');
 
+const GLOBAL_SETTINGS_CONFIG = {
+	figLabel: {
+		label: 'Label (ex: fig:mon_schema)',
+		type: 'text',
+		defaultValue: ''
+	},
+	figCaption: {
+		label: 'Légende (Caption)',
+		type: 'text',
+		defaultValue: ''
+	},
+	figScale: {
+		label: 'Échelle TikZ',
+		type: 'range',
+		defaultValue: 1,
+		min: 0.1, max: 3, step: 0.1,
+		unit: 'x'
+	},
+	canvasZoom: {
+		label: 'Zoom Grille (Visualisation)',
+		type: 'range',
+		defaultValue: 40,
+		min: 10, max: 100, step: 5,
+		unit: 'px'
+	},
+	stageColor: {
+		label: 'Couleur de fond',
+		type: 'color',
+		defaultValue: '#eef1f5'
+	}
+};
+
 const TOOL_CONFIG = {
 	select: {
 		displayName: 'Sélection',
@@ -10,7 +42,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-pointer"></i>',
 		cursor: 'default',
 		group: 'general',
-		allow: ['textString', 'textSize', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	duplicate: {
 		displayName: 'Dupliquer',
@@ -50,7 +82,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-text-size">T</i>',
 		cursor: 'text',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'strokeColor', 'opacity']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'strokeColor', 'opacity']
 	},
 	line: {
 		displayName: 'Ligne',
@@ -124,6 +156,102 @@ const TOOL_CONFIG = {
 		group: 'drawing',
 		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
+	wave: {
+		displayName: 'Onde',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-wave-sine"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['waveType', 'waveAmplitude', 'waveLength', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	polygon: {
+		displayName: 'Polygone',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-polygon"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['polySides', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+	},
+	star: {
+		displayName: 'Étoile',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-star"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['starPoints', 'starRatio', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+	},
+	resistor: {
+		displayName: 'Résistance',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-wave-square"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	capacitor: {
+		displayName: 'Condensateur',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-pause"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	inductor: {
+		displayName: 'Bobine',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-infinity"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	diode: {
+		displayName: 'Diode',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-play" style="font-size: 0.7em;"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	source_dc: {
+		displayName: 'Source DC',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-car-battery"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	source_ac: {
+		displayName: 'Source AC',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-water"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	lamp: {
+		displayName: 'Lampe',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-regular fa-lightbulb"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	switch: {
+		displayName: 'Interrupteur',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-toggle-off"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	ground: {
+		displayName: 'Masse',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-arrow-down"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+	},
 };
 
 const SETTINGS_CONFIG = {
@@ -131,23 +259,174 @@ const SETTINGS_CONFIG = {
 		label: 'Contenu',
 		type: 'textarea',
 		propName: 'text',
-		defaultValue: 'Texte',
+		defaultValue: 'Nouveau Texte',
 		tikzValue: (v) => null
 	},
 	textSize: {
-		label: 'Taille',
+		label: 'Taille TikZ',
 		type: 'select',
 		propName: 'textSize',
 		defaultValue: 'normalsize',
 		options: {
-			'tiny': 'Très petit',
-			'scriptsize': 'Petit',
+			'tiny': 'Tiny',
+			'scriptsize': 'Scriptsize',
+			'footnotesize': 'Footnotesize',
+			'small': 'Small',
 			'normalsize': 'Normal',
-			'large': 'Grand',
-			'Huge': 'Très grand'
+			'large': 'Large',
+			'Large': 'Large +',
+			'LARGE': 'LARGE',
+			'huge': 'Huge',
+			'Huge': 'Huge +'
 		},
 		tikzKey: 'font',
 		tikzValue: (v) => v === 'normalsize' ? null : `\\${v}`
+	},
+	textFont: {
+		label: 'Famille de police',
+		type: 'select',
+		propName: 'textFont',
+		defaultValue: 'sans',
+		options: {
+			'serif': 'Serif (Roman)',
+			'sans': 'Sans Serif',
+			'mono': 'Monospace (Typewriter)'
+		},
+		tikzValue: (v) => null
+	},
+	textWeight: {
+		label: 'Graisse',
+		type: 'select',
+		propName: 'textWeight',
+		defaultValue: 'none',
+		options: {
+			'none': 'Normal',
+			'bfseries': 'Gras'
+		},
+		tikzValue: (v) => null
+	},
+	textSlant: {
+		label: 'Style',
+		type: 'select',
+		propName: 'textSlant',
+		defaultValue: 'none',
+		options: {
+			'none': 'Normal',
+			'itshape': 'Italique'
+		},
+		tikzValue: (v) => null
+	},
+	textRotate: {
+		label: 'Rotation',
+		type: 'range',
+		propName: 'textRotate',
+		defaultValue: 0,
+		min: 0, max: 360, step: 5,
+		unit: '°',
+		tikzKey: 'rotate',
+		tikzValue: (v) => v === 0 ? null : v
+	},
+	textAnchor: {
+		label: 'Ancrage TikZ',
+		type: 'select',
+		propName: 'textAnchor',
+		defaultValue: 'center',
+		options: {
+			'center': 'Centre',
+			'north': 'Nord (Haut)',
+			'south': 'Sud (Bas)',
+			'east': 'Est (Droite)',
+			'west': 'Ouest (Gauche)',
+			'north east': 'Nord-Est',
+			'north west': 'Nord-Ouest',
+			'south east': 'Sud-Est',
+			'south west': 'Sud-Ouest'
+		},
+		tikzKey: 'anchor',
+		tikzValue: (v) => v === 'center' ? null : v
+	},
+	textAlign: {
+		label: 'Alignement',
+		type: 'select',
+		propName: 'textAlign',
+		defaultValue: 'center',
+		options: {
+			'left': 'Gauche',
+			'center': 'Centre',
+			'right': 'Droite',
+			'justify': 'Justifié'
+		},
+		tikzKey: 'align',
+		tikzValue: (v) => v === 'none' ? null : v
+	},
+	textWidth: {
+		label: 'Largeur max (0=auto)',
+		type: 'range',
+		propName: 'textWidth',
+		defaultValue: 0,
+		min: 0, max: 10, step: 0.5,
+		unit: 'cm',
+		tikzKey: 'text width',
+		tikzSuffix: 'cm',
+		tikzValue: (v) => v === 0 ? null : v
+	},
+	polySides: {
+		label: 'Côtés',
+		type: 'range',
+		propName: 'polySides',
+		defaultValue: 5,
+		min: 3, max: 12, step: 1,
+		unit: '',
+		tikzValue: (v) => null
+	},
+	starPoints: {
+		label: 'Pointes',
+		type: 'range',
+		propName: 'starPoints',
+		defaultValue: 5,
+		min: 3, max: 12, step: 1,
+		unit: '',
+		tikzValue: (v) => null
+	},
+	starRatio: {
+		label: 'Ratio interne',
+		type: 'range',
+		propName: 'starRatio',
+		defaultValue: 0.5,
+		min: 0.1, max: 0.9, step: 0.1,
+		unit: '',
+		tikzValue: (v) => null
+	},
+	waveType: {
+		label: 'Type d\'onde',
+		type: 'select',
+		propName: 'waveType',
+		defaultValue: 'sine',
+		options: {
+			'sine': 'Sinus',
+			'triangle': 'Triangle',
+			'square': 'Carré',
+			'sawtooth': 'Dents de scie'
+		},
+		tikzValue: (v) => null
+	},
+	waveAmplitude: {
+		label: 'Amplitude',
+		type: 'range',
+		propName: 'waveAmplitude',
+		defaultValue: 0.5,
+		min: 0.1, max: 5, step: 0.1,
+		unit: 'cm',
+		tikzValue: (v) => null
+	},
+	waveLength: {
+		label: 'Longueur d\'onde',
+		type: 'range',
+		propName: 'waveLength',
+		defaultValue: 1,
+		min: 0.1, max: 5, step: 0.1,
+		unit: 'cm',
+		tikzValue: (v) => null
 	},
 	gridStep: {
 		label: 'Pas de grille',
@@ -932,26 +1211,141 @@ class LowerTool extends BaseTool {
 const ShapeManager = {
 	text: createShapeDef('text', {
 		render: (s, ctx) => {
-			ctx.font = '16px sans-serif';
-			if (s.style.textSize === 'tiny') ctx.font = '10px sans-serif';
-			if (s.style.textSize === 'scriptsize') ctx.font = '12px sans-serif';
-			if (s.style.textSize === 'large') ctx.font = '20px sans-serif';
-			if (s.style.textSize === 'Huge') ctx.font = '28px sans-serif';
+			const sizeMap = {
+				'tiny': 8, 'scriptsize': 10, 'footnotesize': 12, 'small': 13,
+				'normalsize': 16, 'large': 18, 'Large': 22, 'LARGE': 26, 'huge': 30, 'Huge': 36
+			};
+			const fontMap = {
+				'serif': 'serif',
+				'sans': 'sans-serif',
+				'mono': 'monospace'
+			};
+			const fontSize = sizeMap[s.style.textSize] || 16;
+			const fontFamily = fontMap[s.style.textFont] || 'sans-serif';
+			const weight = s.style.textWeight === 'bfseries' ? 'bold ' : '';
+			const slant = s.style.textSlant === 'itshape' ? 'italic ' : '';
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate((s.style.textRotate || 0) * Math.PI / 180);
+			
+			const anchors = {
+				'center': { x: 'center', y: 'middle' },
+				'north': { x: 'center', y: 'top' },
+				'south': { x: 'center', y: 'bottom' },
+				'east': { x: 'right', y: 'middle' },
+				'west': { x: 'left', y: 'middle' },
+				'north east': { x: 'right', y: 'top' },
+				'north west': { x: 'left', y: 'top' },
+				'south east': { x: 'right', y: 'bottom' },
+				'south west': { x: 'left', y: 'bottom' }
+			};
+			const anchor = anchors[s.style.textAnchor] || anchors.center;
+			
+			ctx.textAlign = anchor.x;
+			ctx.textBaseline = anchor.y;
+			ctx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
 			ctx.fillStyle = s.style.stroke;
-			ctx.fillText(s.style.text || 'Texte', s.x1, s.y1);
+			ctx.globalAlpha = s.style.opacity;
+
+			const lines = (s.style.text || 'Texte').split('\\\\');
+			const lineHeight = fontSize * 1.2;
+			const totalHeight = lines.length * lineHeight;
+			let currentY = 0;
+
+			if (anchor.y === 'middle') currentY = -((lines.length - 1) * lineHeight) / 2;
+			else if (anchor.y === 'bottom') currentY = -(lines.length - 1) * lineHeight;
+
+			lines.forEach(line => {
+				ctx.fillText(line.trim(), 0, currentY);
+				currentY += lineHeight;
+			});
+
+			ctx.restore();
 		},
 		toTikZ: (s) => {
 			const text = s.style.text || 'Texte';
-			return `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node {${text}};`;
+			const fontFamilies = {
+				'serif': '\\rmfamily',
+				'sans': '\\sffamily',
+				'mono': '\\ttfamily'
+			};
+			const fontCmd = fontFamilies[s.style.textFont] || '';
+			const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries ' : '';
+			const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape ' : '';
+			const familyCmd = fontCmd ? `${fontCmd} ` : '';
+			const innerContent = `${familyCmd}${weightCmd}${slantCmd}${text}`;
+			return `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node {${innerContent}};`;
 		},
 		getBoundingBox: (s) => {
-			const w = (s.style.text || 'Texte').length * 8; 
-			return { minX: s.x1, minY: s.y1 - 15, maxX: s.x1 + w, maxY: s.y1 + 5 };
+			const sizeMap = {
+				'tiny': 8, 'scriptsize': 10, 'footnotesize': 12, 'small': 13,
+				'normalsize': 16, 'large': 18, 'Large': 22, 'LARGE': 26, 'huge': 30, 'Huge': 36
+			};
+			const fontSize = sizeMap[s.style.textSize] || 16;
+			const fontMap = { 'serif': 'serif', 'sans': 'sans-serif', 'mono': 'monospace' };
+			const fontFamily = fontMap[s.style.textFont] || 'sans-serif';
+			const weight = s.style.textWeight === 'bfseries' ? 'bold ' : '';
+			const slant = s.style.textSlant === 'itshape' ? 'italic ' : '';
+			
+			const tempCtx = canvas.getContext('2d');
+			tempCtx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
+			
+			const lines = (s.style.text || 'Texte').split('\\\\');
+			let maxWidth = 0;
+			lines.forEach(line => {
+				const metrics = tempCtx.measureText(line.trim());
+				maxWidth = Math.max(maxWidth, metrics.width);
+			});
+			
+			const lineHeight = fontSize * 1.2;
+			const height = lines.length * lineHeight;
+			const padding = 8;
+
+			return { 
+				minX: s.x1 - maxWidth / 2 - padding, 
+				minY: s.y1 - height / 2 - padding, 
+				maxX: s.x1 + maxWidth / 2 + padding, 
+				maxY: s.y1 + height / 2 + padding 
+			};
 		},
 		resize: (s, mx, my) => { s.x1 = mx; s.y1 = my; },
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'tl', cursor: 'move' }],
-		onDown: (x, y, style) => ({ type: 'text', x1: x, y1: y, x2: x, y2: y, style: { ...style, text: style.text || 'Texte' } }),
-		onDrag: (s, x, y) => { s.x1 = x; s.y1 = y; s.x2 = x; s.y2 = y; }
+		onDown: (x, y, style) => ({ 
+			type: 'text', 
+			x1: x, y1: y, 
+			x2: x, y2: y, 
+			style: { 
+				...style, 
+				text: style.text || 'Nouveau Texte',
+				textRotate: style.textRotate || 0,
+				textAnchor: style.textAnchor || 'center',
+				textAlign: style.textAlign || 'center',
+				textFont: style.textFont || 'sans',
+				textSize: style.textSize || 'normalsize',
+				textWeight: style.textWeight || 'none',
+				textSlant: style.textSlant || 'none'
+			} 
+		}),
+		onDrag: (s, x, y) => { s.x1 = x; s.y1 = y; s.x2 = x; s.y2 = y; },
+		hitTest: (s, x, y) => {
+			const box = ShapeManager.text.getBoundingBox(s);
+			const angle = (s.style.textRotate || 0) * Math.PI / 180;
+			
+			if (angle === 0) {
+				return x >= box.minX && x <= box.maxX && y >= box.minY && y <= box.maxY;
+			}
+			
+			const dx = x - s.x1;
+			const dy = y - s.y1;
+			const rx = dx * Math.cos(-angle) - dy * Math.sin(-angle);
+			const ry = dx * Math.sin(-angle) + dy * Math.cos(-angle);
+			
+			const halfW = (box.maxX - box.minX) / 2;
+			const halfH = (box.maxY - box.minY) / 2;
+			
+			return Math.abs(rx) <= halfW && Math.abs(ry) <= halfH;
+		}
 	}),
 	line: createShapeDef('line', {
 		render: (s, ctx) => {
@@ -1129,6 +1523,137 @@ const ShapeManager = {
 			maxX: Math.max(s.x1, s.x2, s.x3),
 			maxY: Math.max(s.y1, s.y2, s.y3)
 		})
+	}),
+	polygon: createShapeDef('polygon', {
+		onDown: (x, y, style) => ({
+			type: 'polygon',
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: { 
+				...style,
+				polySides: style.polySides || 5
+			}
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const sides = s.style.polySides || 5;
+			const radius = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			const startAngle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1);
+			
+			ctx.beginPath();
+			for (let i = 0; i < sides; i++) {
+				const angle = startAngle + (i * 2 * Math.PI / sides);
+				const px = s.x1 + radius * Math.cos(angle);
+				const py = s.y1 + radius * Math.sin(angle);
+				if (i === 0) ctx.moveTo(px, py);
+				else ctx.lineTo(px, py);
+			}
+			ctx.closePath();
+			if (s.style.fill) ctx.fill();
+			ctx.stroke();
+		},
+		toTikZ: (s) => {
+			const sides = s.style.polySides || 5;
+			const radius = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			const startAngle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1);
+			
+			let coords = [];
+			for (let i = 0; i < sides; i++) {
+				const angle = startAngle + (i * 2 * Math.PI / sides);
+				const px = s.x1 + radius * Math.cos(angle);
+				const py = s.y1 + radius * Math.sin(angle);
+				coords.push(`(${toTikZ(px)},${toTikZ(py, true)})`);
+			}
+			return `${coords.join(' -- ')} -- cycle;`;
+		},
+		getBoundingBox: (s) => {
+			const radius = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			return { minX: s.x1 - radius, minY: s.y1 - radius, maxX: s.x1 + radius, maxY: s.y1 + radius };
+		},
+		resize: (s, mx, my, handle) => {
+			if (handle === 'center') {
+				const dx = mx - s.x1;
+				const dy = my - s.y1;
+				s.x1 += dx; s.y1 += dy;
+				s.x2 += dx; s.y2 += dy;
+			} else {
+				s.x2 = mx; s.y2 = my;
+			}
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' },
+			{ x: s.x2, y: s.y2, pos: 'radius', cursor: 'crosshair' }
+		]
+	}),
+	star: createShapeDef('star', {
+		onDown: (x, y, style) => ({
+			type: 'star',
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: { 
+				...style,
+				starPoints: style.starPoints || 5,
+				starRatio: style.starRatio || 0.5
+			}
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const points = s.style.starPoints || 5;
+			const ratio = s.style.starRatio || 0.5;
+			const radiusOuter = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			const radiusInner = radiusOuter * ratio;
+			const startAngle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1);
+			const step = Math.PI / points;
+			
+			ctx.beginPath();
+			for (let i = 0; i < 2 * points; i++) {
+				const r = (i % 2 === 0) ? radiusOuter : radiusInner;
+				const angle = startAngle + i * step;
+				const px = s.x1 + r * Math.cos(angle);
+				const py = s.y1 + r * Math.sin(angle);
+				if (i === 0) ctx.moveTo(px, py);
+				else ctx.lineTo(px, py);
+			}
+			ctx.closePath();
+			if (s.style.fill) ctx.fill();
+			ctx.stroke();
+		},
+		toTikZ: (s) => {
+			const points = s.style.starPoints || 5;
+			const ratio = s.style.starRatio || 0.5;
+			const radiusOuter = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			const radiusInner = radiusOuter * ratio;
+			const startAngle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1);
+			const step = Math.PI / points;
+			
+			let coords = [];
+			for (let i = 0; i < 2 * points; i++) {
+				const r = (i % 2 === 0) ? radiusOuter : radiusInner;
+				const angle = startAngle + i * step;
+				const px = s.x1 + r * Math.cos(angle);
+				const py = s.y1 + r * Math.sin(angle);
+				coords.push(`(${toTikZ(px)},${toTikZ(py, true)})`);
+			}
+			return `${coords.join(' -- ')} -- cycle;`;
+		},
+		getBoundingBox: (s) => {
+			const radius = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			return { minX: s.x1 - radius, minY: s.y1 - radius, maxX: s.x1 + radius, maxY: s.y1 + radius };
+		},
+		resize: (s, mx, my, handle) => {
+			if (handle === 'center') {
+				const dx = mx - s.x1;
+				const dy = my - s.y1;
+				s.x1 += dx; s.y1 += dy;
+				s.x2 += dx; s.y2 += dy;
+			} else {
+				s.x2 = mx; s.y2 = my;
+			}
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' },
+			{ x: s.x2, y: s.y2, pos: 'radius', cursor: 'crosshair' }
+		]
 	}),
 	grid: createShapeDef('grid', {
 		onDown: (x, y, style) => {
@@ -1383,7 +1908,446 @@ const ShapeManager = {
 			}
 			return false;
 		}
-	})
+	}),
+	wave: createShapeDef('wave', {
+		onDown: (x, y, style) => ({ 
+			type: 'wave', 
+			x1: x, y1: y, 
+			x2: x, y2: y,
+			style: { 
+				...style,
+				waveType: style.waveType || 'sine',
+				waveAmplitude: style.waveAmplitude || 0.5,
+				waveLength: style.waveLength || 1
+			} 
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			const amp = (s.style.waveAmplitude || 0.5) * UI_CONSTANTS.SCALE;
+			const lambda = (s.style.waveLength || 1) * UI_CONSTANTS.SCALE;
+			const k = 2 * Math.PI / lambda;
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			
+			const steps = Math.ceil(dist);
+			for (let x = 0; x <= steps; x++) {
+				let y = 0;
+				const t = k * x;
+				
+				switch (s.style.waveType) {
+					case 'triangle':
+						y = amp * (2 / Math.PI) * Math.asin(Math.sin(t));
+						break;
+					case 'square':
+						y = amp * Math.sign(Math.sin(t));
+						break;
+					case 'sawtooth':
+						y = -amp * (2 / Math.PI) * Math.atan(1 / Math.tan(t / 2));
+						break;
+					case 'sine':
+					default:
+						y = amp * Math.sin(t);
+						break;
+				}
+				
+				if (x === 0) ctx.moveTo(x, y);
+				else ctx.lineTo(x, y);
+			}
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+			
+			const len = toTikZ(dist);
+			const amp = s.style.waveAmplitude || 0.5;
+			const lambda = s.style.waveLength || 1;
+			
+			let plotFunc = '';
+			const k = `\\x*360/${lambda}`;
+			
+			switch (s.style.waveType) {
+				case 'triangle':
+					plotFunc = `{${amp}*asin(sin(${k}))/90}`;
+					break;
+				case 'square':
+					plotFunc = `{${amp}*sign(sin(${k}))}`;
+					break;
+				case 'sawtooth':
+					plotFunc = `{-${amp}*2/180*atan(cot(${k}/2))}`;
+					break;
+				case 'sine':
+				default:
+					plotFunc = `{${amp}*sin(${k})}`;
+					break;
+			}
+			
+			const opts = buildTikzOptions(s);
+			return `\\draw${opts} [shift={(${toTikZ(s.x1)},${toTikZ(s.y1, true)})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(len * 20)}, variable=\\x] (\\x, ${plotFunc});`;
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' },
+			{ x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }
+		],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => {
+			const t = UI_CONSTANTS.HIT_TOLERANCE + (s.style.width || 1) + (s.style.waveAmplitude || 0.5) * UI_CONSTANTS.SCALE;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < t;
+		},
+		isStandaloneCommand: true
+	}),
+	resistor: createShapeDef('resistor', {
+		onDown: (x, y, style) => ({ type: 'resistor', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			const l = dist;
+			const w = 10;
+			ctx.lineTo(l * 0.25, 0);
+			ctx.lineTo(l * 0.3, -w);
+			ctx.lineTo(l * 0.35, w);
+			ctx.lineTo(l * 0.4, -w);
+			ctx.lineTo(l * 0.45, w);
+			ctx.lineTo(l * 0.5, -w);
+			ctx.lineTo(l * 0.55, w);
+			ctx.lineTo(l * 0.6, -w);
+			ctx.lineTo(l * 0.65, w);
+			ctx.lineTo(l * 0.7, -w);
+			ctx.lineTo(l * 0.75, 0);
+			ctx.lineTo(l, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[R] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	capacitor: createShapeDef('capacitor', {
+		onDown: (x, y, style) => ({ type: 'capacitor', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const w = 12;
+			const gap = 4;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - gap, 0);
+			ctx.moveTo(dist/2 - gap, -w);
+			ctx.lineTo(dist/2 - gap, w);
+			ctx.moveTo(dist/2 + gap, -w);
+			ctx.lineTo(dist/2 + gap, w);
+			ctx.moveTo(dist/2 + gap, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[C] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	inductor: createShapeDef('inductor', {
+		onDown: (x, y, style) => ({ type: 'inductor', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			const loops = 4;
+			const loopW = (dist * 0.4) / loops;
+			ctx.lineTo(dist * 0.3, 0);
+			for(let i=0; i<loops; i++) {
+				const lx = dist * 0.3 + i*loopW;
+				ctx.arc(lx + loopW/2, 0, loopW/2, Math.PI, 0);
+			}
+			ctx.moveTo(dist * 0.7, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[L] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	diode: createShapeDef('diode', {
+		onDown: (x, y, style) => ({ type: 'diode', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const w = 10;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - w, 0);
+			
+			ctx.moveTo(dist/2 - w, -w);
+			ctx.lineTo(dist/2 - w, w);
+			ctx.lineTo(dist/2 + w, 0);
+			ctx.lineTo(dist/2 - w, -w);
+			
+			ctx.moveTo(dist/2 + w, -w);
+			ctx.lineTo(dist/2 + w, w);
+			
+			ctx.moveTo(dist/2 + w, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[D] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	source_dc: createShapeDef('source_dc', {
+		onDown: (x, y, style) => ({ type: 'source_dc', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const w = 15;
+			const gap = 3;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - gap, 0);
+			
+			ctx.moveTo(dist/2 - gap, -w);
+			ctx.lineTo(dist/2 - gap, w);
+			
+			ctx.moveTo(dist/2 + gap, -w/2);
+			ctx.lineTo(dist/2 + gap, w/2);
+			
+			ctx.moveTo(dist/2 + gap, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[battery1] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	source_ac: createShapeDef('source_ac', {
+		onDown: (x, y, style) => ({ type: 'source_ac', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const r = 15;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - r, 0);
+			ctx.arc(dist/2, 0, r, 0, Math.PI * 2);
+			
+			ctx.moveTo(dist/2 - r/2, 0);
+			ctx.bezierCurveTo(dist/2 - r/2, -r/2, dist/2, -r/2, dist/2, 0);
+			ctx.bezierCurveTo(dist/2, r/2, dist/2 + r/2, r/2, dist/2 + r/2, 0);
+			
+			ctx.moveTo(dist/2 + r, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[sV] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	lamp: createShapeDef('lamp', {
+		onDown: (x, y, style) => ({ type: 'lamp', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const r = 12;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - r, 0);
+			ctx.arc(dist/2, 0, r, 0, Math.PI * 2);
+			
+			const offset = r * Math.sin(Math.PI/4);
+			ctx.moveTo(dist/2 - offset, -offset);
+			ctx.lineTo(dist/2 + offset, offset);
+			ctx.moveTo(dist/2 + offset, -offset);
+			ctx.lineTo(dist/2 - offset, offset);
+			
+			ctx.moveTo(dist/2 + r, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[lamp] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	switch: createShapeDef('switch', {
+		onDown: (x, y, style) => ({ type: 'switch', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const gap = 15;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - gap, 0);
+			ctx.arc(dist/2 - gap, 0, 2, 0, Math.PI*2);
+			
+			ctx.moveTo(dist/2 - gap, 0);
+			ctx.lineTo(dist/2 + gap - 5, -10);
+			
+			ctx.moveTo(dist/2 + gap, 0);
+			ctx.arc(dist/2 + gap, 0, 2, 0, Math.PI*2);
+			ctx.moveTo(dist/2 + gap, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[switch] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
+	ground: createShapeDef('ground', {
+		onDown: (x, y, style) => ({ type: 'ground', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const angle = Math.atan2(dy, dx);
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const len = 20;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(len, 0);
+			
+			ctx.moveTo(len, -10);
+			ctx.lineTo(len, 10);
+			
+			ctx.moveTo(len + 4, -6);
+			ctx.lineTo(len + 4, 6);
+			
+			ctx.moveTo(len + 8, -2);
+			ctx.lineTo(len + 8, 2);
+			
+			ctx.stroke();
+			ctx.restore();
+		},
+		toTikZ: (s) => {
+			const angle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1) * 180 / Math.PI;
+			return `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node[ground, rotate=${angle-270}] {};`;
+		},
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		isStandaloneCommand: true
+	}),
 };
 
 let currentState = { ...initialState };
@@ -1391,10 +2355,11 @@ let currentState = { ...initialState };
 function createToolsUI() {
 	const containers = {
 		general: document.getElementById('tools-general'),
-		drawing: document.getElementById('tools-drawing')
+		drawing: document.getElementById('tools-drawing'),
+		circuits: document.getElementById('tools-circuits')
 	};
 
-	Object.values(containers).forEach(c => c.innerHTML = '');
+	Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
 
 	for (const toolId in TOOL_CONFIG) {
 		const config = TOOL_CONFIG[toolId];
@@ -1504,6 +2469,34 @@ function createSettingsUI() {
 	}
 }
 
+function createGlobalSettingsUI() {
+	const container = document.getElementById('global-settings-container');
+	container.innerHTML = '';
+
+	for (const key in GLOBAL_SETTINGS_CONFIG) {
+		const config = GLOBAL_SETTINGS_CONFIG[key];
+		const wrapper = document.createElement('div');
+		wrapper.className = 'control-group';
+		
+		let html = '';
+		if (config.type === 'text') {
+			html = `<label>${config.label}</label><input type="text" id="${key}" data-global="${key}" value="${config.defaultValue}">`;
+		} else if (config.type === 'range') {
+			html = `
+				<div class="slider-row">
+					<label>${config.label}</label>
+					<span id="${key}Value">${config.defaultValue}${config.unit}</span>
+				</div>
+				<input type="range" id="${key}" data-global="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.defaultValue}">`;
+		} else if (config.type === 'color') {
+			html = `<label>${config.label}</label><input type="color" id="${key}" data-global="${key}" value="${config.defaultValue}">`;
+		}
+		
+		wrapper.innerHTML = html;
+		container.appendChild(wrapper);
+	}
+}
+
 function updateSettingsVisibility(toolName, shapeType = null) {
 	const config = TOOL_CONFIG[toolName];
 	if (!config) return;
@@ -1523,6 +2516,7 @@ function updateSettingsVisibility(toolName, shapeType = null) {
 
 	const currentStyle = app.selectedShape ? app.selectedShape.style : app.drawingStyle;
 	const arrowEnabled = currentStyle.arrow && currentStyle.arrow !== 'none';
+	let hasVisibleSettings = false;
 
 	for (const key in SETTINGS_CONFIG) {
 		const wrapper = document.getElementById(`wrapper-${key}`);
@@ -1539,6 +2533,7 @@ function updateSettingsVisibility(toolName, shapeType = null) {
 				if (wrapper.parentElement.classList.contains('control-group-wrapper')) {
 					wrapper.parentElement.style.display = 'block';
 				}
+				hasVisibleSettings = true;
 			} else {
 				wrapper.style.display = 'none';
 				const parent = wrapper.parentElement;
@@ -1549,14 +2544,16 @@ function updateSettingsVisibility(toolName, shapeType = null) {
 			}
 		}
 	}
+
+	const settingsWrapper = document.getElementById('settings-wrapper');
+	if (settingsWrapper) {
+		settingsWrapper.style.display = hasVisibleSettings ? 'block' : 'none';
+	}
 }
 
 function resizeCanvas() {
 	canvas.width = canvas.parentElement.clientWidth;
 	canvas.height = canvas.parentElement.clientHeight;
-	if (app.history.length === 0) {
-		pushState();
-	}
 	render();
 }
 
@@ -1575,10 +2572,12 @@ function setTool(toolName) {
 	if (app.activeTool && app.activeTool.onActivate) {
 		app.activeTool.onActivate();
 	}
+	saveToLocalStorage();
 }
 
 function updateSetting(element) {
-	const key = element.dataset.setting;
+	const key = element.dataset.setting || element.dataset.global;
+	const isGlobal = !!element.dataset.global;
 
 	if (key === 'hasFill') {
 		const value = element.checked;
@@ -1595,10 +2594,11 @@ function updateSetting(element) {
 			generateCode();
 			pushState();
 		}
+		saveToLocalStorage();
 		return;
 	}
 
-	const config = SETTINGS_CONFIG[key];
+	const config = isGlobal ? GLOBAL_SETTINGS_CONFIG[key] : SETTINGS_CONFIG[key];
 	if (!config) return;
 
 	let value;
@@ -1611,28 +2611,37 @@ function updateSetting(element) {
 	}
 
 	const propName = config.propName || key;
-	const target = app.selectedShape ? app.selectedShape.style : app.drawingStyle;
+	const target = (app.selectedShape && !isGlobal) ? app.selectedShape.style : app.drawingStyle;
 	target[propName] = value;
 
 	if (config.type === 'range') {
-		 const valueSpan = document.getElementById(`${key}Value`);
-		 if (valueSpan) {
-			 const isPercent = config.unit === '%';
-			 valueSpan.textContent = isPercent ? `${Math.round(value * 100)}%` : `${value}${config.unit}`;
-		 }
+		const valueSpan = document.getElementById(`${key}Value`);
+		if (valueSpan) {
+			const unit = config.unit || '';
+			valueSpan.textContent = key === 'opacity' ? `${Math.round(value * 100)}%` : `${value}${unit}`;
+		}
+	}
+
+	if (key === 'canvasZoom') {
+		canvas.parentElement.style.setProperty('--grid-size', `${value}px`);
+	}
+
+	if (key === 'stageColor') {
+		canvas.parentElement.style.backgroundColor = value;
 	}
 
 	if (key === 'arrowStyle') {
-		const toolName = app.activeTool === app.toolManager.select ? 'select' : app.activeTool.shapeType;
+		const toolName = app.activeTool === app.toolManager.select ? 'select' : (app.activeTool.shapeType || 'select');
 		const shapeType = app.selectedShape ? app.selectedShape.type : null;
 		updateSettingsVisibility(toolName, shapeType);
 	}
 
-	if (app.selectedShape) {
-		render();
-		generateCode();
+	render();
+	generateCode();
+	if (app.selectedShape || isGlobal) {
 		pushState();
 	}
+	saveToLocalStorage();
 }
 
 function snap(val) {
@@ -1758,7 +2767,7 @@ function renderShape(s, ctx) {
 		shapeDef.render(s, ctx);
 	}
 	
-	if (s.style.arrow && s.style.arrow !== 'none' && (s.type === 'line' || s.type === 'curve' || s.type === 'arc' || s.type === 'axes')) {
+	if (s.style.arrow && s.style.arrow !== 'none' && (s.type === 'line' || s.type === 'curve' || s.type === 'arc' || s.type === 'axes' || s.type === 'wave')) {
 		ctx.setLineDash([]);
 		let angEnd, angStart;
 		let startX, startY, endX, endY;
@@ -1811,7 +2820,7 @@ function renderShape(s, ctx) {
 
 function render() {
 	ctx.clearRect(0, 0, canvas.width, canvas.height);
-
+	
 	ctx.save();
 	ctx.strokeStyle = UI_CONSTANTS.AXIS_HELPER_COLOR;
 	ctx.lineWidth = 1;
@@ -1835,23 +2844,14 @@ function buildTikzOptions(s) {
 	if (style.arrow && style.arrow !== 'none') {
 		const head = style.arrowHead ? style.arrowHead.charAt(0).toUpperCase() + style.arrowHead.slice(1) : 'Stealth';
 		const scale = style.arrowScale || 1;
-		let headStr = head;
-		if (head === 'Triangle 45') headStr = 'Triangle[angle=45:1pt]'; 
-		else if (head === 'To') headStr = 'To';
-		
-		if (scale !== 1) {
-			opts.push(`>=${headStr}[scale=${scale}]`);
-		} else {
-			opts.push(`>=${headStr}`);
-		}
+		let headStr = head === 'Triangle 45' ? 'Triangle[angle=45:1pt]' : (head === 'To' ? 'To' : head);
+		opts.push(scale !== 1 ? `>={${headStr}[scale=${scale}]}` : `>={${headStr}}`);
 	}
 
 	for (const key in SETTINGS_CONFIG) {
 		const config = SETTINGS_CONFIG[key];
-		
 		if (config.excludeFrom && config.excludeFrom.includes(s.type)) continue;
-
-		if (key === 'arrowHead' || key === 'arrowScale') continue;
+		if (['arrowHead', 'arrowScale', 'textWeight', 'textSlant', 'textFont'].includes(key)) continue;
 
 		const prop = config.propName || key;
 		const val = style[prop];
@@ -1860,7 +2860,8 @@ function buildTikzOptions(s) {
 			const processedVal = config.tikzValue(val);
 			if (processedVal !== null) {
 				if (config.isColor) {
-					opts.push(`${config.tikzKey}=${app.colors.get(processedVal) || processedVal}`);
+					const colorName = app.colors.get(processedVal);
+					opts.push(`${config.tikzKey}=${colorName || processedVal}`);
 				} else if (config.tikzKey) {
 					const suffix = config.tikzSuffix || '';
 					opts.push(`${config.tikzKey}=${processedVal}${suffix}`);
@@ -1875,26 +2876,37 @@ function buildTikzOptions(s) {
 }
 
 function generateCode() {
-	let out = "\\begin{tikzpicture}\n";
-	app.colors.clear();
-	let cIdx = 1;
+	let out = "";
+	const useFigure = app.drawingStyle.figCaption || app.drawingStyle.figLabel;
+	const tikzOpts = [];
+	
+	if (app.drawingStyle.figScale && app.drawingStyle.figScale !== 1) {
+		tikzOpts.push(`scale=${app.drawingStyle.figScale}`);
+	}
 
+	if (useFigure) {
+		out += "\\begin{figure}[htbp]\n  \\centering\n";
+	}
+
+	out += "\\begin{tikzpicture}";
+	if (tikzOpts.length > 0) out += `[${tikzOpts.join(', ')}]`;
+	out += "\n";
+
+	app.colors.clear();
 	const usedColors = new Set();
 	app.shapes.forEach(s => {
-		for(const key in SETTINGS_CONFIG) {
-			const conf = SETTINGS_CONFIG[key];
-			if(conf.isColor) {
-				const prop = conf.propName || key;
-				const val = s.style[prop];
-				if(val && conf.tikzValue(val) !== null) usedColors.add(val);
-			}
-		}
+		if (s.style.stroke) usedColors.add(s.style.stroke.toUpperCase());
+		if (s.style.fill) usedColors.add(s.style.fill.toUpperCase());
 	});
 
+	let cIdx = 1;
 	usedColors.forEach(hex => {
-		const name = 'c' + cIdx++;
-		app.colors.set(hex, name);
-		out += `  \\definecolor{${name}}{HTML}{${hex.substring(1).toUpperCase()}}\n`;
+		if (hex !== '#000000' && hex !== '#FFFFFF') {
+			const name = 'c' + cIdx++;
+			app.colors.set(hex, name);
+			app.colors.set(hex.toLowerCase(), name);
+			out += `  \\definecolor{${name}}{HTML}{${hex.substring(1)}}\n`;
+		}
 	});
 	
 	if (app.colors.size) out += "\n";
@@ -1902,19 +2914,33 @@ function generateCode() {
 	app.shapes.forEach(s => {
 		const shapeDef = ShapeManager[s.type];
 		if (!shapeDef || !shapeDef.toTikZ) return;
-
-		let tikzString = shapeDef.toTikZ(s);
 		
-		if (shapeDef.isStandaloneCommand) {
-			 out += `  ${tikzString}\n`;
+		const optStr = buildTikzOptions(s);
+		if (s.type === 'text') {
+			out += `  \\node${optStr} at ${shapeDef.toTikZ(s)}\n`;
+		} else if (shapeDef.isStandaloneCommand) {
+			out += `  ${shapeDef.toTikZ(s)}\n`;
 		} else {
-			 const optStr = buildTikzOptions(s);
-			 out += `  \\draw${optStr} ${tikzString}\n`;
+			out += `  \\draw${optStr} ${shapeDef.toTikZ(s)}\n`;
 		}
 	});
 
 	out += "\\end{tikzpicture}";
-	output.value = out;
+
+	if (useFigure) {
+		if (app.drawingStyle.figCaption) {
+			out += `\n  \\caption{${app.drawingStyle.figCaption}}`;
+		}
+		if (app.drawingStyle.figLabel) {
+			out += `\n  \\label{${app.drawingStyle.figLabel}}`;
+		}
+		out += "\n\\end{figure}";
+	}
+	
+	output.textContent = out;
+	if (window.Prism) {
+		Prism.highlightElement(output);
+	}
 }
 
 function onMouseDown(e) {
@@ -1940,9 +2966,12 @@ function onMouseUp(e) {
 function clearAll() {
 	app.shapes = [];
 	app.selectedShape = null;
+	app.history = [];
+	app.historyIndex = -1;
 	pushState();
 	render();
 	generateCode();
+	saveToLocalStorage();
 }
 
 function updateUndoRedoUI() {
@@ -1955,6 +2984,7 @@ function pushState() {
 	app.history.push(JSON.stringify(app.shapes));
 	app.historyIndex++;
 	updateUndoRedoUI();
+	saveToLocalStorage();
 }
 
 function undo() {
@@ -1965,6 +2995,7 @@ function undo() {
 		render();
 		generateCode();
 		updateUndoRedoUI();
+		saveToLocalStorage();
 	}
 }
 
@@ -1976,6 +3007,7 @@ function redo() {
 		render();
 		generateCode();
 		updateUndoRedoUI();
+		saveToLocalStorage();
 	}
 }
 
@@ -1993,10 +3025,11 @@ function updateUIFromShape(s) {
 	if (!s) return;
 	
 	const style = s.style;
-	
 	const fields = [
 		'strokeColor', 'lineWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale',
-		'opacity', 'textString', 'textSize', 'gridStep'
+		'opacity', 'textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 
+		'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'gridStep',
+		'polySides', 'starPoints', 'starRatio'
 	];
 	
 	fields.forEach(id => {
@@ -2006,8 +3039,17 @@ function updateUIFromShape(s) {
 			const prop = config ? (config.propName || id) : id;
 			if (style[prop] !== undefined) {
 				el.value = style[prop];
-			} else if (config) {
-				el.value = config.defaultValue;
+				if (config && config.type === 'range') {
+					const valueSpan = document.getElementById(`${id}Value`);
+					if (valueSpan) {
+						const unit = config.unit || '';
+						if (id === 'textWidth' && style[prop] === 0) {
+							valueSpan.textContent = 'Auto';
+						} else {
+							valueSpan.textContent = id === 'opacity' ? `${Math.round(style[prop] * 100)}%` : `${style[prop]}${unit}`;
+						}
+					}
+				}
 			}
 		}
 	});
@@ -2021,21 +3063,13 @@ function updateUIFromShape(s) {
 		}
 	});
 	
-	document.getElementById('fillColor').value = style.fill || SETTINGS_CONFIG.fillColor.defaultValue;
-
-	const lwVal = document.getElementById('lineWidthValue');
-	if (lwVal) lwVal.textContent = style.width + 'pt';
-
-	const asVal = document.getElementById('arrowScaleValue');
-	if (asVal) asVal.textContent = (style.arrowScale || 1) + 'x';
-	
-	const opVal = document.getElementById('opacityValue');
-	if (opVal) opVal.textContent = Math.round(style.opacity * 100) + '%';
-	
 	const fillColorInput = document.getElementById('fillColor');
-	fillColorInput.style.opacity = style.fill ? '1' : '0.2';
-	fillColorInput.style.pointerEvents = style.fill ? 'auto' : 'none';
-	fillColorInput.disabled = !style.fill;
+	if (fillColorInput) {
+		fillColorInput.value = style.fill || SETTINGS_CONFIG.fillColor.defaultValue;
+		fillColorInput.style.opacity = style.fill ? '1' : '0.2';
+		fillColorInput.style.pointerEvents = style.fill ? 'auto' : 'none';
+		fillColorInput.disabled = !style.fill;
+	}
 
 	updateSettingsVisibility('select', s.type);
 }
@@ -2096,19 +3130,164 @@ function drawSelection(s, ctx) {
 }
 
 function copyToClipboard() {
+	const codeText = output.textContent;
 	if (navigator.clipboard) {
-		navigator.clipboard.writeText(output.value).catch(err => {
+		navigator.clipboard.writeText(codeText).catch(err => {
 			console.error('Could not copy text: ', err);
 		});
 	} else {
-		output.select();
+		const tempTextArea = document.createElement('textarea');
+		tempTextArea.value = codeText;
+		document.body.appendChild(tempTextArea);
+		tempTextArea.select();
 		document.execCommand('copy');
+		document.body.removeChild(tempTextArea);
+	}
+}
+
+function setupCollapsibles() {
+	document.querySelectorAll('.section-title').forEach(title => {
+		title.addEventListener('click', () => {
+			title.parentElement.classList.toggle('collapsed');
+			saveToLocalStorage();
+		});
+	});
+}
+
+function updateUIFromDrawingStyle() {
+	for (const key in SETTINGS_CONFIG) {
+		const config = SETTINGS_CONFIG[key];
+		const prop = config.propName || key;
+		const val = app.drawingStyle[prop];
+		const el = document.getElementById(key);
+		
+		if (el && val !== undefined) {
+			if (config.type === 'checkbox') {
+				el.checked = val;
+			} else if (config.type === 'color-checkbox') {
+				const hasFillCheck = document.getElementById('hasFill');
+				const isEnabled = app.drawingStyle.fill !== null;
+				if (hasFillCheck) hasFillCheck.checked = isEnabled;
+				el.value = app.drawingStyle.fill || config.defaultValue;
+				el.style.opacity = isEnabled ? '1' : '0.2';
+				el.style.pointerEvents = isEnabled ? 'auto' : 'none';
+				el.disabled = !isEnabled;
+			} else {
+				el.value = val;
+			}
+			
+			if (config.type === 'range') {
+				const span = document.getElementById(`${key}Value`);
+				if (span) {
+					const unit = config.unit || '';
+					if (key === 'textWidth' && val === 0) {
+						span.textContent = 'Auto';
+					} else {
+						span.textContent = key === 'opacity' ? `${Math.round(val * 100)}%` : `${val}${unit}`;
+					}
+				}
+			}
+		}
+	}
+}
+
+function updateUIFromGlobalSettings() {
+	for (const key in GLOBAL_SETTINGS_CONFIG) {
+		const config = GLOBAL_SETTINGS_CONFIG[key];
+		const el = document.getElementById(key);
+		if (el) {
+			const val = app.drawingStyle[key];
+			if (el.type === 'checkbox') el.checked = val;
+			else el.value = val;
+			
+			if (config.type === 'range') {
+				const span = document.getElementById(`${key}Value`);
+				if (span) span.textContent = `${val}${config.unit || ''}`;
+			}
+			if (key === 'canvasZoom') canvas.parentElement.style.setProperty('--grid-size', `${val}px`);
+			if (key === 'stageColor') canvas.parentElement.style.backgroundColor = val;
+		}
+	}
+}
+
+function saveToLocalStorage() {
+	const uiState = [];
+	document.querySelectorAll('.section-wrapper').forEach((wrapper, index) => {
+		uiState.push({
+			index: index,
+			collapsed: wrapper.classList.contains('collapsed')
+		});
+	});
+
+	const activeToolId = Object.keys(app.toolManager).find(key => app.toolManager[key] === app.activeTool);
+
+	const fullState = {
+		shapes: app.shapes,
+		history: app.history,
+		historyIndex: app.historyIndex,
+		drawingStyle: app.drawingStyle,
+		activeToolId: activeToolId,
+		uiState: uiState
+	};
+	localStorage.setItem('tikz_generator_data', JSON.stringify(fullState));
+}
+
+function loadFromLocalStorage() {
+	const data = localStorage.getItem('tikz_generator_data');
+	if (!data) return false;
+
+	try {
+		const parsed = JSON.parse(data);
+		app.history = parsed.history || [];
+		app.historyIndex = parsed.historyIndex !== undefined ? parsed.historyIndex : -1;
+		
+		if (app.historyIndex >= 0 && app.history[app.historyIndex]) {
+			app.shapes = JSON.parse(app.history[app.historyIndex]);
+		} else {
+			app.shapes = parsed.shapes || [];
+		}
+
+		app.drawingStyle = { ...app.drawingStyle, ...parsed.drawingStyle };
+
+		if (parsed.uiState) {
+			const wrappers = document.querySelectorAll('.section-wrapper');
+			parsed.uiState.forEach(ui => {
+				if (wrappers[ui.index]) {
+					wrappers[ui.index].classList.toggle('collapsed', ui.collapsed);
+				}
+			});
+		}
+
+		updateUIFromGlobalSettings();
+		updateUIFromDrawingStyle();
+		
+		const savedToolId = parsed.activeToolId;
+		if (savedToolId && app.toolManager[savedToolId]) {
+			setTool(savedToolId);
+		} else {
+			setTool('select');
+		}
+
+		render();
+		generateCode();
+		updateUndoRedoUI();
+		return true;
+	} catch (e) {
+		return false;
 	}
 }
 
 function init() {
 	createToolsUI();
+	createGlobalSettingsUI();
 	createSettingsUI();
+	setupCollapsibles();
+
+	document.getElementById('global-settings-container').addEventListener('input', (e) => {
+		if (e.target.dataset.global) {
+			updateSetting(e.target);
+		}
+	});
 
 	document.getElementById('settings-container').addEventListener('input', (e) => {
 		if (e.target.dataset.setting) {
@@ -2116,21 +3295,13 @@ function init() {
 		}
 	});
 
-	app.drawingStyle = generateInitialState();
-	
-	Object.entries(SETTINGS_CONFIG).forEach(([key, config]) => {
-		const el = document.getElementById(key);
-		if (!el) return;
-		
-		if(config.type === 'color-checkbox') {
-			document.getElementById('hasFill').checked = config.enabledByDefault;
-			el.style.opacity = config.enabledByDefault ? '1' : '0.2';
-			el.style.pointerEvents = config.enabledByDefault ? 'auto' : 'none';
-			el.disabled = !config.enabledByDefault;
-		}
-		el.value = config.defaultValue;
-	});
+	const defaultGlobalState = {};
+	for (const key in GLOBAL_SETTINGS_CONFIG) {
+		defaultGlobalState[key] = GLOBAL_SETTINGS_CONFIG[key].defaultValue;
+	}
 
+	app.drawingStyle = { ...generateInitialState(), ...defaultGlobalState };
+	
 	const toolHandlers = { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool };
 	app.toolManager = {};
 	for (const toolName in TOOL_CONFIG) {
@@ -2156,9 +3327,15 @@ function init() {
 	canvas.addEventListener('mouseleave', onMouseUp);
 	window.addEventListener('resize', resizeCanvas);
 
-	setTool('select');
 	resizeCanvas();
-	updateUndoRedoUI();
+
+	const loaded = loadFromLocalStorage();
+	if (!loaded) {
+		setTool('select');
+		if (app.history.length === 0) pushState();
+		render();
+		generateCode();
+	}
 }
 
 document.addEventListener('DOMContentLoaded', init);

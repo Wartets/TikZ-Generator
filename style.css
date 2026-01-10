@@ -557,10 +557,19 @@ textarea.settings-input#textString {
 	font-size: 0.85rem;
 }
 
+.main-view {
+	flex: 1;
+	display: flex;
+	flex-direction: column;
+	height: 100vh;
+	overflow: hidden;
+	position: relative;
+}
+
 .canvas-container {
 	flex: 1;
 	position: relative;
-	margin: 20px;
+	margin: 20px 20px 0 20px;
 	border-radius: var(--radius-lg);
 	overflow: hidden;
 	box-shadow: var(--glass-shadow);
@@ -647,6 +656,89 @@ canvas {
 
 .tab-content.active {
 	display: block;
+}
+
+.site-footer {
+	flex-shrink: 0;
+	padding: 10px 20px;
+	background: transparent;
+	font-size: 0.75rem;
+	color: var(--text-muted);
+	border-top: 1px solid transparent;
+}
+
+.footer-content {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	max-width: 100%;
+	margin: 0 auto;
+}
+
+.copyright {
+	margin: 0;
+	opacity: 0.8;
+}
+
+.footer-nav {
+	display: flex;
+	align-items: center;
+	gap: 1rem;
+	flex-wrap: wrap;
+	justify-content: center;
+}
+
+.footer-link {
+	color: var(--text-muted);
+	text-decoration: none;
+	margin-left: 4px;
+	font-weight: 500;
+	transition: color 0.3s ease;
+}
+
+.footer-link i {
+	font-size: 0.8em;
+	margin-left: 2px;
+	opacity: 0.7;
+	transition: transform 0.3s ease;
+}
+
+.footer-link:hover {
+	color: var(--accent);
+}
+
+.footer-link:hover i {
+	transform: translate(2px, -2px);
+	opacity: 1;
+}
+
+.divider {
+	width: 4px;
+	height: 4px;
+	background: var(--glass-border);
+	border-radius: 50%;
+}
+
+#xp-portfolio-link {
+	display: inline-flex;
+	align-items: center;
+	margin-left: 4px;
+	transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+#xp-portfolio-link img {
+	width: 16px;
+	height: auto;
+	filter: drop-shadow(0 0 2px rgba(255, 255, 255, 0.3));
+	transition: filter 0.3s ease;
+}
+
+#xp-portfolio-link:hover {
+	transform: scale(1.15) rotate(-5deg);
+}
+
+#xp-portfolio-link:hover img {
+	filter: drop-shadow(0 0 8px rgba(255, 255, 255, 0.6));
 }
 
 @keyframes fadeIn {

@@ -720,8 +720,9 @@ function updateSettingsVisibility(toolName, shapeType = null) {
 }
 
 function resizeCanvas() {
-	canvas.width = canvas.parentElement.clientWidth;
-	canvas.height = canvas.parentElement.clientHeight;
+	const container = canvas.parentElement;
+	canvas.width = container.clientWidth;
+	canvas.height = container.clientHeight;
 	render();
 }
 
@@ -1047,7 +1048,7 @@ function generateCode() {
 	}
 
 	if (useFigure) {
-		out += "\\begin{figure}[htbp]\n  \\centering\n";
+		out += "\\begin{figure}[htbp]\n	\\centering\n";
 	}
 
 	out += "\\begin{tikzpicture}";
@@ -1067,7 +1068,7 @@ function generateCode() {
 			const name = 'c' + cIdx++;
 			app.colors.set(hex, name);
 			app.colors.set(hex.toLowerCase(), name);
-			out += `  \\definecolor{${name}}{HTML}{${hex.substring(1)}}\n`;
+			out += `	\\definecolor{${name}}{HTML}{${hex.substring(1)}}\n`;
 		}
 	});
 	
@@ -1079,11 +1080,11 @@ function generateCode() {
 		
 		const optStr = buildTikzOptions(s);
 		if (s.type === 'text') {
-			out += `  \\node${optStr} at ${shapeDef.toTikZ(s)}\n`;
+			out += `	\\node${optStr} at ${shapeDef.toTikZ(s)}\n`;
 		} else if (shapeDef.isStandaloneCommand) {
-			out += `  ${shapeDef.toTikZ(s, optStr)}\n`;
+			out += `	${shapeDef.toTikZ(s, optStr)}\n`;
 		} else {
-			out += `  \\draw${optStr} ${shapeDef.toTikZ(s)}\n`;
+			out += `	\\draw${optStr} ${shapeDef.toTikZ(s)}\n`;
 		}
 	});
 
@@ -1091,10 +1092,10 @@ function generateCode() {
 
 	if (useFigure) {
 		if (app.drawingStyle.figCaption) {
-			out += `\n  \\caption{${app.drawingStyle.figCaption}}`;
+			out += `\n	\\caption{${app.drawingStyle.figCaption}}`;
 		}
 		if (app.drawingStyle.figLabel) {
-			out += `\n  \\label{${app.drawingStyle.figLabel}}`;
+			out += `\n	\\label{${app.drawingStyle.figLabel}}`;
 		}
 		out += "\n\\end{figure}";
 	}
@@ -1246,13 +1247,13 @@ function getHandles(s) {
 	
 	return [
 		{ x: minX, y: minY, pos: 'tl', cursor: 'nwse-resize' },
-		{ x: cx,   y: minY, pos: 'tm', cursor: 'ns-resize' },
+		{ x: cx,	 y: minY, pos: 'tm', cursor: 'ns-resize' },
 		{ x: maxX, y: minY, pos: 'tr', cursor: 'nesw-resize' },
-		{ x: maxX, y: cy,   pos: 'mr', cursor: 'ew-resize' },
+		{ x: maxX, y: cy,	 pos: 'mr', cursor: 'ew-resize' },
 		{ x: maxX, y: maxY, pos: 'br', cursor: 'nwse-resize' },
-		{ x: cx,   y: maxY, pos: 'bm', cursor: 'ns-resize' },
+		{ x: cx,	 y: maxY, pos: 'bm', cursor: 'ns-resize' },
 		{ x: minX, y: maxY, pos: 'bl', cursor: 'nesw-resize' },
-		{ x: minX, y: cy,   pos: 'ml', cursor: 'ew-resize' },
+		{ x: minX, y: cy,	 pos: 'ml', cursor: 'ew-resize' },
 	];
 }
 

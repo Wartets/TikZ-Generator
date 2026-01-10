@@ -2,12 +2,35 @@
 <html lang="fr">
 <head>
 	<meta charset="UTF-8">
-	<meta name="viewport" content="width=device-width, initial-scale=1.0">
 	<title>TikZ Generator</title>
+	
+	<meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="author" content="Wartets">
+	<meta name="description" content="Créez facilement des diagrammes TikZ pour vos documents LaTeX avec une interface visuelle intuitive. Dessinez, stylisez et générez le code en temps réel.">
+	<meta name="keywords" content="TikZ, LaTeX, générateur TikZ, diagramme LaTeX, éditeur visuel, circuitikz, PGF, dessin vectoriel, enseignement, sciences">
+	<meta name="robots" content="index, follow">
+	<meta name="theme-color" content="#5e6ad2">
+
+	<link rel="canonical" href="https://wartets.github.io/TikZ-Generator/">
 	<link rel="icon" href="https://wartets.github.io/N-Body-Problem/image/browser-icon.png">
 	<link rel="apple-touch-icon" href="https://wartets.github.io/Wartets/img/app-icon.jpg">
-	<meta name="robots" content="index, follow">
-	<meta name="apple-mobile-web-app-capable" content="yes">
+	<link rel="manifest" href="manifest.json">
+
+	<meta property="og:title" content="TikZ Generator - Éditeur Visuel de Diagrammes LaTeX">
+	<meta property="og:description" content="Créez facilement des diagrammes TikZ pour vos documents LaTeX avec une interface visuelle intuitive.">
+	<meta property="og:type" content="website">
+	<meta property="og:url" content="https://wartets.github.io/TikZ-Generator/">
+	<meta property="og:image" content="https://wartets.github.io/Wartets/image/TikZ-Generator-card.png">
+	<meta property="og:image:alt" content="Aperçu de l'interface du générateur TikZ">
+	<meta property="og:site_name" content="TikZ Generator">
+	<meta property="og:locale" content="fr_FR">
+
+	<meta name="twitter:card" content="summary_large_image">
+	<meta name="twitter:title" content="TikZ Generator - Éditeur Visuel de Diagrammes LaTeX">
+	<meta name="twitter:description" content="Créez facilement des diagrammes TikZ pour vos documents LaTeX avec une interface visuelle intuitive.">
+	<meta name="twitter:image" content="https://wartets.github.io/Wartets/image/TikZ-Generator-card.png">
+	<meta name="twitter:image:alt" content="Aperçu de l'interface du générateur TikZ">
+	
 	<link rel="stylesheet" href="style.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@latest/tabler-icons.min.css">
 	<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@mdi/font@7.4.47/css/materialdesignicons.min.css">
@@ -97,19 +120,36 @@
 		</div>
 	</div>
 
-	<div class="canvas-container">
-		<canvas id="canvas"></canvas>
-		<div class="canvas-actions">
-			<button class="floating-btn" id="undoBtn" title="Annuler">
-				<i class="ti ti-arrow-back-up"></i>
-			</button>
-			<button class="floating-btn" id="redoBtn" title="Rétablir">
-				<i class="ti ti-arrow-forward-up"></i>
-			</button>
+	<div class="main-view">
+		<div class="canvas-container">
+			<canvas id="canvas"></canvas>
+			<div class="canvas-actions">
+				<button class="floating-btn" id="undoBtn" title="Annuler">
+					<i class="ti ti-arrow-back-up"></i>
+				</button>
+				<button class="floating-btn" id="redoBtn" title="Rétablir">
+					<i class="ti ti-arrow-forward-up"></i>
+				</button>
+			</div>
+			<div class="status-bar">
+				<span id="coords">x: 0, y: 0</span>
+			</div>
 		</div>
-		<div class="status-bar">
-			<span id="coords">x: 0, y: 0</span>
-		</div>
+
+		<footer class="site-footer">
+			<div class="footer-content">
+				<p class="copyright">&copy; 2026. All rights reserved.</p>
+				<nav class="footer-nav">
+					<span>Designed by <a href="https://wartets.github.io/Wartets/" target="_blank" rel="noopener noreferrer" class="footer-link">Wartets <i class="fa-solid fa-arrow-up-right-from-square"></i></a></span>
+					<span class="divider"></span>
+					<span>Check out more projects on <a href="https://github.com/wartets" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub <i class="fa-brands fa-github"></i></a></span>
+					<span class="divider"></span>
+					<a href="window/index.html" target="_blank" id="xp-portfolio-link" title="Discover the Windows XP Version">
+						<img src="https://wartets.github.io/Wartets/img/xp-computer-icon.webp" alt="Windows XP Portfolio Icon">
+					</a>
+				</nav>
+			</div>
+		</footer>
 	</div>
 
 	<script src="https://cdnjs.cloudflare.com/ajax/libs/prism/1.29.0/prism.min.js"></script>

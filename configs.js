@@ -45,14 +45,14 @@ const defaultHitTest = (s, x, y) => {
 	if (s.type === 'rect') {
 		if (s.style.fill) {
 			return x >= Math.min(s.x1, s.x2) && x <= Math.max(s.x1, s.x2) &&
-				   y >= Math.min(s.y1, s.y2) && y <= Math.max(s.y1, s.y2);
+					 y >= Math.min(s.y1, s.y2) && y <= Math.max(s.y1, s.y2);
 		} else {
 			const xMin = Math.min(s.x1, s.x2), xMax = Math.max(s.x1, s.x2);
 			const yMin = Math.min(s.y1, s.y2), yMax = Math.max(s.y1, s.y2);
 			return (Math.abs(x - xMin) < tolerance && y >= yMin - tolerance && y <= yMax + tolerance) ||
-				   (Math.abs(x - xMax) < tolerance && y >= yMin - tolerance && y <= yMax + tolerance) ||
-				   (Math.abs(y - yMin) < tolerance && x >= xMin - tolerance && x <= xMax + tolerance) ||
-				   (Math.abs(y - yMax) < tolerance && x >= xMin - tolerance && x <= xMax + tolerance);
+					 (Math.abs(x - xMax) < tolerance && y >= yMin - tolerance && y <= yMax + tolerance) ||
+					 (Math.abs(y - yMin) < tolerance && x >= xMin - tolerance && x <= xMax + tolerance) ||
+					 (Math.abs(y - yMax) < tolerance && x >= xMin - tolerance && x <= xMax + tolerance);
 		}
 	}
 
@@ -91,8 +91,8 @@ const defaultHitTest = (s, x, y) => {
 			return a >= 0 && a <= 1 && b >= 0 && b <= 1 && c >= 0 && c <= 1;
 		} else {
 			return distToSegment(x, y, p1.x, p1.y, p2.x, p2.y) < tolerance ||
-				   distToSegment(x, y, p2.x, p2.y, p3.x, p3.y) < tolerance ||
-				   distToSegment(x, y, p3.x, p3.y, p1.x, p1.y) < tolerance;
+					 distToSegment(x, y, p2.x, p2.y, p3.x, p3.y) < tolerance ||
+					 distToSegment(x, y, p3.x, p3.y, p1.x, p1.y) < tolerance;
 		}
 	}
 	
@@ -117,13 +117,13 @@ const defaultGetHandles = (s) => {
 	const cy = (box.minY + box.maxY) / 2;
 	return [
 		{ x: box.minX, y: box.minY, pos: 'tl', cursor: 'nwse-resize' },
-		{ x: cx,   y: box.minY, pos: 'tm', cursor: 'ns-resize' },
+		{ x: cx,	 y: box.minY, pos: 'tm', cursor: 'ns-resize' },
 		{ x: box.maxX, y: box.minY, pos: 'tr', cursor: 'nesw-resize' },
-		{ x: box.maxX, y: cy,   pos: 'mr', cursor: 'ew-resize' },
+		{ x: box.maxX, y: cy,	 pos: 'mr', cursor: 'ew-resize' },
 		{ x: box.maxX, y: box.maxY, pos: 'br', cursor: 'nwse-resize' },
-		{ x: cx,   y: box.maxY, pos: 'bm', cursor: 'ns-resize' },
+		{ x: cx,	 y: box.maxY, pos: 'bm', cursor: 'ns-resize' },
 		{ x: box.minX, y: box.maxY, pos: 'bl', cursor: 'nesw-resize' },
-		{ x: box.minX, y: cy,   pos: 'ml', cursor: 'ew-resize' },
+		{ x: box.minX, y: cy,	 pos: 'ml', cursor: 'ew-resize' },
 	];
 };
 
@@ -1152,9 +1152,9 @@ const ShapeManager = {
 				const p3 = { x: cx, y: maxY };
 				const p4 = { x: minX, y: cy };
 				return distToSegment(x, y, p1.x, p1.y, p2.x, p2.y) < tolerance ||
-					   distToSegment(x, y, p2.x, p2.y, p3.x, p3.y) < tolerance ||
-					   distToSegment(x, y, p3.x, p3.y, p4.x, p4.y) < tolerance ||
-					   distToSegment(x, y, p4.x, p4.y, p1.x, p1.y) < tolerance;
+						 distToSegment(x, y, p2.x, p2.y, p3.x, p3.y) < tolerance ||
+						 distToSegment(x, y, p3.x, p3.y, p4.x, p4.y) < tolerance ||
+						 distToSegment(x, y, p4.x, p4.y, p1.x, p1.y) < tolerance;
 			}
 		}
 	}),
@@ -1354,13 +1354,13 @@ const ShapeManager = {
 			const arrowOpt = s.style.arrow !== 'none' ? s.style.arrow : '';
 			const baseOpts = opts || '[]';
 			const finalOpts = baseOpts.replace(']', (arrowOpt ? ',' + arrowOpt : '') + ']');
-			return `\\draw${finalOpts} (${toTikZ(s.x1)},${toTikZ(s.y2, true)}) -- (${toTikZ(s.x2)},${toTikZ(s.y2, true)}) node[right] {$x$};\n  \\draw${finalOpts} (${toTikZ(s.x1)},${toTikZ(s.y2, true)}) -- (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node[above] {$y$};`;
+			return `\\draw${finalOpts} (${toTikZ(s.x1)},${toTikZ(s.y2, true)}) -- (${toTikZ(s.x2)},${toTikZ(s.y2, true)}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1)},${toTikZ(s.y2, true)}) -- (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node[above] {$y$};`;
 		},
 		isStandaloneCommand: true,
 		hitTest: (s, x, y) => {
 			const t = UI_CONSTANTS.HIT_TOLERANCE + s.style.width;
 			return distToSegment(x, y, s.x1, s.y2, s.x2, s.y2) < t ||
-				   distToSegment(x, y, s.x1, s.y2, s.x1, s.y1) < t;
+					 distToSegment(x, y, s.x1, s.y2, s.x1, s.y1) < t;
 		}
 	}),
 	arc: createShapeDef('arc', {
@@ -2085,7 +2085,7 @@ const ShapeManager = {
 		toTikZ: (s) => {
 			const x1 = toTikZ(s.x1); const y1 = toTikZ(s.y1, true);
 			const x2 = toTikZ(s.x2); const y2 = toTikZ(s.y2, true);
-			return `\\draw (${x1}, ${y1}) -- (${x2}, ${y2});\n  \\foreach \\i in {0,0.1,...,1} \\draw ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15);`;
+			return `\\draw (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15);`;
 		},
 		onDown: (x, y, style) => ({ type: 'mirror', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
 		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; }

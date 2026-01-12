@@ -1,7 +1,52 @@
-function toTikZ(val, isY = false) {
+function toTikZ(val, isY = false, shapeId = null, property = null) {
 	let res = val / UI_CONSTANTS.SCALE;
 	if (isY) res = (canvas.height - val) / UI_CONSTANTS.SCALE;
-	return parseFloat(res.toFixed(2));
+	const formattedVal = parseFloat(res.toFixed(3));
+	
+	if (shapeId !== null && property !== null) {
+		return `<span class="tikz-number" data-shape-id="${shapeId}" data-property="${property}" data-is-y="${isY}">${formattedVal}</span>`;
+	}
+	
+	return formattedVal;
+}
+
+function tikzToPx(val, isY = false) {
+	let res = parseFloat(val) * UI_CONSTANTS.SCALE;
+	if (isY) {
+		return canvas.height - res;
+	}
+	return res;
+}
+
+function getPerpendicularDistance(p, p1, p2) {
+	let dx = p2.x - p1.x;
+	let dy = p2.y - p1.y;
+	if (dx === 0 && dy === 0) {
+		return Math.sqrt(Math.pow(p.x - p1.x, 2) + Math.pow(p.y - p1.y, 2));
+	}
+	let numerator = Math.abs(dy * p.x - dx * p.y + p2.x * p1.y - p2.y * p1.x);
+	let denominator = Math.sqrt(dy * dy + dx * dx);
+	return numerator / denominator;
+}
+
+function simplifyPoints(points, epsilon) {
+	if (points.length < 3) return points;
+	let maxDistance = 0;
+	let index = 0;
+	for (let i = 1; i < points.length - 1; i++) {
+		let distance = getPerpendicularDistance(points[i], points[0], points[points.length - 1]);
+		if (distance > maxDistance) {
+			maxDistance = distance;
+			index = i;
+		}
+	}
+	if (maxDistance > epsilon) {
+		let results1 = simplifyPoints(points.slice(0, index + 1), epsilon);
+		let results2 = simplifyPoints(points.slice(index), epsilon);
+		return results1.slice(0, results1.length - 1).concat(results2);
+	} else {
+		return [points[0], points[points.length - 1]];
+	}
 }
 
 function distToSegment(x, y, x1, y1, x2, y2) {
@@ -30,35 +75,46 @@ const getBoundingBoxFromCoords = (s) => ({
 });
 
 const defaultHitTest = (s, x, y) => {
-	const tolerance = UI_CONSTANTS.HIT_TOLERANCE + (s.style.width || 1);
+	const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+	const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
+	let testX = x;
+	let testY = y;
+
+	if (s.style.rotate) {
+		const center = getShapeCenter(s);
+		const rad = -s.style.rotate * Math.PI / 180;
+		const rotated = rotatePoint(x, y, center.x, center.y, rad);
+		testX = rotated.x;
+		testY = rotated.y;
+	}
 	
 	const box = getBoundingBoxFromCoords(s);
-	if (x < box.minX - tolerance || x > box.maxX + tolerance || 
-		y < box.minY - tolerance || y > box.maxY + tolerance) {
+	if (testX < box.minX - tolerance || testX > box.maxX + tolerance || 
+		testY < box.minY - tolerance || testY > box.maxY + tolerance) {
 		return false;
 	}
 
 	if (s.type === 'line') {
-		return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < tolerance;
+		return distToSegment(testX, testY, s.x1, s.y1, s.x2, s.y2) < tolerance;
 	}
 
 	if (s.type === 'rect') {
 		if (s.style.fill) {
-			return x >= Math.min(s.x1, s.x2) && x <= Math.max(s.x1, s.x2) &&
-					 y >= Math.min(s.y1, s.y2) && y <= Math.max(s.y1, s.y2);
+			return testX >= Math.min(s.x1, s.x2) && testX <= Math.max(s.x1, s.x2) &&
+					 testY >= Math.min(s.y1, s.y2) && testY <= Math.max(s.y1, s.y2);
 		} else {
 			const xMin = Math.min(s.x1, s.x2), xMax = Math.max(s.x1, s.x2);
 			const yMin = Math.min(s.y1, s.y2), yMax = Math.max(s.y1, s.y2);
-			return (Math.abs(x - xMin) < tolerance && y >= yMin - tolerance && y <= yMax + tolerance) ||
-					 (Math.abs(x - xMax) < tolerance && y >= yMin - tolerance && y <= yMax + tolerance) ||
-					 (Math.abs(y - yMin) < tolerance && x >= xMin - tolerance && x <= xMax + tolerance) ||
-					 (Math.abs(y - yMax) < tolerance && x >= xMin - tolerance && x <= xMax + tolerance);
+			return (Math.abs(testX - xMin) < tolerance && testY >= yMin - tolerance && testY <= yMax + tolerance) ||
+					 (Math.abs(testX - xMax) < tolerance && testY >= yMin - tolerance && testY <= yMax + tolerance) ||
+					 (Math.abs(testY - yMin) < tolerance && testX >= xMin - tolerance && testX <= xMax + tolerance) ||
+					 (Math.abs(testY - yMax) < tolerance && testX >= xMin - tolerance && testX <= xMax + tolerance);
 		}
 	}
 
 	if (s.type === 'circle') {
 		const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
-		const d = Math.sqrt(Math.pow(x - s.x1, 2) + Math.pow(y - s.y1, 2));
+		const d = Math.sqrt(Math.pow(testX - s.x1, 2) + Math.pow(testY - s.y1, 2));
 		if (s.style.fill) return d <= r;
 		return Math.abs(d - r) < tolerance || d < tolerance;
 	}
@@ -71,8 +127,8 @@ const defaultHitTest = (s, x, y) => {
 		
 		if (rx === 0 || ry === 0) return false;
 		
-		const normDist = Math.pow((x - cx) / rx, 2) + Math.pow((y - cy) / ry, 2);
-		const distToCenter = Math.sqrt(Math.pow(x - cx, 2) + Math.pow(y - cy, 2));
+		const normDist = Math.pow((testX - cx) / rx, 2) + Math.pow((testY - cy) / ry, 2);
+		const distToCenter = Math.sqrt(Math.pow(testX - cx, 2) + Math.pow(testY - cy, 2));
 
 		if (s.style.fill) return normDist <= 1;
 		return (Math.abs(Math.sqrt(normDist) - 1) * Math.min(rx, ry) < tolerance) || distToCenter < tolerance;
@@ -85,14 +141,14 @@ const defaultHitTest = (s, x, y) => {
 
 		if (s.style.fill) {
 			const denominator = ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
-			const a = ((p2.y - p3.y) * (x - p3.x) + (p3.x - p2.x) * (y - p3.y)) / denominator;
-			const b = ((p3.y - p1.y) * (x - p3.x) + (p1.x - p3.x) * (y - p3.y)) / denominator;
+			const a = ((p2.y - p3.y) * (testX - p3.x) + (p3.x - p2.x) * (testY - p3.y)) / denominator;
+			const b = ((p3.y - p1.y) * (testX - p3.x) + (p1.x - p3.x) * (testY - p3.y)) / denominator;
 			const c = 1 - a - b;
 			return a >= 0 && a <= 1 && b >= 0 && b <= 1 && c >= 0 && c <= 1;
 		} else {
-			return distToSegment(x, y, p1.x, p1.y, p2.x, p2.y) < tolerance ||
-					 distToSegment(x, y, p2.x, p2.y, p3.x, p3.y) < tolerance ||
-					 distToSegment(x, y, p3.x, p3.y, p1.x, p1.y) < tolerance;
+			return distToSegment(testX, testY, p1.x, p1.y, p2.x, p2.y) < tolerance ||
+					 distToSegment(testX, testY, p2.x, p2.y, p3.x, p3.y) < tolerance ||
+					 distToSegment(testX, testY, p3.x, p3.y, p1.x, p1.y) < tolerance;
 		}
 	}
 	
@@ -104,11 +160,51 @@ const defaultMove = (s, dx, dy) => {
 	s.x2 += dx; s.y2 += dy;
 };
 
-const defaultResize = (s, mx, my, handle) => {
-	if (handle.includes('l')) s.x1 = mx;
-	if (handle.includes('r')) s.x2 = mx;
-	if (handle.includes('t')) s.y1 = my;
-	if (handle.includes('b')) s.y2 = my;
+const defaultResize = (s, mx, my, handle, maintainRatio = false, fromCenter = false) => {
+	let x1 = s.x1, y1 = s.y1, x2 = s.x2, y2 = s.y2;
+	let newX = mx, newY = my;
+
+	if (maintainRatio) {
+		const w = Math.abs(x2 - x1);
+		const h = Math.abs(y2 - y1);
+		const ratio = w / h || 1;
+		
+		let refX = (handle.includes('l')) ? x2 : x1;
+		let refY = (handle.includes('t')) ? y2 : y1;
+		
+		if (fromCenter) {
+			refX = (x1 + x2) / 2;
+			refY = (y1 + y2) / 2;
+		}
+
+		const dx = Math.abs(newX - refX);
+		const dy = Math.abs(newY - refY);
+
+		if (dx / ratio > dy) {
+			const signY = (newY < refY) ? -1 : 1;
+			newY = refY + (dx / ratio) * signY;
+		} else {
+			const signX = (newX < refX) ? -1 : 1;
+			newX = refX + (dy * ratio) * signX;
+		}
+	}
+
+	if (fromCenter) {
+		const cx = (x1 + x2) / 2;
+		const cy = (y1 + y2) / 2;
+		const dx = newX - cx;
+		const dy = newY - cy;
+		
+		if (handle.includes('l')) { s.x1 = cx + dx; s.x2 = cx - dx; }
+		if (handle.includes('r')) { s.x2 = cx + dx; s.x1 = cx - dx; }
+		if (handle.includes('t')) { s.y1 = cy + dy; s.y2 = cy - dy; }
+		if (handle.includes('b')) { s.y2 = cy + dy; s.y1 = cy - dy; }
+	} else {
+		if (handle.includes('l')) s.x1 = newX;
+		if (handle.includes('r')) s.x2 = newX;
+		if (handle.includes('t')) s.y1 = newY;
+		if (handle.includes('b')) s.y2 = newY;
+	}
 };
 
 const defaultGetHandles = (s) => {
@@ -145,9 +241,79 @@ const createShapeDef = (type, overrides) => {
 	};
 };
 
+function rotatePoint(x, y, cx, cy, angle) {
+	const cos = Math.cos(angle);
+	const sin = Math.sin(angle);
+	const dx = x - cx;
+	const dy = y - cy;
+	return {
+		x: cx + dx * cos - dy * sin,
+		y: cy + dx * sin + dy * cos
+	};
+}
+
+function getShapeCenter(s) {
+	if (s.type === 'polygon' || s.type === 'star') {
+		return { x: s.x1, y: s.y1 };
+	}
+	const box = ShapeManager[s.type].getBoundingBox(s);
+	return {
+		x: (box.minX + box.maxX) / 2,
+		y: (box.minY + box.maxY) / 2
+	};
+}
+
 /* --- */
 
 const GLOBAL_SETTINGS_CONFIG = {
+	genPreamble: {
+		label: 'Générer Préambule',
+		type: 'checkbox',
+		defaultValue: false
+	},
+	docClass: {
+		label: 'Classe',
+		type: 'select',
+		defaultValue: 'standalone',
+		options: {
+			'standalone': 'Standalone',
+			'article': 'Article',
+			'report': 'Report',
+			'beamer': 'Beamer'
+		}
+	},
+	globalLineWidth: {
+		label: 'Trait Global',
+		type: 'select',
+		defaultValue: 'semithick',
+		options: {
+			'ultra thin': 'Ultra fin',
+			'very thin': 'Très fin',
+			'thin': 'Fin',
+			'semithick': 'Demi-épais (Défaut)',
+			'thick': 'Épais',
+			'very thick': 'Très épais',
+			'ultra thick': 'Ultra épais'
+		}
+	},
+	globalArrow: {
+		label: 'Flèche Globale',
+		type: 'select',
+		defaultValue: 'stealth',
+		options: {
+			'stealth': 'Stealth',
+			'latex': 'LaTeX',
+			'to': 'Standard',
+			'triangle 45': 'Triangle',
+			'circle': 'Cercle',
+			'diamond': 'Losange'
+		}
+	},
+	exportGrid: {
+		label: 'Exporter Grille',
+		type: 'checkbox',
+		defaultValue: false
+	},
 	figLabel: {
 		label: 'Label (ex: fig:mon_schema)',
 		type: 'text',
@@ -166,9 +332,9 @@ const GLOBAL_SETTINGS_CONFIG = {
 		unit: 'x'
 	},
 	canvasZoom: {
-		label: 'Zoom Grille (Visualisation)',
+		label: 'Zoom Grille (Vue)',
 		type: 'range',
-		defaultValue: 40,
+		defaultValue: 20,
 		min: 10, max: 100, step: 5,
 		unit: 'px'
 	},
@@ -186,7 +352,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-pointer"></i>',
 		cursor: 'default',
 		group: 'general',
-		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'rotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	duplicate: {
 		displayName: 'Dupliquer',
@@ -208,7 +374,7 @@ const TOOL_CONFIG = {
 		displayName: 'Premier plan',
 		handler: 'RaiseTool',
 		icon: '<i class="ti ti-arrow-bar-to-up"></i>',
-		cursor: 'alias',
+		cursor: 'default',
 		group: 'general',
 		allow: []
 	},
@@ -216,7 +382,7 @@ const TOOL_CONFIG = {
 		displayName: 'Arrière plan',
 		handler: 'LowerTool',
 		icon: '<i class="ti ti-arrow-bar-to-down"></i>',
-		cursor: 'alias',
+		cursor: 'default',
 		group: 'general',
 		allow: []
 	},
@@ -226,7 +392,15 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-text-size">T</i>',
 		cursor: 'text',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'strokeColor', 'opacity']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'rotate', 'textSlant', 'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'strokeColor', 'opacity']
+	},
+	freehand: {
+		displayName: 'Crayon',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-pencil"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	line: {
 		displayName: 'Ligne',
@@ -234,7 +408,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-line"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'rotate', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	rect: {
 		displayName: 'Rectangle',
@@ -242,7 +416,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-rectangle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	circle: {
 		displayName: 'Cercle',
@@ -250,7 +424,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-circle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	ellipse: {
 		displayName: 'Ellipse',
@@ -258,7 +432,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-oval"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	triangle: {
 		displayName: 'Triangle',
@@ -266,7 +440,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-triangle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	diamond: {
 		displayName: 'Losange',
@@ -274,7 +448,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	grid: {
 		displayName: 'Grille',
@@ -282,7 +456,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-grid-4x4"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['gridStep', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['gridStep', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	axes: {
 		displayName: 'Axes',
@@ -290,7 +464,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-axis-arrow"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	arc: {
 		displayName: 'Arc',
@@ -298,7 +472,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-angle-acute"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	curve: {
 		displayName: 'Courbe',
@@ -306,7 +480,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-vector-curve"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	wave: {
 		displayName: 'Onde',
@@ -314,7 +488,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-wave-sine"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['waveType', 'waveAmplitude', 'waveLength', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['waveType', 'waveAmplitude', 'rotate', 'waveLength', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	polygon: {
 		displayName: 'Polygone',
@@ -322,7 +496,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-polygon"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['polySides', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['polySides', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	star: {
 		displayName: 'Étoile',
@@ -330,7 +504,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-star"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['starPoints', 'starRatio', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	resistor: {
 		displayName: 'Résistance',
@@ -338,7 +512,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-wave-square"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'lineWidth', 'rotate', 'opacity', 'strokeColor']
 	},
 	capacitor: {
 		displayName: 'Condensateur',
@@ -346,7 +520,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-pause"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	inductor: {
 		displayName: 'Bobine',
@@ -354,7 +528,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-infinity"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	diode: {
 		displayName: 'Diode',
@@ -362,7 +536,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-play" style="font-size: 0.7em;"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	source_dc: {
 		displayName: 'Source DC',
@@ -370,7 +544,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-car-battery"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	source_ac: {
 		displayName: 'Source AC',
@@ -378,7 +552,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-water"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	lamp: {
 		displayName: 'Lampe',
@@ -386,7 +560,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-regular fa-lightbulb"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	switch: {
 		displayName: 'Interrupteur',
@@ -394,7 +568,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-toggle-off"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	ground: {
 		displayName: 'Masse',
@@ -402,7 +576,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-arrow-down"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	lens_convex: {
 		displayName: 'Lentille Convergente',
@@ -410,7 +584,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-magnify"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	lens_concave: {
 		displayName: 'Lentille Divergente',
@@ -418,7 +592,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-magnify-minus"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	mirror: {
 		displayName: 'Miroir',
@@ -426,7 +600,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-mirror"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	logic_and: {
 		displayName: 'Porte ET',
@@ -434,7 +608,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-and"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	logic_or: {
 		displayName: 'Porte OU',
@@ -442,7 +616,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-or"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	logic_not: {
 		displayName: 'Porte NON',
@@ -450,7 +624,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-not"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	flow_start: {
 		displayName: 'Début/Fin',
@@ -458,7 +632,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-player-record"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	flow_process: {
 		displayName: 'Processus',
@@ -466,7 +640,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-settings"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	flow_decision: {
 		displayName: 'Décision',
@@ -474,7 +648,7 @@ const TOOL_CONFIG = {
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 };
 
@@ -540,15 +714,62 @@ const SETTINGS_CONFIG = {
 		},
 		tikzValue: (v) => null
 	},
-	textRotate: {
+	rotate: {
 		label: 'Rotation',
 		type: 'range',
-		propName: 'textRotate',
+		propName: 'rotate',
 		defaultValue: 0,
-		min: 0, max: 360, step: 5,
+		min: 0, max: 360, step: 1,
 		unit: '°',
 		tikzKey: 'rotate',
-		tikzValue: (v) => v === 0 ? null : v
+		tikzValue: (v) => (!v || v === 0) ? null : v
+	},
+	smoothness: {
+		label: 'Lissage',
+		type: 'range',
+		propName: 'tension',
+		defaultValue: 0.7,
+		min: 0, max: 2, step: 0.1,
+		unit: '',
+		tikzKey: 'tension',
+		excludeFrom: ['line', 'rect', 'circle', 'ellipse', 'triangle', 'diamond', 'grid', 'axes', 'arc', 'curve', 'wave', 'polygon', 'star', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision']
+	},
+	simplifyTolerance: {
+		label: 'Simplification',
+		type: 'range',
+		propName: 'simplifyTolerance',
+		defaultValue: 2,
+		min: 0.1, max: 20, step: 0.1,
+		unit: 'px',
+		tikzValue: (v) => null
+	},
+	isClosed: {
+		label: 'Fermer la forme',
+		type: 'checkbox',
+		propName: 'isClosed',
+		defaultValue: false,
+		tikzValue: (v) => null
+	},
+	freehandMode: {
+		label: 'Type de tracé',
+		type: 'select',
+		propName: 'freehandMode',
+		defaultValue: 'smooth',
+		options: {
+			'smooth': 'Courbe (Lissé)',
+			'sharp': 'Linéaire (Brut)',
+			'rounded': 'Arrondi'
+		},
+		tikzValue: (v) => null
+	},
+	cornerRadius: {
+		label: 'Rayon des coins',
+		type: 'range',
+		propName: 'cornerRadius',
+		defaultValue: 5,
+		min: 1, max: 50, step: 1,
+		unit: 'pt',
+		tikzValue: (v) => null
 	},
 	textAnchor: {
 		label: 'Ancrage TikZ',
@@ -772,11 +993,17 @@ const UI_CONSTANTS = {
 	HANDLE_COLOR: '#ff4757',
 	HANDLE_SIZE: 10,
 	HANDLE_HIT_RADIUS: 12,
-	GRID_RENDER_COLOR: '#e1e4e8',
+	ROTATION_HANDLE_OFFSET: 25,
+	GRID_RENDER_COLOR: 'rgba(94, 106, 94, 0.3)',
 	AXES_RENDER_COLOR: '#000000',
 	AXIS_HELPER_COLOR: 'rgba(94, 106, 210, 0.2)',
 	CONTROL_LINE_COLOR: '#9496a1',
-	HIT_TOLERANCE: 8
+	HIT_TOLERANCE: 8,
+	SNAP_DISTANCE: 10,
+	GUIDE_THRESHOLD: 5,
+	ANCHOR_SNAP_RADIUS: 15,
+	MIN_ZOOM: 0.1,
+	MAX_ZOOM: 5
 };
 
 const ShapeManager = {
@@ -795,10 +1022,6 @@ const ShapeManager = {
 			const fontFamily = fontMap[s.style.textFont] || 'sans-serif';
 			const weight = s.style.textWeight === 'bfseries' ? 'bold ' : '';
 			const slant = s.style.textSlant === 'itshape' ? 'italic ' : '';
-			
-			ctx.save();
-			ctx.translate(s.x1, s.y1);
-			ctx.rotate((s.style.textRotate || 0) * Math.PI / 180);
 			
 			const anchors = {
 				'center': { x: 'center', y: 'middle' },
@@ -821,18 +1044,15 @@ const ShapeManager = {
 
 			const lines = (s.style.text || 'Texte').split('\\\\');
 			const lineHeight = fontSize * 1.2;
-			const totalHeight = lines.length * lineHeight;
-			let currentY = 0;
+			let currentY = s.y1;
 
-			if (anchor.y === 'middle') currentY = -((lines.length - 1) * lineHeight) / 2;
-			else if (anchor.y === 'bottom') currentY = -(lines.length - 1) * lineHeight;
+			if (anchor.y === 'middle') currentY -= ((lines.length - 1) * lineHeight) / 2;
+			else if (anchor.y === 'bottom') currentY -= (lines.length - 1) * lineHeight;
 
 			lines.forEach(line => {
-				ctx.fillText(line.trim(), 0, currentY);
+				ctx.fillText(line.trim(), s.x1, currentY);
 				currentY += lineHeight;
 			});
-
-			ctx.restore();
 		},
 		toTikZ: (s) => {
 			const text = s.style.text || 'Texte';
@@ -846,7 +1066,7 @@ const ShapeManager = {
 			const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape ' : '';
 			const familyCmd = fontCmd ? `${fontCmd} ` : '';
 			const innerContent = `${familyCmd}${weightCmd}${slantCmd}${text}`;
-			return `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node {${innerContent}};`;
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) node {${innerContent}};`;
 		},
 		getBoundingBox: (s) => {
 			const sizeMap = {
@@ -924,7 +1144,7 @@ const ShapeManager = {
 			ctx.lineTo(s.x2, s.y2);
 			ctx.stroke();
 		},
-		toTikZ: (s) => `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) -- (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) -- (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		onDown: (x, y, style) => ({ type: 'line', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
 		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
 		getHandles: (s) => [
@@ -936,8 +1156,174 @@ const ShapeManager = {
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
 		hitTest: (s, x, y) => {
-			const t = UI_CONSTANTS.HIT_TOLERANCE + (s.style.width || 1);
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const t = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < t;
+		}
+	}),
+	freehand: createShapeDef('freehand', {
+		extraProps: { points: [] },
+		onDown: (x, y, style) => ({
+			type: 'freehand',
+			points: [{ x, y }],
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: { 
+				...style,
+				simplifyTolerance: style.simplifyTolerance || 2,
+				isClosed: style.isClosed || false,
+				freehandMode: style.freehandMode || 'smooth',
+				cornerRadius: style.cornerRadius || 5
+			}
+		}),
+		onDrag: (s, x, y) => {
+			s.points.push({ x, y });
+			s.x1 = Math.min(s.x1, x);
+			s.y1 = Math.min(s.y1, y);
+			s.x2 = Math.max(s.x2, x);
+			s.y2 = Math.max(s.y2, y);
+		},
+		render: (s, ctx) => {
+			if (s.points.length < 2) return;
+			
+			const mode = s.style.freehandMode || 'smooth';
+			
+			ctx.beginPath();
+			
+			if (mode === 'rounded' && s.points.length > 2) {
+				const radius = (s.style.cornerRadius || 5) * (window.app ? window.app.view.scale : 1) / 2; 
+				ctx.moveTo(s.points[0].x, s.points[0].y);
+				for (let i = 1; i < s.points.length - 1; i++) {
+					const p0 = s.points[i-1];
+					const p1 = s.points[i];
+					const p2 = s.points[i+1];
+					ctx.arcTo(p1.x, p1.y, p2.x, p2.y, radius);
+				}
+				ctx.lineTo(s.points[s.points.length - 1].x, s.points[s.points.length - 1].y);
+			} else {
+				ctx.moveTo(s.points[0].x, s.points[0].y);
+				for (let i = 1; i < s.points.length; i++) {
+					ctx.lineTo(s.points[i].x, s.points[i].y);
+				}
+			}
+
+			if (s.style.isClosed) {
+				ctx.closePath();
+			}
+
+			if (s.style.isClosed && s.style.fill) {
+				ctx.fillStyle = s.style.fill;
+				ctx.fill();
+			}
+			
+			ctx.stroke();
+		},
+		toTikZ: (s) => {
+			const simplifyVal = s.style.simplifyTolerance !== undefined ? s.style.simplifyTolerance : 2;
+			const simplified = simplifyPoints(s.points, simplifyVal);
+			const coords = simplified.map((p, i) => `(${toTikZ(p.x, false, s.id, `points.${i}.x`)},${toTikZ(p.y, true, s.id, `points.${i}.y`)})`).join(' ');
+			
+			const tension = s.style.tension !== undefined ? s.style.tension : 0.7;
+			const isClosed = s.style.isClosed;
+			const mode = s.style.freehandMode || 'smooth';
+			const radius = s.style.cornerRadius || 5;
+
+			let extraOpts = '';
+			
+			if (mode === 'smooth') {
+				extraOpts = isClosed ? `, smooth cycle, tension=${tension}` : `, smooth, tension=${tension}`;
+			} else if (mode === 'rounded') {
+				extraOpts = `, rounded corners=${radius}pt`;
+				if (isClosed) extraOpts += ' cycle'; 
+			} else {
+				extraOpts = ', sharp plot';
+				if (isClosed) extraOpts += ' cycle';
+			}
+			
+			let opts = buildTikzOptions(s);
+			opts = opts ? opts.slice(0, -1) + extraOpts + ']' : `[${extraOpts.startsWith(',') ? extraOpts.substring(2) : extraOpts}]`;
+			
+			if (mode === 'smooth' || mode === 'rounded' || mode === 'sharp') {
+				return `\\draw${opts} plot coordinates {${coords}};`;
+			}
+			
+			return `\\draw${opts} plot coordinates {${coords}};`;
+		},
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
+			
+			if (s.style.isClosed && s.style.fill) {
+				// Algorithme Ray-Casting pour point dans polygone
+				let inside = false;
+				for (let i = 0, j = s.points.length - 1; i < s.points.length; j = i++) {
+					const xi = s.points[i].x, yi = s.points[i].y;
+					const xj = s.points[j].x, yj = s.points[j].y;
+					const intersect = ((yi > y) !== (yj > y)) && (x < (xj - xi) * (y - yi) / (yj - yi) + xi);
+					if (intersect) inside = !inside;
+				}
+				if (inside) return true;
+			}
+
+			for (let i = 0; i < s.points.length - 1; i++) {
+				if (distToSegment(x, y, s.points[i].x, s.points[i].y, s.points[i+1].x, s.points[i+1].y) < tolerance) {
+					return true;
+				}
+			}
+			
+			if (s.style.isClosed) {
+				if (distToSegment(x, y, s.points[s.points.length-1].x, s.points[s.points.length-1].y, s.points[0].x, s.points[0].y) < tolerance) {
+					return true;
+				}
+			}
+			
+			return false;
+		},
+		move: (s, dx, dy) => {
+			s.x1 += dx; s.y1 += dy;
+			s.x2 += dx; s.y2 += dy;
+			for (let i = 0; i < s.points.length; i++) {
+				s.points[i].x += dx;
+				s.points[i].y += dy;
+			}
+		},
+		resize: (s, mx, my, handle) => {
+			const oldBounds = ShapeManager.freehand.getBoundingBox(s);
+			const oldW = oldBounds.maxX - oldBounds.minX;
+			const oldH = oldBounds.maxY - oldBounds.minY;
+			
+			if (handle.includes('l')) s.x1 = mx;
+			if (handle.includes('r')) s.x2 = mx;
+			if (handle.includes('t')) s.y1 = my;
+			if (handle.includes('b')) s.y2 = my;
+			
+			const newW = s.x2 - s.x1;
+			const newH = s.y2 - s.y1;
+			
+			if (oldW > 0 && oldH > 0) {
+				for (let i = 0; i < s.points.length; i++) {
+					const relX = (s.points[i].x - oldBounds.minX) / oldW;
+					const relY = (s.points[i].y - oldBounds.minY) / oldH;
+					s.points[i].x = s.x1 + relX * newW;
+					s.points[i].y = s.y1 + relY * newH;
+				}
+			}
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'tl', cursor: 'nwse-resize' },
+			{ x: s.x2, y: s.y1, pos: 'tr', cursor: 'nesw-resize' },
+			{ x: s.x2, y: s.y2, pos: 'br', cursor: 'nwse-resize' },
+			{ x: s.x1, y: s.y2, pos: 'bl', cursor: 'nesw-resize' }
+		],
+		getBoundingBox: (s) => {
+			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+			for(const p of s.points) {
+				if(p.x < minX) minX = p.x;
+				if(p.x > maxX) maxX = p.x;
+				if(p.y < minY) minY = p.y;
+				if(p.y > maxY) maxY = p.y;
+			}
+			return { minX, minY, maxX, maxY };
 		}
 	}),
 	rect: createShapeDef('rect', {
@@ -945,7 +1331,7 @@ const ShapeManager = {
 			if (s.style.fill) ctx.fillRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
 			ctx.strokeRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
 		},
-		toTikZ: (s) => `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) rectangle (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`
+		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) rectangle (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`
 	}),
 	circle: createShapeDef('circle', {
 		render: (s, ctx) => {
@@ -955,27 +1341,34 @@ const ShapeManager = {
 			ctx.stroke();
 		},
 		toTikZ: (s) => {
-			const r = toTikZ(Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2)));
-			return `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) circle (${r});`;
+			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) circle (${toTikZ(r, false, s.id, 'radius')});`;
 		},
 		getBoundingBox: (s) => {
 			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
 			return { minX: s.x1 - r, minY: s.y1 - r, maxX: s.x1 + r, maxY: s.y1 + r };
 		},
-		resize: (s, mx, my, handle) => {
+		resize: (s, mx, my, handle, maintainRatio, fromCenter) => {
 			if (handle === 'center') {
 				const dx = mx - s.x1;
 				const dy = my - s.y1;
-				s.x1 += dx;
-				s.y1 += dy;
-				s.x2 += dx;
-				s.y2 += dy;
+				s.x1 += dx; s.y1 += dy;
+				s.x2 += dx; s.y2 += dy;
 			} else {
-				const dx = mx - s.x1;
-				const dy = my - s.y1;
-				const r = Math.sqrt(dx*dx + dy*dy);
-				s.x2 = s.x1 + r;
-				s.y2 = s.y1;
+				let cx = s.x1, cy = s.y1;
+				if (fromCenter) {
+					const dx = Math.abs(mx - cx);
+					const dy = Math.abs(my - cy);
+					const r = Math.sqrt(dx*dx + dy*dy);
+					s.x2 = s.x1 + r;
+					s.y2 = s.y1;
+				} else {
+					const dx = mx - s.x1;
+					const dy = my - s.y1;
+					const r = Math.sqrt(dx*dx + dy*dy);
+					s.x2 = s.x1 + r;
+					s.y2 = s.y1;
+				}
 			}
 		},
 		getHandles: (s) => {
@@ -1000,31 +1393,45 @@ const ShapeManager = {
 			ctx.stroke();
 		},
 		toTikZ: (s) => {
-			const rx = toTikZ(Math.abs(s.x2 - s.x1));
-			const ry = toTikZ(Math.abs(s.y2 - s.y1));
-			return `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) ellipse (${rx} and ${ry});`;
+			const rx = Math.abs(s.x2 - s.x1);
+			const ry = Math.abs(s.y2 - s.y1);
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) ellipse (${toTikZ(rx, false, s.id, 'rx')} and ${toTikZ(ry, false, s.id, 'ry')});`;
 		},
 		getBoundingBox: (s) => {
 			const rx = Math.abs(s.x2 - s.x1);
 			const ry = Math.abs(s.y2 - s.y1);
 			return { minX: s.x1 - rx, minY: s.y1 - ry, maxX: s.x1 + rx, maxY: s.y1 + ry };
 		},
-		resize: (s, mx, my, handle) => {
+		resize: (s, mx, my, handle, maintainRatio, fromCenter) => {
 			if (handle === 'center') {
 				const dx = mx - s.x1;
 				const dy = my - s.y1;
 				const rx = s.x2 - s.x1;
 				const ry = s.y2 - s.y1;
-				s.x1 = mx;
-				s.y1 = my;
-				s.x2 = s.x1 + rx;
-				s.y2 = s.y1 + ry;
-			} else if (handle === 'n' || handle === 's') {
-				const ry = Math.abs(my - s.y1);
-				s.y2 = s.y1 + ry;
-			} else if (handle === 'w' || handle === 'e') {
-				const rx = Math.abs(mx - s.x1);
-				s.x2 = s.x1 + rx;
+				s.x1 = mx; s.y1 = my;
+				s.x2 = s.x1 + rx; s.y2 = s.y1 + ry;
+			} else {
+				let rx = Math.abs(s.x2 - s.x1);
+				let ry = Math.abs(s.y2 - s.y1);
+				
+				if (handle === 'n' || handle === 's') ry = Math.abs(my - s.y1);
+				if (handle === 'w' || handle === 'e') rx = Math.abs(mx - s.x1);
+
+				if (maintainRatio) {
+					const oldRx = Math.abs(s.x2 - s.x1);
+					const oldRy = Math.abs(s.y2 - s.y1);
+					const ratio = oldRx / oldRy;
+					if (handle === 'n' || handle === 's') rx = ry * ratio;
+					else ry = rx / ratio;
+				}
+
+				if (fromCenter) {
+					s.x2 = s.x1 + rx;
+					s.y2 = s.y1 + ry;
+				} else {
+					s.x2 = s.x1 + rx;
+					s.y2 = s.y1 + ry;
+				}
 			}
 		},
 		getHandles: (s) => {
@@ -1068,9 +1475,9 @@ const ShapeManager = {
 			ctx.stroke();
 		},
 		toTikZ: (s) => {
-			const p1 = `(${toTikZ(s.x1)},${toTikZ(s.y1, true)})`;
-			const p2 = `(${toTikZ(s.x2)},${toTikZ(s.y2, true)})`;
-			const p3 = `(${toTikZ(s.x3)},${toTikZ(s.y3, true)})`;
+			const p1 = `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})`;
+			const p2 = `(${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})`;
+			const p3 = `(${toTikZ(s.x3, false, s.id, 'x3')},${toTikZ(s.y3, true, s.id, 'y3')})`;
 			return `${p1} -- ${p2} -- ${p3} -- cycle;`;
 		},
 		move: (s, dx, dy) => {
@@ -1114,22 +1521,19 @@ const ShapeManager = {
 			ctx.stroke();
 		},
 		toTikZ: (s) => {
-			const minX = Math.min(s.x1, s.x2);
-			const minY = Math.min(s.y1, s.y2);
-			const maxX = Math.max(s.x1, s.x2);
-			const maxY = Math.max(s.y1, s.y2);
-			const cx = (minX + maxX) / 2;
-			const cy = (minY + maxY) / 2;
-			
-			const p1 = `(${toTikZ(cx)},${toTikZ(minY, true)})`;
-			const p2 = `(${toTikZ(maxX)},${toTikZ(cy, true)})`;
-			const p3 = `(${toTikZ(cx)},${toTikZ(maxY, true)})`;
-			const p4 = `(${toTikZ(minX)},${toTikZ(cy, true)})`;
+			const cx = (s.x1 + s.x2) / 2;
+			const cy = (s.y1 + s.y2) / 2;
+
+			const p1 = `(${toTikZ(cx, false, s.id, 'cx')},${toTikZ(s.y1, true, s.id, 'y1')})`;
+			const p2 = `(${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(cy, true, s.id, 'cy')})`;
+			const p3 = `(${toTikZ(cx, false, s.id, 'cx')},${toTikZ(s.y2, true, s.id, 'y2')})`;
+			const p4 = `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(cy, true, s.id, 'cy')})`;
 
 			return `${p1} -- ${p2} -- ${p3} -- ${p4} -- cycle;`;
 		},
 		hitTest: (s, x, y) => {
-			const tolerance = UI_CONSTANTS.HIT_TOLERANCE + (s.style.width || 1);
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			const minX = Math.min(s.x1, s.x2);
 			const minY = Math.min(s.y1, s.y2);
 			const maxX = Math.max(s.x1, s.x2);
@@ -1196,7 +1600,7 @@ const ShapeManager = {
 				const angle = startAngle + (i * 2 * Math.PI / sides);
 				const px = s.x1 + radius * Math.cos(angle);
 				const py = s.y1 + radius * Math.sin(angle);
-				coords.push(`(${toTikZ(px)},${toTikZ(py, true)})`);
+				coords.push(`(${toTikZ(px, false, s.id, `p${i}x`)},${toTikZ(py, true, s.id, `p${i}y`)})`);
 			}
 			return `${coords.join(' -- ')} -- cycle;`;
 		},
@@ -1266,7 +1670,7 @@ const ShapeManager = {
 				const angle = startAngle + i * step;
 				const px = s.x1 + r * Math.cos(angle);
 				const py = s.y1 + r * Math.sin(angle);
-				coords.push(`(${toTikZ(px)},${toTikZ(py, true)})`);
+				coords.push(`(${toTikZ(px, false, s.id, `p${i}x`)},${toTikZ(py, true, s.id, `p${i}y`)})`);
 			}
 			return `${coords.join(' -- ')} -- cycle;`;
 		},
@@ -1334,7 +1738,7 @@ const ShapeManager = {
 			const y1 = Math.min(s.y1, s.y2);
 			const x2 = Math.max(s.x1, s.x2);
 			const y2 = Math.max(s.y1, s.y2);
-			return `\\draw${opts} (${toTikZ(x1)},${toTikZ(y1, true)}) grid[step=${step}] (${toTikZ(x2)},${toTikZ(y2, true)});`;
+			return `\\draw${opts} (${toTikZ(x1, false, s.id, 'x1')},${toTikZ(y1, true, s.id, 'y1')}) grid[step=${step}] (${toTikZ(x2, false, s.id, 'x2')},${toTikZ(y2, true, s.id, 'y2')});`;
 		},
 		isStandaloneCommand: true
 	}),
@@ -1354,11 +1758,12 @@ const ShapeManager = {
 			const arrowOpt = s.style.arrow !== 'none' ? s.style.arrow : '';
 			const baseOpts = opts || '[]';
 			const finalOpts = baseOpts.replace(']', (arrowOpt ? ',' + arrowOpt : '') + ']');
-			return `\\draw${finalOpts} (${toTikZ(s.x1)},${toTikZ(s.y2, true)}) -- (${toTikZ(s.x2)},${toTikZ(s.y2, true)}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1)},${toTikZ(s.y2, true)}) -- (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node[above] {$y$};`;
+			return `\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x2, false, s.id, 'x_end')},${toTikZ(s.y2, true, s.id, 'y_origin')}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y1, true, s.id, 'y_end')}) node[above] {$y$};`;
 		},
 		isStandaloneCommand: true,
 		hitTest: (s, x, y) => {
-			const t = UI_CONSTANTS.HIT_TOLERANCE + s.style.width;
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const t = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			return distToSegment(x, y, s.x1, s.y2, s.x2, s.y2) < t ||
 					 distToSegment(x, y, s.x1, s.y2, s.x1, s.y1) < t;
 		}
@@ -1388,8 +1793,8 @@ const ShapeManager = {
 		toTikZ: (s) => {
 			const startDeg = Math.round(s.startAngle * 180 / Math.PI);
 			const endDeg = Math.round(s.endAngle * 180 / Math.PI);
-			const r = toTikZ(s.radius);
-			return `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) arc (${startDeg}:${endDeg}:${r});`;
+			const r = toTikZ(s.radius, false, s.id, 'radius');
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) arc (${startDeg}:${endDeg}:${r});`;
 		},
 		move: (s, dx, dy) => {
 			s.x1 += dx; s.y1 += dy;
@@ -1435,7 +1840,8 @@ const ShapeManager = {
 			const dx = x - s.x1;
 			const dy = y - s.y1;
 			const dist = Math.sqrt(dx*dx + dy*dy);
-			const t = UI_CONSTANTS.HIT_TOLERANCE + (s.style.width || 1);
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const t = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			
 			if (Math.abs(dist - s.radius) > t) return false;
 			
@@ -1481,12 +1887,45 @@ const ShapeManager = {
 			ctx.bezierCurveTo(s.cp1x, s.cp1y, s.cp2x, s.cp2y, s.x2, s.y2);
 			ctx.stroke();
 		},
-		toTikZ: (s) => `(${toTikZ(s.x1)},${toTikZ(s.y1, true)}) .. controls (${toTikZ(s.cp1x)},${toTikZ(s.cp1y, true)}) and (${toTikZ(s.cp2x)},${toTikZ(s.cp2y, true)}) .. (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) .. controls (${toTikZ(s.cp1x, false, s.id, 'cp1x')},${toTikZ(s.cp1y, true, s.id, 'cp1y')}) and (${toTikZ(s.cp2x, false, s.id, 'cp2x')},${toTikZ(s.cp2y, true, s.id, 'cp2y')}) .. (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getBoundingBox: (s) => {
-			const minX = Math.min(s.x1, s.x2, s.cp1x, s.cp2x);
-			const minY = Math.min(s.y1, s.y2, s.cp1y, s.cp2y);
-			const maxX = Math.max(s.x1, s.x2, s.cp1x, s.cp2x);
-			const maxY = Math.max(s.y1, s.y2, s.cp1y, s.cp2y);
+			const { x1: x0, y1: y0, x2: x3, y2: y3, cp1x: x1, cp1y: y1, cp2x: x2, cp2y: y2 } = s;
+			let minX = Math.min(x0, x3);
+			let maxX = Math.max(x0, x3);
+			let minY = Math.min(y0, y3);
+			let maxY = Math.max(y0, y3);
+
+			const solve = (a, b, c) => {
+				if (Math.abs(a) < 1e-9) return Math.abs(b) < 1e-9 ? [] : [-c / b];
+				const d = b * b - 4 * a * c;
+				if (d < 0) return [];
+				const sqrtD = Math.sqrt(d);
+				return [(-b + sqrtD) / (2 * a), (-b - sqrtD) / (2 * a)];
+			};
+
+			const checkBounds = (p0, p1, p2, p3, axis) => {
+				const a = 3 * (-p0 + 3 * p1 - 3 * p2 + p3);
+				const b = 6 * (p0 - 2 * p1 + p2);
+				const c = 3 * (p1 - p0);
+				const roots = solve(a, b, c);
+				
+				roots.forEach(t => {
+					if (t > 0 && t < 1) {
+						const val = Math.pow(1 - t, 3) * p0 + 3 * Math.pow(1 - t, 2) * t * p1 + 3 * (1 - t) * t * t * p2 + t * t * t * p3;
+						if (axis === 'x') {
+							minX = Math.min(minX, val);
+							maxX = Math.max(maxX, val);
+						} else {
+							minY = Math.min(minY, val);
+							maxY = Math.max(maxY, val);
+						}
+					}
+				});
+			};
+
+			checkBounds(x0, x1, x2, x3, 'x');
+			checkBounds(y0, y1, y2, y3, 'y');
+
 			return { minX, minY, maxX, maxY };
 		},
 		move: (s, dx, dy) => {
@@ -1531,15 +1970,42 @@ const ShapeManager = {
 			});
 		},
 		hitTest: (s, x, y) => {
-			const t = UI_CONSTANTS.HIT_TOLERANCE + s.style.width;
-			for(let i=0; i<=40; i++) {
-				const t_val = i / 40;
-				const invT = 1 - t_val;
-				const px = invT*invT*invT*s.x1 + 3*invT*invT*t_val*s.cp1x + 3*invT*t_val*t_val*s.cp2x + t_val*t_val*t_val*s.x2;
-				const py = invT*invT*invT*s.y1 + 3*invT*invT*t_val*s.cp1y + 3*invT*t_val*t_val*s.cp2y + t_val*t_val*t_val*s.y2;
-				if(Math.abs(x - px) < t && Math.abs(y - py) < t) return true;
-			}
-			return false;
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
+			const tolSq = tolerance * tolerance;
+
+			const isFlat = (x0, y0, x1, y1, x2, y2, x3, y3) => {
+				const ux = 3*x1 - 2*x0 - x3, uy = 3*y1 - 2*y0 - y3;
+				const vx = 3*x2 - 2*x3 - x0, vy = 3*y2 - 2*y3 - y0;
+				const mx = Math.max(ux*ux, vx*vx);
+				const my = Math.max(uy*uy, vy*vy);
+				return mx + my <= 16 * tolSq; 
+			};
+
+			const recursiveCheck = (x0, y0, x1, y1, x2, y2, x3, y3) => {
+				const minX = Math.min(x0, x1, x2, x3) - tolerance;
+				const maxX = Math.max(x0, x1, x2, x3) + tolerance;
+				const minY = Math.min(y0, y1, y2, y3) - tolerance;
+				const maxY = Math.max(y0, y1, y2, y3) + tolerance;
+
+				if (x < minX || x > maxX || y < minY || y > maxY) return false;
+
+				if (isFlat(x0, y0, x1, y1, x2, y2, x3, y3)) {
+					return distToSegment(x, y, x0, y0, x3, y3) < tolerance;
+				}
+
+				const x01 = (x0+x1)/2, y01 = (y0+y1)/2;
+				const x12 = (x1+x2)/2, y12 = (y1+y2)/2;
+				const x23 = (x2+x3)/2, y23 = (y2+y3)/2;
+				const x012 = (x01+x12)/2, y012 = (y01+y12)/2;
+				const x123 = (x12+x23)/2, y123 = (y12+y23)/2;
+				const x0123 = (x012+x123)/2, y0123 = (y012+y123)/2;
+
+				return recursiveCheck(x0, y0, x01, y01, x012, y012, x0123, y0123) ||
+					   recursiveCheck(x0123, y0123, x123, y123, x23, y23, x3, y3);
+			};
+
+			return recursiveCheck(s.x1, s.y1, s.cp1x, s.cp1y, s.cp2x, s.cp2y, s.x2, s.y2);
 		}
 	}),
 	wave: createShapeDef('wave', {
@@ -1603,7 +2069,7 @@ const ShapeManager = {
 			const dist = Math.sqrt(dx*dx + dy*dy);
 			const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 			
-			const len = toTikZ(dist);
+			const len = toTikZ(dist, false, s.id, 'length');
 			const amp = s.style.waveAmplitude || 0.5;
 			const lambda = s.style.waveLength || 1;
 			
@@ -1627,7 +2093,7 @@ const ShapeManager = {
 			}
 			
 			const opts = buildTikzOptions(s);
-			return `\\draw${opts} [shift={(${toTikZ(s.x1)},${toTikZ(s.y1, true)})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(len * 20)}, variable=\\x] (\\x, ${plotFunc});`;
+			return `\\draw${opts} [shift={(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(len * 20)}, variable=\\x] (\\x, ${plotFunc});`;
 		},
 		getHandles: (s) => [
 			{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' },
@@ -1638,7 +2104,8 @@ const ShapeManager = {
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
 		hitTest: (s, x, y) => {
-			const t = UI_CONSTANTS.HIT_TOLERANCE + (s.style.width || 1) + (s.style.waveAmplitude || 0.5) * UI_CONSTANTS.SCALE;
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			const t = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1) + (s.style.waveAmplitude || 0.5) * UI_CONSTANTS.SCALE;
 			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < t;
 		},
 		isStandaloneCommand: true
@@ -1674,13 +2141,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[R] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[R] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	capacitor: createShapeDef('capacitor', {
@@ -1709,13 +2179,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[C] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[C] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	inductor: createShapeDef('inductor', {
@@ -1744,13 +2217,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[L] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[L] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	diode: createShapeDef('diode', {
@@ -1783,13 +2259,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[D] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[D] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	source_dc: createShapeDef('source_dc', {
@@ -1821,13 +2300,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[battery1] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[battery1] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	source_ac: createShapeDef('source_ac', {
@@ -1857,13 +2339,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[sV] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[sV] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	lamp: createShapeDef('lamp', {
@@ -1895,13 +2380,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[lamp] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[lamp] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	switch: createShapeDef('switch', {
@@ -1932,13 +2420,16 @@ const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) to[switch] (${toTikZ(s.x2)},${toTikZ(s.y2, true)});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[switch] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	ground: createShapeDef('ground', {
@@ -1971,14 +2462,17 @@ const ShapeManager = {
 		},
 		toTikZ: (s) => {
 			const angle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1) * 180 / Math.PI;
-			return `\\draw (${toTikZ(s.x1)},${toTikZ(s.y1, true)}) node[ground, rotate=${angle-270}] {};`;
+			return `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) node[ground, rotate=${angle-270}] {};`;
 		},
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
 			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
 		},
-		hitTest: (s, x, y) => distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < UI_CONSTANTS.HIT_TOLERANCE + 5,
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
 		isStandaloneCommand: true
 	}),
 	lens_convex: createShapeDef('lens_convex', {
@@ -2204,10 +2698,10 @@ const ShapeManager = {
 			}
 		},
 		toTikZ: (s) => {
-			const cx = toTikZ((s.x1 + s.x2) / 2);
-			const cy = toTikZ((s.y1 + s.y2) / 2, true);
-			const w = toTikZ(Math.abs(s.x2 - s.x1));
-			const h = toTikZ(Math.abs(s.y2 - s.y1));
+			const cx = toTikZ((s.x1 + s.x2) / 2, false, s.id, 'cx');
+			const cy = toTikZ((s.y1 + s.y2) / 2, true, s.id, 'cy');
+			const w = toTikZ(Math.abs(s.x2 - s.x1), false, s.id, 'width');
+			const h = toTikZ(Math.abs(s.y2 - s.y1), false, s.id, 'height');
 			const text = s.style.text || '';
 			return `\\node[draw, rounded corners, minimum width=${w}cm, minimum height=${h}cm] at (${cx}, ${cy}) {${text}};`;
 		},
@@ -2239,10 +2733,10 @@ const ShapeManager = {
 			}
 		},
 		toTikZ: (s) => {
-			const cx = toTikZ((s.x1 + s.x2) / 2);
-			const cy = toTikZ((s.y1 + s.y2) / 2, true);
-			const w = toTikZ(Math.abs(s.x2 - s.x1));
-			const h = toTikZ(Math.abs(s.y2 - s.y1));
+			const cx = toTikZ((s.x1 + s.x2) / 2, false, s.id, 'cx');
+			const cy = toTikZ((s.y1 + s.y2) / 2, true, s.id, 'cy');
+			const w = toTikZ(Math.abs(s.x2 - s.x1), false, s.id, 'width');
+			const h = toTikZ(Math.abs(s.y2 - s.y1), false, s.id, 'height');
 			const text = s.style.text || '';
 			return `\\node[draw, rectangle, minimum width=${w}cm, minimum height=${h}cm] at (${cx}, ${cy}) {${text}};`;
 		},
@@ -2280,10 +2774,10 @@ const ShapeManager = {
 			}
 		},
 		toTikZ: (s) => {
-			const cx = toTikZ((s.x1 + s.x2) / 2);
-			const cy = toTikZ((s.y1 + s.y2) / 2, true);
-			const w = toTikZ(Math.abs(s.x2 - s.x1));
-			const h = toTikZ(Math.abs(s.y2 - s.y1));
+			const cx = toTikZ((s.x1 + s.x2) / 2, false, s.id, 'cx');
+			const cy = toTikZ((s.y1 + s.y2) / 2, true, s.id, 'cy');
+			const w = toTikZ(Math.abs(s.x2 - s.x1), false, s.id, 'width');
+			const h = toTikZ(Math.abs(s.y2 - s.y1), false, s.id, 'height');
 			const text = s.style.text || '';
 			return `\\node[draw, diamond, aspect=${(w/h).toFixed(2)}, minimum width=${w}cm, minimum height=${h}cm] at (${cx}, ${cy}) {${text}};`;
 		},

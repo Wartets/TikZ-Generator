@@ -43,85 +43,130 @@
 	<div class="sidebar">
 		<div class="header">
 			<h1>TikZ Generator</h1>
+			<div id="tools-general" class="control-bar"></div>
 		</div>
 		
 		<div class="scroll-content">
-			<div class="section-wrapper collapsed">
-				<div class="section-title">
-					<span>Paramètres de la figure</span>
+			<div class="panel-group">
+				<div class="panel-header collapsed">
+					<span>Configuration globale</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
-				<div id="global-settings-container" class="section-content"></div>
+				<div id="global-settings-container" class="panel-body property-list" style="display: none;"></div>
 			</div>
 			
-			<div class="section-wrapper">
-				<div class="section-title">
-					<span>Général</span>
+			<div class="panel-group">
+				<div class="panel-header">
+					<span>Propriétés</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
-				<div class="section-content">
-					<div id="tools-general" class="tools-grid"></div>
-					<button class="btn-danger" id="clearBtn">
-						<i class="ti ti-trash"></i> Tout effacer
-					</button>
+				<div id="geometry-section" class="panel-body">
+					<div id="geometry-container" class="property-grid"></div>
 				</div>
 			</div>
 
-			<div class="section-wrapper">
-				<div class="section-title">
-					<span>Dessin</span>
+			<div class="panel-body" style="display: none;">
+				<div class="control-group" style="margin-bottom: 10px;">
+					<div class="fill-toggle">
+						<label style="margin:0; font-size: 0.75rem; flex:1; cursor:pointer;" for="alignRelative">Aligner sur la page</label>
+						<input type="checkbox" id="alignRelative">
+					</div>
+				</div>
+
+				<div class="section-title" style="margin-top: 5px; margin-bottom: 5px;">Alignement</div>
+				<div class="tools-grid small-icons">
+					<button class="tool-btn" id="alignLeft" title="Aligner à gauche"><i class="ti ti-layout-align-left"></i></button>
+					<button class="tool-btn" id="alignCenter" title="Centrer horizontalement"><i class="ti ti-layout-align-center"></i></button>
+					<button class="tool-btn" id="alignRight" title="Aligner à droite"><i class="ti ti-layout-align-right"></i></button>
+					<button class="tool-btn" id="alignTop" title="Aligner en haut"><i class="ti ti-layout-align-top"></i></button>
+					<button class="tool-btn" id="alignMiddle" title="Centrer verticalement"><i class="ti ti-layout-align-middle"></i></button>
+					<button class="tool-btn" id="alignBottom" title="Aligner en bas"><i class="ti ti-layout-align-bottom"></i></button>
+				</div>
+
+				<div class="section-title" style="margin-top: 10px; margin-bottom: 5px;">Distribution</div>
+				<div class="control-row" style="margin-bottom: 5px;">
+					<input type="number" id="distSpacing" placeholder="Auto" class="geo-input" style="width: 60px;" title="Espacement en cm (vide = auto)">
+					<span style="font-size: 0.7rem; align-self: center; color: var(--text-muted);">cm</span>
+				</div>
+				<div class="tools-grid small-icons" style="grid-template-columns: repeat(2, 1fr);">
+					<button class="tool-btn" id="distH" title="Distribuer horizontalement"><i class="ti ti-arrows-horizontal"></i></button>
+					<button class="tool-btn" id="distV" title="Distribuer verticalement"><i class="ti ti-arrows-vertical"></i></button>
+				</div>
+
+				<div class="section-title" style="margin-top: 10px; margin-bottom: 5px;">Taille & Rotation</div>
+				<div class="tools-grid small-icons">
+					<button class="tool-btn" id="matchWidth" title="Même largeur"><i class="ti ti-arrow-autofit-width"></i></button>
+					<button class="tool-btn" id="matchHeight" title="Même hauteur"><i class="ti ti-arrow-autofit-height"></i></button>
+					<button class="tool-btn" id="rotateCCW" title="Rotation -90°"><i class="ti ti-rotate-2"></i></button>
+					<button class="tool-btn" id="rotateCW" title="Rotation +90°"><i class="ti ti-rotate-clockwise-2"></i></button>
+				</div>
+			</div>
+
+			<div class="panel-group">
+				<div class="panel-header">
+					<span>Outils de dessin</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
-				<div id="tools-drawing" class="tools-grid section-content"></div>
+				<div class="panel-body">
+					<div id="tools-drawing" class="tools-grid"></div>
+				</div>
 			</div>
 			
-			<div class="section-wrapper collapsed">
-				<div class="section-title">
+			<div class="panel-group">
+				<div class="panel-header collapsed">
 					<span>Bibliothèques</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
-				<div class="section-content">
-					<div class="tabs-nav">
-						<button class="tab-btn active" data-tab="circuits">Circuits</button>
-						<button class="tab-btn" data-tab="optics">Optique</button>
-						<button class="tab-btn" data-tab="logic">Logique</button>
-						<button class="tab-btn" data-tab="flowchart">Flow</button>
+				<div class="panel-body" style="display: none;">
+					<div class="tabs-nav compact">
+						<button class="tab-btn active" data-tab="circuits"><i class="fa-solid fa-microchip"></i></button>
+						<button class="tab-btn" data-tab="optics"><i class="mdi mdi-eye"></i></button>
+						<button class="tab-btn" data-tab="logic"><i class="mdi mdi-gate-and"></i></button>
+						<button class="tab-btn" data-tab="flowchart"><i class="ti ti-sitemap"></i></button>
 					</div>
 					
 					<div id="tab-circuits" class="tab-content active">
-						<div id="tools-circuits" class="tools-grid"></div>
+						<div id="tools-circuits" class="tools-grid small-icons"></div>
 					</div>
 					<div id="tab-optics" class="tab-content">
-						<div id="tools-optics" class="tools-grid"></div>
+						<div id="tools-optics" class="tools-grid small-icons"></div>
 					</div>
 					<div id="tab-logic" class="tab-content">
-						<div id="tools-logic" class="tools-grid"></div>
+						<div id="tools-logic" class="tools-grid small-icons"></div>
 					</div>
 					<div id="tab-flowchart" class="tab-content">
-						<div id="tools-flowchart" class="tools-grid"></div>
+						<div id="tools-flowchart" class="tools-grid small-icons"></div>
 					</div>
 				</div>
 			</div>
-			
-			<div id="settings-wrapper" class="section-wrapper collapsed">
-				<div class="section-title">
-					<span>Paramètres de style</span>
+
+			<div id="settings-wrapper" class="panel-group">
+				<div class="panel-header">
+					<span>Apparence</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
-				<div id="settings-container" class="section-content"></div>
+				<div id="settings-container" class="panel-body property-list"></div>
 			</div>
+			
+			<button class="btn-danger" id="clearBtn">
+				<i class="ti ti-trash"></i> Tout effacer
+			</button>
 		</div>
 
 		<div class="output-area">
-			<button class="btn-primary" id="copyBtn">Copier le code LaTeX</button>
+			<div class="output-header">
+				<span>Code LaTeX</span>
+				<button class="btn-xs btn-primary" id="copyBtn"><i class="ti ti-copy"></i> Copier</button>
+			</div>
 			<div class="code-editor-container">
 				<pre class="line-numbers"><code id="output" class="language-latex"></code></pre>
 			</div>
 		</div>
 	</div>
-
+	
 	<div class="main-view">
 		<div class="canvas-container">
+			<textarea id="text-editor" style="display: none;"></textarea>
 			<canvas id="canvas"></canvas>
 			<div class="canvas-actions">
 				<button class="floating-btn" id="undoBtn" title="Annuler">

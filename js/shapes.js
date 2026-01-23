@@ -362,7 +362,7 @@ export const ShapeManager = {
 			const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape ' : '';
 			const familyCmd = fontCmd ? `${fontCmd} ` : '';
 			const innerContent = `${familyCmd}${weightCmd}${slantCmd}${text}`;
-			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) node {${innerContent}};`;
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) {${innerContent}};`;
 		},
 		getBoundingBox: (s) => {
 			const sizeMap = {
@@ -514,7 +514,7 @@ export const ShapeManager = {
 			
 			ctx.stroke();
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const simplifyVal = s.style.simplifyTolerance !== undefined ? s.style.simplifyTolerance : 2;
 			const simplified = simplifyPoints(s.points, simplifyVal);
 			const coords = simplified.map((p, i) => `(${toTikZ(p.x, false, s.id, `points.${i}.x`)},${toTikZ(p.y, true, s.id, `points.${i}.y`)})`).join(' ');
@@ -525,32 +525,32 @@ export const ShapeManager = {
 			const radius = s.style.cornerRadius || 5;
 
 			let extraOpts = '';
+			let pathSuffix = '';
 			
 			if (mode === 'smooth') {
 				extraOpts = isClosed ? `, smooth cycle, tension=${tension}` : `, smooth, tension=${tension}`;
 			} else if (mode === 'rounded') {
 				extraOpts = `, rounded corners=${radius}pt`;
-				if (isClosed) extraOpts += ' cycle'; 
+				if (isClosed) pathSuffix = ' -- cycle';
 			} else {
 				extraOpts = ', sharp plot';
-				if (isClosed) extraOpts += ' cycle';
+				if (isClosed) pathSuffix = ' -- cycle';
 			}
 			
-			let opts = buildTikzOptions(s);
-			opts = opts ? opts.slice(0, -1) + extraOpts + ']' : `[${extraOpts.startsWith(',') ? extraOpts.substring(2) : extraOpts}]`;
-			
-			if (mode === 'smooth' || mode === 'rounded' || mode === 'sharp') {
-				return `\\draw${opts} plot coordinates {${coords}};`;
+			let finalOpts = opts || '[]';
+			if (finalOpts === '[]' || finalOpts === '') {
+				finalOpts = `[${extraOpts.startsWith(',') ? extraOpts.substring(2) : extraOpts}]`;
+			} else {
+				finalOpts = finalOpts.slice(0, -1) + extraOpts + ']';
 			}
 			
-			return `\\draw${opts} plot coordinates {${coords}};`;
+			return `\\draw${finalOpts} plot coordinates {${coords}}${pathSuffix};`;
 		},
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
 			const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			
 			if (s.style.isClosed && s.style.fill) {
-				// Algorithme Ray-Casting pour point dans polygone
 				let inside = false;
 				for (let i = 0, j = s.points.length - 1; i < s.points.length; j = i++) {
 					const xi = s.points[i].x, yi = s.points[i].y;
@@ -620,7 +620,8 @@ export const ShapeManager = {
 				if(p.y > maxY) maxY = p.y;
 			}
 			return { minX, minY, maxX, maxY };
-		}
+		},
+		isStandaloneCommand: true
 	}),
 	rect: createShapeDef('rect', {
 		render: (s, ctx) => {
@@ -1051,9 +1052,7 @@ export const ShapeManager = {
 			}
 		},
 		toTikZ: (s, opts) => {
-			const arrowOpt = s.style.arrow !== 'none' ? s.style.arrow : '';
-			const baseOpts = opts || '[]';
-			const finalOpts = baseOpts.replace(']', (arrowOpt ? ',' + arrowOpt : '') + ']');
+			const finalOpts = opts || '[]';
 			return `\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x2, false, s.id, 'x_end')},${toTikZ(s.y2, true, s.id, 'y_origin')}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y1, true, s.id, 'y_end')}) node[above] {$y$};`;
 		},
 		isStandaloneCommand: true,
@@ -1366,6 +1365,7 @@ export const ShapeManager = {
 			const angle = Math.atan2(dy, dx) * 180 / Math.PI;
 			
 			const len = toTikZ(dist, false, s.id, 'length');
+			const numericLen = dist / UI_CONSTANTS.SCALE;
 			const amp = s.style.waveAmplitude || 0.5;
 			const lambda = s.style.waveLength || 1;
 			
@@ -1389,7 +1389,7 @@ export const ShapeManager = {
 			}
 			
 			const opts = buildTikzOptions(s);
-			return `\\draw${opts} [shift={(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(len * 20)}, variable=\\x] (\\x, ${plotFunc});`;
+			return `\\draw${opts} [shift={(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(numericLen * 20)}, variable=\\x] (\\x, ${plotFunc});`;
 		},
 		getHandles: (s) => [
 			{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' },
@@ -1799,17 +1799,24 @@ export const ShapeManager = {
 			ctx.lineTo(cx + 5, s.y2 - 5);
 			ctx.stroke();
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const w = toTikZ(Math.abs(s.x2 - s.x1));
 			const h = toTikZ(Math.abs(s.y2 - s.y1));
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
-			return `\\draw[<->] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2}); \\draw (${cx}, ${cy}) ellipse (${w/2} and ${h/2});`;
+			
+			let axisOpts = "<->";
+			if (opts && opts.length > 2) {
+				axisOpts += ", " + opts.substring(1, opts.length - 1);
+			}
+			
+			return `\\draw[${axisOpts}] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2}); \\draw${opts || ''} (${cx}, ${cy}) ellipse (${w/2} and ${h/2});`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	lens_concave: createShapeDef('lens_concave', {
 		onDown: (x, y, style) => ({ type: 'lens_concave', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -1837,16 +1844,23 @@ export const ShapeManager = {
 			ctx.moveTo(cx - 5, s.y2); ctx.lineTo(cx, s.y2 - 5); ctx.lineTo(cx + 5, s.y2);
 			ctx.stroke();
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const h = toTikZ(Math.abs(s.y2 - s.y1));
-			return `\\draw[>-<] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2});`;
+			
+			let axisOpts = ">-<";
+			if (opts && opts.length > 2) {
+				axisOpts += ", " + opts.substring(1, opts.length - 1);
+			}
+
+			return `\\draw[${axisOpts}] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2});`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	mirror: createShapeDef('mirror', {
 		render: (s, ctx) => {
@@ -1872,13 +1886,14 @@ export const ShapeManager = {
 			ctx.stroke();
 			ctx.restore();
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const x1 = toTikZ(s.x1); const y1 = toTikZ(s.y1, true);
 			const x2 = toTikZ(s.x2); const y2 = toTikZ(s.y2, true);
-			return `\\draw (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15);`;
+			return `\\draw${opts || ''} (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw${opts || ''} ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15);`;
 		},
 		onDown: (x, y, style) => ({ type: 'mirror', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
-		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; }
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		isStandaloneCommand: true
 	}),
 	logic_and: createShapeDef('logic_and', {
 		onDown: (x, y, style) => ({ type: 'logic_and', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -1907,7 +1922,8 @@ export const ShapeManager = {
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	logic_or: createShapeDef('logic_or', {
 		onDown: (x, y, style) => ({ type: 'logic_or', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -1936,7 +1952,8 @@ export const ShapeManager = {
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	logic_not: createShapeDef('logic_not', {
 		onDown: (x, y, style) => ({ type: 'logic_not', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -1968,7 +1985,8 @@ export const ShapeManager = {
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	flow_start: createShapeDef('flow_start', {
 		onDown: (x, y, style) => ({ type: 'flow_start', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -2004,7 +2022,8 @@ export const ShapeManager = {
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	flow_process: createShapeDef('flow_process', {
 		onDown: (x, y, style) => ({ type: 'flow_process', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -2039,7 +2058,8 @@ export const ShapeManager = {
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 	flow_decision: createShapeDef('flow_decision', {
 		onDown: (x, y, style) => ({ type: 'flow_decision', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
@@ -2070,16 +2090,21 @@ export const ShapeManager = {
 			}
 		},
 		toTikZ: (s) => {
+			const rawW = Math.abs(s.x2 - s.x1);
+			const rawH = Math.abs(s.y2 - s.y1);
+			const ratio = (rawH !== 0) ? (rawW / rawH).toFixed(2) : 1;
+
 			const cx = toTikZ((s.x1 + s.x2) / 2, false, s.id, 'cx');
 			const cy = toTikZ((s.y1 + s.y2) / 2, true, s.id, 'cy');
-			const w = toTikZ(Math.abs(s.x2 - s.x1), false, s.id, 'width');
-			const h = toTikZ(Math.abs(s.y2 - s.y1), false, s.id, 'height');
+			const w = toTikZ(rawW, false, s.id, 'width');
+			const h = toTikZ(rawH, false, s.id, 'height');
 			const text = s.style.text || '';
-			return `\\node[draw, diamond, aspect=${(w/h).toFixed(2)}, minimum width=${w}cm, minimum height=${h}cm] at (${cx}, ${cy}) {${text}};`;
+			return `\\node[draw, diamond, aspect=${ratio}, minimum width=${w}cm, minimum height=${h}cm] at (${cx}, ${cy}) {${text}};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
-		})
+		}),
+		isStandaloneCommand: true
 	}),
 };

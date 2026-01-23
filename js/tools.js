@@ -187,9 +187,10 @@ export class SelectTool extends BaseTool {
 					this.mode = 'rotating';
 					this.initialShapesState = [JSON.parse(JSON.stringify(app.selectedShapes[0]))];
 					const center = getShapeCenter(app.selectedShapes[0]);
-					this.initialAngle = Math.atan2(p.y - center.y, p.x - center.x);
-					const currentRotRad = (app.selectedShapes[0].style.rotate || 0) * Math.PI / 180;
-					this.initialAngle -= currentRotRad;
+					const dx = p.x - center.x;
+					const dy = p.y - center.y;
+					this.initialAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+					this.initialRotation = app.selectedShapes[0].style.rotate || 0;
 				} else {
 					this.mode = 'resizing';
 					this.handle = handle.pos;
@@ -235,7 +236,9 @@ export class SelectTool extends BaseTool {
 				
 				if (handle.pos === 'rotate') {
 					this.mode = 'rotating-group';
-					this.initialAngle = Math.atan2(p.y - bounds.cy, p.x - bounds.cx);
+					const dx = p.x - bounds.cx;
+					const dy = p.y - bounds.cy;
+					this.initialAngle = Math.atan2(dy, dx); 
 				} else {
 					this.mode = 'resizing-group';
 					this.handle = handle.pos;
@@ -320,11 +323,19 @@ export class SelectTool extends BaseTool {
 
 		if (this.mode === 'rotating') {
 			const center = getShapeCenter(app.selectedShapes[0]);
-			const currentAngle = Math.atan2(p.y - center.y, p.x - center.x);
-			let deg = (currentAngle - this.initialAngle) * 180 / Math.PI;
-			deg = Math.round(deg); 
-			if (e.shiftKey) deg = Math.round(deg / 15) * 15;
-			app.selectedShapes[0].style.rotate = (deg + 360) % 360;
+			const dx = p.x - center.x;
+			const dy = p.y - center.y;
+			const currentAngle = Math.atan2(dy, dx) * 180 / Math.PI;
+			
+			let delta = currentAngle - this.initialAngle;
+			if (delta > 180) delta -= 360;
+			if (delta < -180) delta += 360;
+
+			let newRot = this.initialRotation + delta;
+			
+			if (e.shiftKey) newRot = Math.round(newRot / 15) * 15;
+			
+			app.selectedShapes[0].style.rotate = (newRot + 360) % 360;
 			updateUIFromShape(app.selectedShapes[0]);
 			render();
 			return;
@@ -332,8 +343,14 @@ export class SelectTool extends BaseTool {
 
 		if (this.mode === 'rotating-group') {
 			const bounds = this.groupBoundsStart;
-			const currentAngle = Math.atan2(p.y - bounds.cy, p.x - bounds.cx);
+			const dx = p.x - bounds.cx;
+			const dy = p.y - bounds.cy;
+			const currentAngle = Math.atan2(dy, dx);
+			
 			let angleDiff = currentAngle - this.initialAngle;
+			if (angleDiff > Math.PI) angleDiff -= Math.PI * 2;
+			if (angleDiff < -Math.PI) angleDiff += Math.PI * 2;
+
 			if (e.shiftKey) {
 				const deg = angleDiff * 180 / Math.PI;
 				angleDiff = (Math.round(deg / 15) * 15) * Math.PI / 180;

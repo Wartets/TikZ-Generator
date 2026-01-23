@@ -482,8 +482,7 @@ export const SETTINGS_CONFIG = {
 		defaultValue: 0,
 		min: 0, max: 360, step: 1,
 		unit: '°',
-		tikzKey: 'rotate',
-		tikzValue: (v) => (!v || v === 0) ? null : v
+		tikzValue: (v) => null
 	},
 	smoothness: {
 		label: 'Lissage',
@@ -661,8 +660,7 @@ export const SETTINGS_CONFIG = {
 		type: 'checkbox',
 		propName: 'double',
 		defaultValue: false,
-		tikzKey: 'double',
-		tikzValue: (v) => v ? 'true' : null
+		tikzValue: (v) => v ? 'double' : null
 	},
 	arrowStyle: {
 		label: 'Direction Flèches',
@@ -675,7 +673,8 @@ export const SETTINGS_CONFIG = {
 			'<-': 'Début',
 			'<->': 'Les deux',
 		},
-		tikzValue: (v) => v === 'none' ? null : v
+		tikzValue: (v) => v === 'none' ? null : v,
+		excludeFrom: ['text', 'grid', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision']
 	},
 	arrowHead: {
 		label: 'Style de pointe',
@@ -690,7 +689,8 @@ export const SETTINGS_CONFIG = {
 			'circle': 'Cercle',
 			'diamond': 'Losange'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		excludeFrom: ['text', 'grid']
 	},
 	arrowScale: {
 		label: 'Taille de pointe',
@@ -699,7 +699,8 @@ export const SETTINGS_CONFIG = {
 		defaultValue: 1,
 		min: 0.5, max: 3, step: 0.1,
 		unit: 'x',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		excludeFrom: ['text', 'grid']
 	},
 	lineWidth: {
 		label: 'Épaisseur',

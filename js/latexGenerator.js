@@ -1,14 +1,14 @@
 import { app } from './state.js';
 import { SETTINGS_CONFIG } from './config.js';
 import { output } from './ui.js';
-import { ShapeManager } from './shapes.js';
+import { ShapeManager, getShapeCenter } from './shapes.js';
 import { toTikZ } from './utils.js';
 
 export function buildTikzOptions(s) {
 	let opts = [];
 	const style = s.style;
 
-	if (style.arrow && style.arrow !== 'none') {
+	if (style.arrow && style.arrow !== 'none' && !['text', 'grid'].includes(s.type)) {
 		const head = style.arrowHead ? style.arrowHead.charAt(0).toUpperCase() + style.arrowHead.slice(1) : 'Stealth';
 		const scale = style.arrowScale || 1;
 		let headStr = head === 'Triangle 45' ? 'Triangle[angle=45:1pt]' : (head === 'To' ? 'To' : head);
@@ -37,6 +37,13 @@ export function buildTikzOptions(s) {
 				}
 			}
 		}
+	}
+	
+	if (style.rotate && style.rotate !== 0) {
+		const center = getShapeCenter(s);
+		const cx = toTikZ(center.x, false);
+		const cy = toTikZ(center.y, true);
+		opts.push(`rotate around={${-style.rotate}:(${cx},${cy})}`);
 	}
 	
 	return opts.length ? `[${opts.join(', ')}]` : '';

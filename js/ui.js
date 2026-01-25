@@ -273,29 +273,6 @@ export function updateSetting(element) {
 	const key = element.dataset.setting || element.dataset.global;
 	const isGlobal = !!element.dataset.global;
 
-	if (key === 'hasFill') {
-		const value = element.checked;
-		const fillColorInput = document.getElementById('fillColor');
-		fillColorInput.style.opacity = value ? '1' : '0.2';
-		fillColorInput.style.pointerEvents = value ? 'auto' : 'none';
-		fillColorInput.disabled = !value;
-		
-		const applyTo = (app.selectedShapes.length > 0) ? app.selectedShapes : [app.selectedShape || {style: app.drawingStyle}];
-		applyTo.forEach(item => {
-			const targetFill = item.style || item;
-			if (!value) targetFill.fill = null;
-			else targetFill.fill = fillColorInput.value;
-		});
-
-		if (app.selectedShape) {
-			render();
-			generateCode();
-			pushState();
-		}
-		saveToLocalStorage();
-		return;
-	}
-
 	const config = isGlobal ? GLOBAL_SETTINGS_CONFIG[key] : SETTINGS_CONFIG[key];
 	if (!config) return;
 
@@ -337,7 +314,7 @@ export function updateSetting(element) {
 		canvas.parentElement.style.backgroundColor = value;
 	}
 
-	if (key === 'arrowStyle' || key === 'freehandMode') {
+	if (key === 'arrowStyle' || key === 'freehandMode' || key === 'fillType') {
 		const toolName = app.activeTool === app.toolManager.select ? 'select' : (app.activeTool.shapeType || 'select');
 		const shapeType = app.selectedShape ? app.selectedShape.type : null;
 		updateSettingsVisibility(toolName, shapeType);
@@ -371,6 +348,8 @@ export function updateSettingsVisibility(toolName, shapeType = null) {
 	const currentStyle = app.selectedShape ? app.selectedShape.style : app.drawingStyle;
 	const arrowEnabled = currentStyle.arrow && currentStyle.arrow !== 'none';
 	const roundedEnabled = currentStyle.freehandMode === 'rounded';
+	const fillType = currentStyle.fillType || 'none';
+	const gradientEnabled = fillType === 'linear' || fillType === 'radial';
 	
 	let hasVisibleSettings = false;
 
@@ -384,6 +363,18 @@ export function updateSettingsVisibility(toolName, shapeType = null) {
 			}
 			
 			if (key === 'cornerRadius' && !roundedEnabled) {
+				isVisible = false;
+			}
+			
+			if (key === 'fillColor' && fillType === 'none') {
+				isVisible = false;
+			}
+
+			if (key === 'fillColor2' && !gradientEnabled) {
+				isVisible = false;
+			}
+			
+			if (key === 'shadingAngle' && fillType !== 'linear') {
 				isVisible = false;
 			}
 
@@ -429,7 +420,7 @@ export function updateUIFromShape(s) {
 		'opacity', 'textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 
 		'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'gridStep',
 		'polySides', 'starPoints', 'starRatio', 'simplifyTolerance', 'freehandMode', 'cornerRadius',
-		'pointSize', 'pointType'
+		'pointSize', 'pointType', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle'
 	];
 	
 	fields.forEach(id => {
@@ -454,23 +445,14 @@ export function updateUIFromShape(s) {
 		}
 	});
 
-	const checkboxes = ['hasFill', 'doubleLine', 'isClosed'];
+	const checkboxes = ['doubleLine', 'isClosed'];
 	checkboxes.forEach(id => {
 		const el = document.getElementById(id);
 		if (el) {
-			if (id === 'hasFill') el.checked = !!style.fill;
-			else if (id === 'doubleLine') el.checked = !!style.double;
+			if (id === 'doubleLine') el.checked = !!style.double;
 			else if (id === 'isClosed') el.checked = !!style.isClosed;
 		}
 	});
-	
-	const fillColorInput = document.getElementById('fillColor');
-	if (fillColorInput) {
-		fillColorInput.value = style.fill || SETTINGS_CONFIG.fillColor.defaultValue;
-		fillColorInput.style.opacity = style.fill ? '1' : '0.2';
-		fillColorInput.style.pointerEvents = style.fill ? 'auto' : 'none';
-		fillColorInput.disabled = !style.fill;
-	}
 
 	updateSettingsVisibility('select', s.type);
 }
@@ -485,14 +467,6 @@ export function updateUIFromDrawingStyle() {
 		if (el && val !== undefined) {
 			if (config.type === 'checkbox') {
 				el.checked = val;
-			} else if (config.type === 'color-checkbox') {
-				const hasFillCheck = document.getElementById('hasFill');
-				const isEnabled = app.drawingStyle.fill !== null;
-				if (hasFillCheck) hasFillCheck.checked = isEnabled;
-				el.value = app.drawingStyle.fill || config.defaultValue;
-				el.style.opacity = isEnabled ? '1' : '0.2';
-				el.style.pointerEvents = isEnabled ? 'auto' : 'none';
-				el.disabled = !isEnabled;
 			} else {
 				el.value = val;
 			}

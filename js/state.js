@@ -12,14 +12,7 @@ export function generateInitialState() {
 	for (const key in SETTINGS_CONFIG) {
 		const config = SETTINGS_CONFIG[key];
 		const prop = config.propName || key;
-		
-		if (config.type === 'color-checkbox') {
-			const isEnabled = config.enabledByDefault;
-			state.hasFill = isEnabled;
-			state[prop] = isEnabled ? config.defaultValue : null;
-		} else {
-			state[prop] = config.defaultValue;
-		}
+		state[prop] = config.defaultValue;
 	}
 	return state;
 }

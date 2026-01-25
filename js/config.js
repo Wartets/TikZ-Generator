@@ -105,7 +105,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-pointer"></i>',
 		cursor: 'default',
 		group: 'general',
-		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'rotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor', 'starPoints', 'starRatio', 'polySides', 'waveType', 'waveAmplitude', 'waveLength', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'rotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle', 'starPoints', 'starRatio', 'polySides', 'waveType', 'waveAmplitude', 'waveLength', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed']
 	},
 	duplicate: {
 		displayName: 'Dupliquer',
@@ -153,7 +153,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-target"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textAnchor', 'pointSize', 'pointType', 'strokeColor', 'fillColor', 'opacity']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textAnchor', 'pointSize', 'pointType', 'strokeColor', 'fillType', 'fillColor', 'opacity']
 	},
 	text: {
 		displayName: 'Texte',
@@ -169,7 +169,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-pencil"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	line: {
 		displayName: 'Ligne',
@@ -185,7 +185,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-rectangle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	circle: {
 		displayName: 'Cercle',
@@ -193,7 +193,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-circle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	ellipse: {
 		displayName: 'Ellipse',
@@ -201,7 +201,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-oval"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	triangle: {
 		displayName: 'Triangle',
@@ -209,7 +209,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-triangle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	diamond: {
 		displayName: 'Losange',
@@ -217,7 +217,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	grid: {
 		displayName: 'Grille',
@@ -265,7 +265,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-polygon"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'polySides', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'polySides', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	star: {
 		displayName: 'Étoile',
@@ -273,7 +273,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-star"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['textString', 'textSize', 'textAnchor', 'starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	resistor: {
 		displayName: 'Résistance',
@@ -353,7 +353,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-magnify"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	lens_concave: {
 		displayName: 'Lentille Divergente',
@@ -361,7 +361,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-magnify-minus"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	mirror: {
 		displayName: 'Miroir',
@@ -377,7 +377,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-and"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_or: {
 		displayName: 'Porte OU',
@@ -385,7 +385,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-or"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_not: {
 		displayName: 'Porte NON',
@@ -393,7 +393,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-not"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	flow_start: {
 		displayName: 'Début/Fin',
@@ -401,7 +401,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-player-record"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	flow_process: {
 		displayName: 'Processus',
@@ -409,7 +409,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-settings"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	flow_decision: {
 		displayName: 'Décision',
@@ -417,7 +417,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 };
 
@@ -755,7 +755,7 @@ export const SETTINGS_CONFIG = {
 		group: 'color-controls'
 	},
 	strokeColor: {
-		label: 'Couleur',
+		label: 'Contour',
 		type: 'color',
 		propName: 'stroke',
 		defaultValue: '#000000',
@@ -765,15 +765,45 @@ export const SETTINGS_CONFIG = {
 		group: 'color-controls',
 		groupOptions: { type: 'row' }
 	},
+	fillType: {
+		label: 'Type de Remplissage',
+		type: 'select',
+		propName: 'fillType',
+		defaultValue: 'none',
+		options: {
+			'none': 'Aucun',
+			'solid': 'Uni',
+			'linear': 'Dégradé (Linéaire)',
+			'radial': 'Dégradé (Radial)',
+			'ball': 'Shading Ball'
+		},
+		tikzValue: (v) => null,
+		group: 'fill-controls'
+	},
 	fillColor: {
-		label: 'Remplissage',
-		type: 'color-checkbox',
+		label: 'Couleur 1 (Interne)',
+		type: 'color',
 		propName: 'fill',
 		defaultValue: '#5e6ad2',
-		enabledByDefault: false,
-		tikzKey: 'fill',
-		isColor: true,
-		tikzValue: (v) => v ? v : null,
-		group: 'color-controls'
+		tikzValue: (v) => null,
+		group: 'fill-controls'
+	},
+	fillColor2: {
+		label: 'Couleur 2 (Externe)',
+		type: 'color',
+		propName: 'fill2',
+		defaultValue: '#ffffff',
+		tikzValue: (v) => null,
+		group: 'fill-controls'
+	},
+	shadingAngle: {
+		label: 'Angle Shading',
+		type: 'range',
+		propName: 'shadingAngle',
+		defaultValue: 0,
+		min: 0, max: 360, step: 15,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'fill-controls'
 	}
 };

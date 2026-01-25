@@ -159,7 +159,7 @@ export function renderShape(s, ctx) {
 	ctx.beginPath();
 	ctx.lineWidth = s.style.width;
 	ctx.strokeStyle = s.style.stroke;
-	ctx.fillStyle = s.style.fill || 'transparent';
+	ctx.fillStyle = getFillStyle(ctx, s);
 	ctx.globalAlpha = s.style.opacity;
 
 	let dash = [];
@@ -239,6 +239,38 @@ export function renderShape(s, ctx) {
 	}
 
 	ctx.restore();
+}
+
+export function getFillStyle(ctx, s) {
+	if (!s.style.fillType || s.style.fillType === 'none') return 'transparent';
+	if (s.style.fillType === 'solid') return s.style.fill;
+
+	const box = ShapeManager[s.type].getBoundingBox(s);
+	const w = box.maxX - box.minX;
+	const h = box.maxY - box.minY;
+	const cx = (box.minX + box.maxX) / 2;
+	const cy = (box.minY + box.maxY) / 2;
+
+	if (s.style.fillType === 'linear') {
+		const grad = ctx.createLinearGradient(box.minX, box.minY, box.minX, box.maxY);
+		grad.addColorStop(0, s.style.fill);
+		grad.addColorStop(1, s.style.fill2);
+		return grad;
+	} else if (s.style.fillType === 'radial' || s.style.fillType === 'ball') {
+		const r = Math.max(w, h) / 2;
+		const offset = s.style.fillType === 'ball' ? r / 2.5 : 0;
+		const grad = ctx.createRadialGradient(cx - offset, cy - offset, 0, cx, cy, r);
+		
+		if (s.style.fillType === 'ball') {
+			grad.addColorStop(0, 'white');
+			grad.addColorStop(1, s.style.fill);
+		} else {
+			grad.addColorStop(0, s.style.fill);
+			grad.addColorStop(1, s.style.fill2);
+		}
+		return grad;
+	}
+	return s.style.fill;
 }
 
 export function render() {

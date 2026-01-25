@@ -18,7 +18,7 @@ export function buildTikzOptions(s) {
 	for (const key in SETTINGS_CONFIG) {
 		const config = SETTINGS_CONFIG[key];
 		if (config.excludeFrom && config.excludeFrom.includes(s.type)) continue;
-		if (['arrowHead', 'arrowScale', 'textWeight', 'textSlant', 'textFont'].includes(key)) continue;
+		if (['arrowHead', 'arrowScale', 'textWeight', 'textSlant', 'textFont', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle'].includes(key)) continue;
 
 		const prop = config.propName || key;
 		const val = style[prop];
@@ -36,6 +36,22 @@ export function buildTikzOptions(s) {
 					opts.push(processedVal);
 				}
 			}
+		}
+	}
+
+	if (style.fillType && style.fillType !== 'none') {
+		const c1 = app.colors.get(style.fill) || style.fill;
+		const c2 = app.colors.get(style.fill2) || style.fill2;
+		const angle = style.shadingAngle || 0;
+
+		if (style.fillType === 'solid') {
+			opts.push(`fill=${c1}`);
+		} else if (style.fillType === 'linear') {
+			opts.push(`shading=axis, top color=${c1}, bottom color=${c2}, shading angle=${angle}`);
+		} else if (style.fillType === 'radial') {
+			opts.push(`shading=radial, inner color=${c1}, outer color=${c2}`);
+		} else if (style.fillType === 'ball') {
+			opts.push(`shading=ball, ball color=${c1}`);
 		}
 	}
 	
@@ -107,8 +123,11 @@ export function generateCode() {
 		if (s.style.stroke && s.style.stroke !== '#000000' && s.style.stroke !== '#ffffff') {
 			usedColors.set(s.style.stroke.toUpperCase(), true);
 		}
-		if (s.style.fill && s.style.fill !== '#ffffff' && s.style.fill !== 'transparent') {
+		if (s.style.fill && s.style.fillType !== 'none') {
 			usedColors.set(s.style.fill.toUpperCase(), true);
+		}
+		if (s.style.fill2 && (s.style.fillType === 'linear' || s.style.fillType === 'radial')) {
+			usedColors.set(s.style.fill2.toUpperCase(), true);
 		}
 	});
 

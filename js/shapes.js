@@ -33,12 +33,14 @@ export const defaultHitTest = (s, x, y) => {
 		return false;
 	}
 
+	const hasFill = s.style.fillType && s.style.fillType !== 'none';
+
 	if (s.type === 'line') {
 		return distToSegment(testX, testY, s.x1, s.y1, s.x2, s.y2) < tolerance;
 	}
 
 	if (s.type === 'rect') {
-		if (s.style.fill) {
+		if (hasFill) {
 			return testX >= Math.min(s.x1, s.x2) && testX <= Math.max(s.x1, s.x2) &&
 					 testY >= Math.min(s.y1, s.y2) && testY <= Math.max(s.y1, s.y2);
 		} else {
@@ -54,7 +56,7 @@ export const defaultHitTest = (s, x, y) => {
 	if (s.type === 'circle') {
 		const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
 		const d = Math.sqrt(Math.pow(testX - s.x1, 2) + Math.pow(testY - s.y1, 2));
-		if (s.style.fill) return d <= r;
+		if (hasFill) return d <= r;
 		return Math.abs(d - r) < tolerance || d < tolerance;
 	}
 
@@ -69,7 +71,7 @@ export const defaultHitTest = (s, x, y) => {
 		const normDist = Math.pow((testX - cx) / rx, 2) + Math.pow((testY - cy) / ry, 2);
 		const distToCenter = Math.sqrt(Math.pow(testX - cx, 2) + Math.pow(testY - cy, 2));
 
-		if (s.style.fill) return normDist <= 1;
+		if (hasFill) return normDist <= 1;
 		return (Math.abs(Math.sqrt(normDist) - 1) * Math.min(rx, ry) < tolerance) || distToCenter < tolerance;
 	}
 
@@ -78,7 +80,7 @@ export const defaultHitTest = (s, x, y) => {
 		const p2 = {x: s.x2, y: s.y2};
 		const p3 = {x: s.x3, y: s.y3};
 
-		if (s.style.fill) {
+		if (hasFill) {
 			const denominator = ((p2.y - p3.y) * (p1.x - p3.x) + (p3.x - p2.x) * (p1.y - p3.y));
 			const a = ((p2.y - p3.y) * (testX - p3.x) + (p3.x - p2.x) * (testY - p3.y)) / denominator;
 			const b = ((p3.y - p1.y) * (testX - p3.x) + (p1.x - p3.x) * (testY - p3.y)) / denominator;
@@ -673,8 +675,8 @@ export const ShapeManager = {
 				ctx.closePath();
 			}
 
-			if (s.style.isClosed && s.style.fill) {
-				ctx.fillStyle = s.style.fill;
+			if (s.style.isClosed && s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = getFillStyle(ctx, s);
 				ctx.fill();
 			}
 			
@@ -719,7 +721,7 @@ export const ShapeManager = {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
 			const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			
-			if (s.style.isClosed && s.style.fill) {
+			if (s.style.isClosed && s.style.fillType && s.style.fillType !== 'none') {
 				let inside = false;
 				for (let i = 0, j = s.points.length - 1; i < s.points.length; j = i++) {
 					const xi = s.points[i].x, yi = s.points[i].y;
@@ -794,7 +796,7 @@ export const ShapeManager = {
 	}),
 	rect: createShapeDef('rect', {
 		render: (s, ctx) => {
-			if (s.style.fill) ctx.fillRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fillRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
 			ctx.strokeRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
 			renderShapeLabel(s, ctx, (s.x1 + s.x2)/2, (s.y1 + s.y2)/2);
 		},
@@ -804,7 +806,7 @@ export const ShapeManager = {
 		render: (s, ctx) => {
 			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
 			ctx.arc(s.x1, s.y1, r, 0, Math.PI * 2);
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
@@ -857,7 +859,7 @@ export const ShapeManager = {
 			const rx = Math.abs(s.x2 - s.x1);
 			const ry = Math.abs(s.y2 - s.y1);
 			ctx.ellipse(s.x1, s.y1, rx, ry, 0, 0, Math.PI * 2);
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
@@ -940,7 +942,7 @@ export const ShapeManager = {
 			ctx.lineTo(s.x2, s.y2);
 			ctx.lineTo(s.x3, s.y3);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			const cx = (s.x1 + s.x2 + s.x3) / 3;
 			const cy = (s.y1 + s.y2 + s.y3) / 3;
@@ -989,7 +991,7 @@ export const ShapeManager = {
 			ctx.lineTo(cx, maxY);
 			ctx.lineTo(minX, cy);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, cx, cy);
 		},
@@ -1018,7 +1020,7 @@ export const ShapeManager = {
 				return false;
 			}
 
-			if (s.style.fill) {
+			if (s.style.fillType && s.style.fillType !== 'none') {
 				const hx = (maxX - minX) / 2;
 				const hy = (maxY - minY) / 2;
 				if (hx === 0 || hy === 0) return false;
@@ -1060,7 +1062,7 @@ export const ShapeManager = {
 				else ctx.lineTo(px, py);
 			}
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
@@ -1127,7 +1129,7 @@ export const ShapeManager = {
 				else ctx.lineTo(px, py);
 			}
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
@@ -1974,7 +1976,7 @@ export const ShapeManager = {
 			
 			ctx.beginPath();
 			ctx.ellipse(cx, cy, rx, ry, 0, 0, Math.PI * 2);
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			
 			ctx.beginPath();
@@ -2026,7 +2028,7 @@ export const ShapeManager = {
 			ctx.lineTo(cx + w/2, s.y2);
 			ctx.quadraticCurveTo(cx, cy, cx + w/2, s.y1);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			
 			ctx.beginPath();
@@ -2105,7 +2107,7 @@ export const ShapeManager = {
 			ctx.arc(x + w/2, y + h/2, h/2, -Math.PI/2, Math.PI/2);
 			ctx.lineTo(x, y + h);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, x + w/2, y + h/2);
 		},
@@ -2137,7 +2139,7 @@ export const ShapeManager = {
 			ctx.quadraticCurveTo(x + w*1.2, y + h, x + w, y + h/2);
 			ctx.quadraticCurveTo(x + w*1.2, y, x, y);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			renderShapeLabel(s, ctx, x + w/2, y + h/2);
 		},
@@ -2168,7 +2170,7 @@ export const ShapeManager = {
 			ctx.lineTo(x, y + h);
 			ctx.lineTo(x + w - 5, y + h/2);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			
 			ctx.beginPath();
@@ -2201,7 +2203,7 @@ export const ShapeManager = {
 			
 			ctx.beginPath();
 			ctx.roundRect(x, y, w, h, r);
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			
 			if (s.style.text) {
@@ -2237,7 +2239,7 @@ export const ShapeManager = {
 			
 			ctx.beginPath();
 			ctx.rect(x, y, w, h);
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			
 			if (s.style.text) {
@@ -2279,7 +2281,7 @@ export const ShapeManager = {
 			ctx.lineTo(cx, y + h);
 			ctx.lineTo(x, cy);
 			ctx.closePath();
-			if (s.style.fill) ctx.fill();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
 			
 			if (s.style.text) {

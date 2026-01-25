@@ -3019,4 +3019,146 @@ export const ShapeManager = {
 		}),
 		isStandaloneCommand: true
 	}),
+	spring: createShapeDef('spring', {
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const angle = Math.atan2(dy, dx);
+			const loops = 10;
+			const amp = 10;
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			const seg = dist / (loops + 1);
+			ctx.lineTo(seg / 2, 0);
+			for (let i = 0; i < loops; i++) {
+				const x = seg / 2 + (i * seg);
+				ctx.lineTo(x + seg / 4, -amp);
+				ctx.lineTo(x + 3 * seg / 4, amp);
+				ctx.lineTo(x + seg, 0);
+			}
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1 + s.x2) / 2, (s.y1 + s.y2) / 2);
+		},
+		toTikZ: (s) => `\\draw[decorate, decoration={zigzag, amplitude=10pt, segment length=5pt}] (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) -- (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' },
+			{ x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }
+		],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		isStandaloneCommand: true
+	}),
+	mass: createShapeDef('mass', {
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fillRect(x, y, w, h);
+			ctx.strokeRect(x, y, w, h);
+			ctx.beginPath();
+			ctx.moveTo(x, y); ctx.lineTo(x + w, y + h);
+			ctx.moveTo(x + w, y); ctx.lineTo(x, y + h);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w / 2, y + h / 2);
+		},
+		toTikZ: (s) => {
+			const w = toTikZ(Math.abs(s.x2 - s.x1));
+			const h = toTikZ(Math.abs(s.y2 - s.y1));
+			const cx = toTikZ((s.x1 + s.x2) / 2);
+			const cy = toTikZ((s.y1 + s.y2) / 2, true);
+			return `\\node[draw, rectangle, minimum width=${w}cm, minimum height=${h}cm, path picture={\\draw (path picture bounding box.south west) -- (path picture bounding box.north east) (path picture bounding box.south east) -- (path picture bounding box.north west);}] at (${cx}, ${cy}) {${s.style.text || ''}};`;
+		},
+		isStandaloneCommand: true
+	}),
+	pulley: createShapeDef('pulley', {
+		render: (s, ctx) => {
+			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			ctx.beginPath();
+			ctx.arc(s.x1, s.y1, r, 0, Math.PI * 2);
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(s.x1, s.y1, r * 0.2, 0, Math.PI * 2);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(s.x1, s.y1 - r); ctx.lineTo(s.x1, s.y1 - r - 15);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, s.x1, s.y1);
+		},
+		toTikZ: (s) => {
+			const r = toTikZ(Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2)));
+			const cx = toTikZ(s.x1);
+			const cy = toTikZ(s.y1, true);
+			return `\\draw (${cx}, ${cy}) circle (${r}); \\fill (${cx}, ${cy}) circle (1pt); \\draw (${cx}, ${cy}+${r}) -- (${cx}, ${cy}+${r}+0.5); ${getTikZLabelNode(s)}`;
+		},
+		isStandaloneCommand: true
+	}),
+	piston: createShapeDef('piston', {
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			ctx.beginPath();
+			ctx.moveTo(x, y); ctx.lineTo(x, y + h); ctx.lineTo(x + w, y + h); ctx.lineTo(x + w, y);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.fillStyle = "rgba(150, 150, 150, 0.5)";
+			ctx.fillRect(x + 2, y + h * 0.3, w - 4, 10);
+			ctx.strokeRect(x + 2, y + h * 0.3, w - 4, 10);
+			ctx.moveTo(x + w / 2, y + h * 0.3); ctx.lineTo(x + w / 2, y - 10);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w / 2, y + h / 2);
+		},
+		toTikZ: (s) => {
+			const w = toTikZ(Math.abs(s.x2 - s.x1));
+			const h = toTikZ(Math.abs(s.y2 - s.y1));
+			const x = toTikZ(Math.min(s.x1, s.x2));
+			const y = toTikZ(Math.min(s.y1, s.y2), true);
+			return `\\draw (${x}, ${y}+${h}) -- (${x}, ${y}) -- (${x}+${w}, ${y}) -- (${x}+${w}, ${y}+${h}); \\draw[fill=gray!30] (${x}+0.1, ${y}+${h}*0.4) rectangle (${x}+${w}-0.1, ${y}+${h}*0.4+0.2); \\draw (${x}+${w}/2, ${y}+${h}*0.4+0.2) -- (${x}+${w}/2, ${y}+${h}+0.5);`;
+		},
+		isStandaloneCommand: true
+	}),
+	field_mark: createShapeDef('field_mark', {
+		onDown: (x, y, style) => ({
+			type: 'field_mark',
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: { ...style, pointType: style.pointType || 'cross' }
+		}),
+		render: (s, ctx) => {
+			const r = 10;
+			ctx.beginPath();
+			ctx.arc(s.x1, s.y1, r, 0, Math.PI * 2);
+			ctx.stroke();
+			if (s.style.pointType === 'cross') {
+				const d = r * 0.7;
+				ctx.moveTo(s.x1 - d, s.y1 - d); ctx.lineTo(s.x1 + d, s.y1 + d);
+				ctx.moveTo(s.x1 + d, s.y1 - d); ctx.lineTo(s.x1 - d, s.y1 + d);
+			} else {
+				ctx.beginPath();
+				ctx.arc(s.x1, s.y1, 2, 0, Math.PI * 2);
+				ctx.fill();
+			}
+			ctx.stroke();
+		},
+		toTikZ: (s) => {
+			const cx = toTikZ(s.x1);
+			const cy = toTikZ(s.y1, true);
+			const symbol = s.style.pointType === 'cross' ? '\\times' : '\\cdot';
+			return `\\node[draw, circle, inner sep=1pt] at (${cx}, ${cy}) {$${symbol}$};`;
+		},
+		isStandaloneCommand: true,
+		getBoundingBox: (s) => ({ minX: s.x1 - 10, minY: s.y1 - 10, maxX: s.x1 + 10, maxY: s.y1 + 10 }),
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' }]
+	}),
 };

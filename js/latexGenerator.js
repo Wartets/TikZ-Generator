@@ -95,6 +95,9 @@ export function generateCode() {
 		libraries.add('positioning');
 	}
 
+	const hasSpring = app.shapes.some(s => s.type === 'spring');
+	if (hasSpring) libraries.add('decorations.pathmorphing');
+
 	if (app.shapes.some(s => s.style.freehandMode === 'rounded')) libraries.add('calc');
 
 	if (usePreamble) {

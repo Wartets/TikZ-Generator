@@ -503,6 +503,46 @@ export const TOOL_CONFIG = {
 		group: 'flowchart',
 		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
+	spring: {
+		displayName: 'Ressort',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-wave-saw-tool"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	mass: {
+		displayName: 'Masse',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-square"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+	},
+	pulley: {
+		displayName: 'Poulie',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-circle-dot"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+	},
+	piston: {
+		displayName: 'Piston',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-layers-intersect"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+	},
+	field_mark: {
+		displayName: 'Champ B',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-plus"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['pointType', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
 };
 
 export const SETTINGS_CONFIG = {

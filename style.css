@@ -212,7 +212,9 @@ body {
 }
 
 .control-group {
-	margin-bottom: 18px;
+	margin-bottom: 12px;
+	width: 100%;
+	box-sizing: border-box;
 }
 
 .control-group label {
@@ -223,17 +225,18 @@ body {
 	font-weight: 500;
 }
 
-select, input[type="text"] {
+select, input[type="text"], input[type="number"], textarea {
 	width: 100%;
-	padding: 10px 12px;
+	padding: 8px;
 	border: 1px solid var(--input-border);
 	border-radius: var(--radius-sm);
 	background: var(--input-bg);
 	color: var(--text-main);
-	font-size: 0.9rem;
+	font-size: 0.85rem;
 	box-sizing: border-box;
 	transition: all 0.2s;
 	font-family: inherit;
+	min-width: 0;
 }
 
 select:focus, input[type="text"]:focus, textarea:focus {
@@ -295,8 +298,10 @@ input[type="range"]::-webkit-slider-runnable-track {
 
 .control-row {
 	display: flex;
-	gap: 12px;
-	margin-bottom: 24px;
+	gap: 8px;
+	margin-bottom: 12px;
+	width: 100%;
+	flex-wrap: wrap;
 }
 
 .control-group-wrapper {
@@ -931,20 +936,15 @@ canvas {
 	font-size: 0.9em;
 }
 
-.property-grid {
-	display: grid;
-	grid-template-columns: repeat(2, 1fr);
-	gap: 8px;
-}
-
 .geo-row {
 	background: var(--input-bg);
 	border: 1px solid var(--input-border);
 	border-radius: 4px;
 	display: flex;
 	align-items: center;
-	padding: 2px 8px;
+	padding: 2px 6px;
 	height: 28px;
+	min-width: 0;
 }
 
 .geo-row label {
@@ -1014,12 +1014,6 @@ canvas {
 	border-radius: 4px;
 	padding: 6px 8px;
 	font-size: 0.8rem;
-}
-
-.slider-row {
-	display: flex;
-	justify-content: space-between;
-	margin-bottom: 6px;
 }
 
 input[type="range"] {
@@ -1126,4 +1120,33 @@ input[type="range"] {
 	line-height: 1.2;
 	overflow: hidden;
 	white-space: pre;
+}
+
+.control-row > .control-group {
+	flex: 1;
+	min-width: 80px;
+	margin-bottom: 0;
+}
+
+.slider-row {
+	display: flex;
+	justify-content: space-between;
+	align-items: center;
+	margin-bottom: 4px;
+	gap: 4px;
+}
+
+.slider-row label {
+	margin-bottom: 0;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	flex: 1;
+}
+
+.property-grid {
+	display: grid;
+	grid-template-columns: repeat(2, 1fr);
+	gap: 6px;
+	width: 100%;
 }

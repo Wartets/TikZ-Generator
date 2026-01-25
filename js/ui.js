@@ -63,13 +63,11 @@ export function createSettingsUI() {
 		settingsGroups.get(groupName).configs.push({ key, ...config });
 	}
 
-	settingsGroups.forEach((groupInfo, groupName) => {
+	settingsGroups.forEach((groupInfo) => {
 		const groupContainer = document.createElement('div');
 		
 		if (groupInfo.options.type === 'row') {
 			groupContainer.className = 'control-row';
-			groupContainer.style.display = 'flex';
-			groupContainer.style.gap = '8px';
 		} else {
 			groupContainer.className = 'control-group-wrapper';
 		}
@@ -79,7 +77,6 @@ export function createSettingsUI() {
 			const controlWrapper = document.createElement('div');
 			controlWrapper.className = 'control-group';
 			controlWrapper.id = `wrapper-${key}`;
-			if(groupInfo.options.type === 'row') controlWrapper.style.flex = '1';
 			
 			let controlHtml = '';
 
@@ -92,12 +89,12 @@ export function createSettingsUI() {
 				case 'text':
 					controlHtml = `
 						<label>${config.label}</label>
-						<input type="text" id="${key}" data-setting="${key}" class="settings-input" value="${config.defaultValue || ''}">`;
+						<input type="text" id="${key}" data-setting="${key}" class="settings-input">`;
 					break;
 				case 'number':
 					controlHtml = `
 						<label>${config.label}</label>
-						<input type="number" id="${key}" data-setting="${key}" class="settings-input" step="${config.step || 'any'}" value="${config.defaultValue || 0}">`;
+						<input type="number" id="${key}" data-setting="${key}" class="settings-input" step="${config.step || 'any'}">`;
 					break;
 				case 'select':
 					controlHtml = `
@@ -110,27 +107,26 @@ export function createSettingsUI() {
 					break;
 				case 'range':
 					const isPercent = config.unit === '%';
-					const displayValue = isPercent ? `${config.defaultValue * 100}${config.unit}` : `${config.defaultValue}${config.unit}`;
+					const val = config.defaultValue;
+					const displayValue = isPercent ? `${Math.round(val * 100)}${config.unit}` : `${val}${config.unit}`;
 					controlHtml = `
 						<div class="slider-row">
 							<label>${config.label}</label>
-							<span id="${key}Value" style="font-family:'SF Mono', monospace; font-size: 0.7rem; opacity:0.7;">${displayValue}</span>
+							<span id="${key}Value" class="value-badge">${displayValue}</span>
 						</div>
-						<input type="range" id="${key}" data-setting="${key}" min="${config.min}" max="${config.max}" step="${config.step}">`;
+						<input type="range" id="${key}" data-setting="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${val}">`;
 					break;
 				case 'checkbox':
 					controlHtml = `
-						<div style="display: flex; align-items: center; justify-content: space-between; height: 32px;">
-							<label style="margin: 0; cursor: pointer;" for="${key}">${config.label}</label>
+						<div style="display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px;">
+							<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${config.label}</label>
 							<input type="checkbox" id="${key}" data-setting="${key}">
 						</div>`;
 					break;
 				case 'color':
 					controlHtml = `
-						<div class="color-input">
-							<label>${config.label}</label>
-							<input type="color" id="${key}" data-setting="${key}" style="height:32px; width:100%;">
-						</div>`;
+						<label>${config.label}</label>
+						<input type="color" id="${key}" data-setting="${key}" style="height:32px; width:100%; border-radius:4px;">`;
 					break;
 			}
 			controlWrapper.innerHTML = controlHtml;
@@ -156,11 +152,11 @@ export function createGlobalSettingsUI() {
 			html = `
 				<div class="slider-row">
 					<label>${config.label}</label>
-					<span id="${key}Value">${config.defaultValue}${config.unit}</span>
+					<span id="${key}Value" class="value-badge">${config.defaultValue}${config.unit}</span>
 				</div>
 				<input type="range" id="${key}" data-global="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.defaultValue}">`;
 		} else if (config.type === 'color') {
-			html = `<label>${config.label}</label><input type="color" id="${key}" data-global="${key}" value="${config.defaultValue}">`;
+			html = `<label>${config.label}</label><input type="color" id="${key}" data-global="${key}" value="${config.defaultValue}" style="height:32px; width:100%; border-radius:4px;">`;
 		} else if (config.type === 'select') {
 			html = `
 				<label>${config.label}</label>
@@ -171,8 +167,8 @@ export function createGlobalSettingsUI() {
 				</div>`;
 		} else if (config.type === 'checkbox') {
 			html = `
-				<div style="display: flex; align-items: center; justify-content: space-between; height: 32px;">
-					<label style="margin: 0; cursor: pointer;" for="${key}">${config.label}</label>
+				<div style="display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px;">
+					<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${config.label}</label>
 					<input type="checkbox" id="${key}" data-global="${key}" ${config.defaultValue ? 'checked' : ''}>
 				</div>`;
 		}
@@ -281,7 +277,7 @@ export function updateSetting(element) {
 	let value;
 	if (element.type === 'checkbox') {
 		value = element.checked;
-	} else if (config.type === 'range' || (config.type === 'number' && !isNaN(parseFloat(element.value)))) {
+	} else if (config.type === 'range' || element.type === 'number') {
 		value = parseFloat(element.value);
 	} else {
 		value = element.value;
@@ -304,12 +300,18 @@ export function updateSetting(element) {
 		const valueSpan = document.getElementById(`${key}Value`);
 		if (valueSpan) {
 			const unit = config.unit || '';
-			valueSpan.textContent = key === 'opacity' ? `${Math.round(value * 100)}%` : `${value}${unit}`;
+			if (key === 'opacity') {
+				valueSpan.textContent = `${Math.round(value * 100)}%`;
+			} else if (key === 'textWidth' && value === 0) {
+				valueSpan.textContent = 'Auto';
+			} else {
+				valueSpan.textContent = `${value}${unit}`;
+			}
 		}
 	}
 
 	if (key === 'canvasZoom') {
-		return; 
+		canvas.parentElement.style.setProperty('--grid-size', `${value}px`);
 	}
 
 	if (key === 'stageColor') {

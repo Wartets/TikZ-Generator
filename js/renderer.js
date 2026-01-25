@@ -293,32 +293,58 @@ export function render() {
 	const visibleBottom = visibleTop + canvas.height / app.view.scale;
 	
 	ctx.save();
-	ctx.fillStyle = UI_CONSTANTS.GRID_RENDER_COLOR;
 	
-	let adaptiveStep = UI_CONSTANTS.GRID_SIZE;
-	while (adaptiveStep * app.view.scale < 15) {
-		adaptiveStep *= 2;
-	}
-	while (adaptiveStep * app.view.scale > 80) {
-		adaptiveStep /= 2;
-	}
+	const baseGridSize = UI_CONSTANTS.GRID_SIZE;
+	const zoomLevel = Math.log2(app.view.scale);
+	const gridScale = Math.pow(2, Math.floor(zoomLevel));
+	const step = baseGridSize / gridScale;
+	const majorStep = step * 5;
 	
-	const startX = Math.floor(visibleLeft / adaptiveStep) * adaptiveStep;
-	const startY = Math.floor(visibleTop / adaptiveStep) * adaptiveStep;
+	const opacityFactor = 1 - (zoomLevel - Math.floor(zoomLevel));
 	
-	if (app.view.scale > 0.05) {
-		ctx.beginPath();
-		for (let x = startX; x < visibleRight; x += adaptiveStep) {
-			for (let y = startY; y < visibleBottom; y += adaptiveStep) {
-				ctx.rect(x - 1, y - 1, 2, 2);
-			}
+	const startX = Math.floor(visibleLeft / step) * step;
+	const startY = Math.floor(visibleTop / step) * step;
+
+	ctx.lineWidth = 1 / app.view.scale;
+
+	ctx.beginPath();
+	ctx.strokeStyle = `rgba(94, 106, 94, ${0.1 * opacityFactor})`;
+	
+	for (let x = startX; x < visibleRight; x += step) {
+		if (Math.abs(x % majorStep) > 0.001) {
+			ctx.moveTo(x, visibleTop);
+			ctx.lineTo(x, visibleBottom);
 		}
-		ctx.fill();
 	}
+	for (let y = startY; y < visibleBottom; y += step) {
+		if (Math.abs(y % majorStep) > 0.001) {
+			ctx.moveTo(visibleLeft, y);
+			ctx.lineTo(visibleRight, y);
+		}
+	}
+	ctx.stroke();
+
+	ctx.beginPath();
+	const majorAlpha = 0.1 + (0.2 * opacityFactor);
+	ctx.strokeStyle = `rgba(94, 106, 94, ${Math.min(0.3, majorAlpha)})`;
+	
+	const majorStartX = Math.floor(visibleLeft / majorStep) * majorStep;
+	const majorStartY = Math.floor(visibleTop / majorStep) * majorStep;
+
+	for (let x = majorStartX; x < visibleRight; x += majorStep) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x, visibleBottom);
+	}
+	for (let y = majorStartY; y < visibleBottom; y += majorStep) {
+		ctx.moveTo(visibleLeft, y);
+		ctx.lineTo(visibleRight, y);
+	}
+	ctx.stroke();
+	
 	ctx.restore();
 
 	ctx.save();
-	ctx.strokeStyle = UI_CONSTANTS.AXIS_HELPER_COLOR;
+	ctx.strokeStyle = UI_CONSTANTS.AXES_RENDER_COLOR;
 	ctx.lineWidth = 2 / app.view.scale;
 	ctx.beginPath();
 	ctx.moveTo(visibleLeft, 0); ctx.lineTo(visibleRight, 0);

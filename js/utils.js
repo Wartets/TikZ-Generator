@@ -102,7 +102,6 @@ export function snap(val) {
 	return Math.round(val / UI_CONSTANTS.GRID_SIZE) * UI_CONSTANTS.GRID_SIZE;
 }
 
-// Déplacée ici car elle utilise des calculs géométriques et modifie l'état global de snapping
 export function getPos(e, refPoint = null) {
 	const rect = canvas.getBoundingClientRect();
 	const rawScreenX = e.clientX - rect.left;

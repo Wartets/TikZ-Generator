@@ -744,6 +744,7 @@ export function setupTextEditing() {
 		}
 		
 		textEditor.style.display = 'none';
+		textEditor.style.transform = 'none';
 		editingShape = null;
 	};
 
@@ -784,10 +785,18 @@ export function setupTextEditing() {
 			lines.forEach(line => {
 				maxWidth = Math.max(maxWidth, tempCtx.measureText(line).width);
 			});
-			textEditor.style.width = `${maxWidth + 10}px`;
+			textEditor.style.width = `${maxWidth + 20}px`;
 
 			textEditor.style.left = `${screenPos.x - textEditor.offsetWidth / 2}px`;
 			textEditor.style.top = `${screenPos.y - textEditor.offsetHeight / 2}px`;
+
+			if (style.textRotate) {
+				textEditor.style.transform = `rotate(${style.textRotate}deg)`;
+				textEditor.style.transformOrigin = 'center center';
+			} else if (style.rotate) {
+				textEditor.style.transform = `rotate(${style.rotate}deg)`;
+				textEditor.style.transformOrigin = 'center center';
+			}
 
 			textEditor.focus();
 			textEditor.select();

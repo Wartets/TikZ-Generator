@@ -252,7 +252,13 @@ export function getFillStyle(ctx, s) {
 	const cy = (box.minY + box.maxY) / 2;
 
 	if (s.style.fillType === 'linear') {
-		const grad = ctx.createLinearGradient(box.minX, box.minY, box.minX, box.maxY);
+		const angle = (s.style.shadingAngle || 0) * (Math.PI / 180);
+		const r = Math.sqrt(w * w + h * h) / 2;
+		
+		const dx = Math.sin(angle) * r;
+		const dy = Math.cos(angle) * r;
+
+		const grad = ctx.createLinearGradient(cx - dx, cy - dy, cx + dx, cy + dy);
 		grad.addColorStop(0, s.style.fill);
 		grad.addColorStop(1, s.style.fill2);
 		return grad;

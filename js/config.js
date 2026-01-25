@@ -508,7 +508,7 @@ export const TOOL_CONFIG = {
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-wave-saw-tool"></i>',
 		cursor: 'crosshair',
-		group: 'drawing',
+		group: 'physics',
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	mass: {
@@ -516,7 +516,7 @@ export const TOOL_CONFIG = {
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-square"></i>',
 		cursor: 'crosshair',
-		group: 'drawing',
+		group: 'physics',
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
 	},
 	pulley: {
@@ -524,7 +524,7 @@ export const TOOL_CONFIG = {
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-circle-dot"></i>',
 		cursor: 'crosshair',
-		group: 'drawing',
+		group: 'physics',
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
 	},
 	piston: {
@@ -532,7 +532,7 @@ export const TOOL_CONFIG = {
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-layers-intersect"></i>',
 		cursor: 'crosshair',
-		group: 'drawing',
+		group: 'physics',
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
 	},
 	field_mark: {
@@ -540,7 +540,7 @@ export const TOOL_CONFIG = {
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-plus"></i>',
 		cursor: 'crosshair',
-		group: 'drawing',
+		group: 'physics',
 		allow: ['pointType', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	repere_cartesian: {

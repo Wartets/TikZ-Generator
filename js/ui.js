@@ -21,7 +21,8 @@ export function createToolsUI() {
 		optics: document.getElementById('tools-optics'),
 		logic: document.getElementById('tools-logic'),
 		flowchart: document.getElementById('tools-flowchart'),
-		pseudo3d: document.getElementById('tools-pseudo3d')
+		pseudo3d: document.getElementById('tools-pseudo3d'),
+		physics: document.getElementById('tools-physics')
 	};
 
 	Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });

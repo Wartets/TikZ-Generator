@@ -206,11 +206,11 @@ export function renderShapeLabel(s, ctx, cx, cy) {
 	let textAlign = 'center';
 	let textBaseline = 'middle';
 
-	if (anchor.includes('east')) textAlign = 'right';
-	else if (anchor.includes('west')) textAlign = 'left';
+	if (anchor.includes('east')) textAlign = 'left';
+	else if (anchor.includes('west')) textAlign = 'right';
 
-	if (anchor.includes('north')) textBaseline = 'top';
-	else if (anchor.includes('south')) textBaseline = 'bottom';
+	if (anchor.includes('north')) textBaseline = 'bottom';
+	else if (anchor.includes('south')) textBaseline = 'top';
 
 	ctx.save();
 	ctx.translate(cx, cy);
@@ -388,6 +388,86 @@ export function getHandles(s) {
 
 // L'objet géant contenant toutes les définitions
 export const ShapeManager = {
+	point: createShapeDef('point', {
+		onDown: (x, y, style) => ({
+			type: 'point',
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: {
+				...style,
+				pointSize: style.pointSize || 3,
+				pointType: style.pointType || 'dot',
+				textAnchor: style.textAnchor || 'north west'
+			}
+		}),
+		onDrag: (s, x, y) => { s.x1 = x; s.y1 = y; s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const size = (s.style.pointSize || 3);
+			const type = s.style.pointType || 'dot';
+			
+			ctx.beginPath();
+			
+			if (type === 'dot') {
+				ctx.arc(s.x1, s.y1, size, 0, Math.PI * 2);
+				ctx.fillStyle = s.style.stroke;
+				ctx.fill();
+			} else if (type === 'circle') {
+				ctx.arc(s.x1, s.y1, size, 0, Math.PI * 2);
+				ctx.stroke();
+			} else if (type === 'cross') {
+				ctx.moveTo(s.x1 - size, s.y1 - size);
+				ctx.lineTo(s.x1 + size, s.y1 + size);
+				ctx.moveTo(s.x1 + size, s.y1 - size);
+				ctx.lineTo(s.x1 - size, s.y1 + size);
+				ctx.stroke();
+			} else if (type === 'plus') {
+				ctx.moveTo(s.x1 - size, s.y1);
+				ctx.lineTo(s.x1 + size, s.y1);
+				ctx.moveTo(s.x1, s.y1 - size);
+				ctx.lineTo(s.x1, s.y1 + size);
+				ctx.stroke();
+			}
+
+			renderShapeLabel(s, ctx, s.x1, s.y1);
+		},
+		toTikZ: (s) => {
+			const size = s.style.pointSize || 3;
+			const type = s.style.pointType || 'dot';
+			const x = toTikZ(s.x1, false, s.id, 'x1');
+			const y = toTikZ(s.y1, true, s.id, 'y1');
+			const label = getTikZLabelNode(s);
+			const color = s.style.stroke !== '#000000' ? `[draw=${app.colors.get(s.style.stroke) || s.style.stroke}]` : '';
+			
+			let cmd = '';
+			if (type === 'dot') {
+				const fill = s.style.stroke !== '#000000' ? `[fill=${app.colors.get(s.style.stroke) || s.style.stroke}]` : '[fill]';
+				cmd = `\\fill${fill} (${x},${y}) circle (${size}pt)`;
+			} else if (type === 'circle') {
+				cmd = `\\draw${color} (${x},${y}) circle (${size}pt)`;
+			} else if (type === 'cross') {
+				const sPt = size / 28.3465; 
+				cmd = `\\draw${color} (${x}-${size}pt,${y}-${size}pt) -- (${x}+${size}pt,${y}+${size}pt); \\draw${color} (${x}-${size}pt,${y}+${size}pt) -- (${x}+${size}pt,${y}-${size}pt)`;
+			} else if (type === 'plus') {
+				cmd = `\\draw${color} (${x}-${size}pt,${y}) -- (${x}+${size}pt,${y}); \\draw${color} (${x},${y}-${size}pt) -- (${x},${y}+${size}pt)`;
+			}
+
+			if (type === 'cross' || type === 'plus') {
+				return `${cmd}; \\node${label.substring(5) || ` at (${x},${y}) {}`}`; 
+			}
+			return `${cmd}${label};`;
+		},
+		getBoundingBox: (s) => {
+			const size = (s.style.pointSize || 3) + 2;
+			return { minX: s.x1 - size, minY: s.y1 - size, maxX: s.x1 + size, maxY: s.y1 + size };
+		},
+		resize: (s, mx, my) => { s.x1 = mx; s.y1 = my; s.x2 = mx; s.y2 = my; },
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' }],
+		hitTest: (s, x, y) => {
+			const size = (s.style.pointSize || 3) + UI_CONSTANTS.HIT_TOLERANCE;
+			const dist = Math.sqrt(Math.pow(x - s.x1, 2) + Math.pow(y - s.y1, 2));
+			return dist <= size;
+		}
+	}),
 	text: createShapeDef('text', {
 		render: (s, ctx) => {
 			const sizeMap = {

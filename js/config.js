@@ -147,6 +147,14 @@ export const TOOL_CONFIG = {
 		group: 'general',
 		allow: []
 	},
+	point: {
+		displayName: 'Point',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-target"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textAnchor', 'pointSize', 'pointType', 'strokeColor', 'fillColor', 'opacity']
+	},
 	text: {
 		displayName: 'Texte',
 		handler: 'DrawingTool',
@@ -414,6 +422,28 @@ export const TOOL_CONFIG = {
 };
 
 export const SETTINGS_CONFIG = {
+	pointSize: {
+		label: 'Taille du point',
+		type: 'range',
+		propName: 'pointSize',
+		defaultValue: 3,
+		min: 1, max: 20, step: 0.5,
+		unit: 'pt',
+		tikzValue: (v) => null
+	},
+	pointType: {
+		label: 'Style de point',
+		type: 'select',
+		propName: 'pointType',
+		defaultValue: 'dot',
+		options: {
+			'dot': 'Disque (Plein)',
+			'circle': 'Cercle (Vide)',
+			'cross': 'Croix (X)',
+			'plus': 'Plus (+)'
+		},
+		tikzValue: (v) => null
+	},
 	textString: {
 		label: 'Contenu',
 		type: 'textarea',

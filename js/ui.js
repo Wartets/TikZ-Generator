@@ -428,7 +428,8 @@ export function updateUIFromShape(s) {
 		'strokeColor', 'lineWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale',
 		'opacity', 'textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 
 		'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'gridStep',
-		'polySides', 'starPoints', 'starRatio', 'simplifyTolerance', 'freehandMode', 'cornerRadius'
+		'polySides', 'starPoints', 'starRatio', 'simplifyTolerance', 'freehandMode', 'cornerRadius',
+		'pointSize', 'pointType'
 	];
 	
 	fields.forEach(id => {

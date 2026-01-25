@@ -575,6 +575,38 @@ export const TOOL_CONFIG = {
 		group: 'pseudo3d',
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'angle3d']
 	},
+	pyramid_3d: {
+		displayName: 'Pyramide 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-triangle-square-circle"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
+	},
+	cone_3d: {
+		displayName: 'Cône 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-cone-2"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d']
+	},
+	prism_3d: {
+		displayName: 'Prisme 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-box-model-2"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
+	},
+	plane_3d: {
+		displayName: 'Plan 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-layers-intersect"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
+	},
 };
 
 export const SETTINGS_CONFIG = {

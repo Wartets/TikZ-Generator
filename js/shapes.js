@@ -3202,14 +3202,15 @@ export const ShapeManager = {
 
 			renderShapeLabel(s, ctx, s.x1, s.y1 + 15);
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const x = toTikZ(s.x1);
 			const y = toTikZ(s.y1, true);
 			const lx = s.style.axisLenX / UI_CONSTANTS.SCALE;
 			const ly = s.style.axisLenY / UI_CONSTANTS.SCALE;
 			const lz = s.style.axisLenZ / UI_CONSTANTS.SCALE;
 			const ang = s.style.angle3d || 45;
-			return `\\begin{scope}[shift={(${x},${y})}]
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			return `\\begin{scope}[shift={(${x},${y})}, ${cleanOpts}]
 	\\draw[->, >=stealth] (0,0) -- (${lx.toFixed(2)},0) node[right] {$x$};
 	\\draw[->, >=stealth] (0,0) -- (0,${lz.toFixed(2)}) node[above] {$z$};
 	\\draw[->, >=stealth] (0,0) -- (${ang}:-${ly.toFixed(2)}) node[below left] {$y$};
@@ -3286,7 +3287,7 @@ export const ShapeManager = {
 			
 			renderShapeLabel(s, ctx, s.x1 + w / 2, s.y1 + h / 2);
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const x = toTikZ(s.x1);
 			const y = toTikZ(s.y1, true);
 			const w = (s.x2 - s.x1) / UI_CONSTANTS.SCALE;
@@ -3295,12 +3296,13 @@ export const ShapeManager = {
 			const ang = s.style.angle3d || 45;
 			const color = app.colors.get(s.style.fillColor) || 'white';
 			const drawColor = app.colors.get(s.style.stroke) || 'black';
-			const opts = s.style.fillType !== 'none' ? `fill=${color}, draw=${drawColor}` : `draw=${drawColor}`;
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			const fillOpts = s.style.fillType !== 'none' ? `fill=${color}, draw=${drawColor}` : `draw=${drawColor}`;
 
-			return `\\begin{scope}[shift={(${x},${y})}]
-	\\draw[${opts}] (0,0) -- (${w.toFixed(2)},0) -- (${w.toFixed(2)},${(-h).toFixed(2)}) -- (0,${(-h).toFixed(2)}) -- cycle;
-	\\draw[${opts}] (0,0) -- (${ang}:${d.toFixed(2)}) -- ++(${w.toFixed(2)},0) -- (${w.toFixed(2)},0);
-	\\draw[${opts}] (${w.toFixed(2)},0) -- ++(${ang}:${d.toFixed(2)}) -- ++(0,${(-h).toFixed(2)}) -- (${w.toFixed(2)},${(-h).toFixed(2)});
+			return `\\begin{scope}[shift={(${x},${y})}, ${cleanOpts}]
+	\\draw[${fillOpts}] (0,0) -- (${w.toFixed(2)},0) -- (${w.toFixed(2)},${(-h).toFixed(2)}) -- (0,${(-h).toFixed(2)}) -- cycle;
+	\\draw[${fillOpts}] (0,0) -- (${ang}:${d.toFixed(2)}) -- ++(${w.toFixed(2)},0) -- (${w.toFixed(2)},0);
+	\\draw[${fillOpts}] (${w.toFixed(2)},0) -- ++(${ang}:${d.toFixed(2)}) -- ++(0,${(-h).toFixed(2)}) -- (${w.toFixed(2)},${(-h).toFixed(2)});
 	\\draw[${drawColor}, dashed] (0,${(-h).toFixed(2)}) -- ++(${ang}:${d.toFixed(2)}) coordinate (B4);
 	\\draw[${drawColor}, dashed] (B4) -- ++(${w.toFixed(2)},0);
 	\\draw[${drawColor}, dashed] (B4) -- ++(0,${h.toFixed(2)});
@@ -3317,7 +3319,8 @@ export const ShapeManager = {
 				maxX: Math.max(s.x2, s.x2 + dx),
 				maxY: Math.max(s.y2, s.y2 - dy)
 			};
-		}
+		},
+		isStandaloneCommand: true
 	}),
 	cylinder_3d: createShapeDef('cylinder_3d', {
 		onDown: (x, y, style) => ({
@@ -3362,7 +3365,7 @@ export const ShapeManager = {
 			
 			renderShapeLabel(s, ctx, cx, s.y1 + h / 2);
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const cx = toTikZ(s.x1 + (s.x2 - s.x1) / 2);
 			const y1 = toTikZ(s.y1, true);
 			const h = (s.y2 - s.y1) / UI_CONSTANTS.SCALE;
@@ -3370,8 +3373,9 @@ export const ShapeManager = {
 			const ry = (s.style.depth3d || 15) / UI_CONSTANTS.SCALE;
 			const color = app.colors.get(s.style.fillColor) || 'white';
 			const drawColor = app.colors.get(s.style.stroke) || 'black';
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
 
-			return `\\begin{scope}[shift={(${cx},${y1})}]
+			return `\\begin{scope}[shift={(${cx},${y1})}, ${cleanOpts}]
 	\\fill[${color}] (0,0) ellipse (${rx.toFixed(2)} and ${ry.toFixed(2)});
 	\\fill[${color}] (${(-rx).toFixed(2)}, 0) rectangle (${rx.toFixed(2)}, ${(-h).toFixed(2)});
 	\\fill[${color}] (0,${(-h).toFixed(2)}) ellipse (${rx.toFixed(2)} and ${ry.toFixed(2)});
@@ -3381,7 +3385,8 @@ export const ShapeManager = {
 	\\draw[${drawColor}] (${rx.toFixed(2)},${(-h).toFixed(2)}) arc (0:-180:${rx.toFixed(2)} and ${ry.toFixed(2)});
 	\\draw[${drawColor}, dashed] (${rx.toFixed(2)},${(-h).toFixed(2)}) arc (0:180:${rx.toFixed(2)} and ${ry.toFixed(2)});
 	\\end{scope}`;
-		}
+		},
+		isStandaloneCommand: true
 	}),
 	sphere_3d: createShapeDef('sphere_3d', {
 		onDown: (x, y, style) => ({
@@ -3423,20 +3428,264 @@ export const ShapeManager = {
 			
 			renderShapeLabel(s, ctx, cx, cy);
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const cx = toTikZ(s.x1 + (s.x2 - s.x1) / 2);
 			const cy = toTikZ(s.y1 + (s.x2 - s.x1) / 2, true);
 			const r = ((s.x2 - s.x1) / 2) / UI_CONSTANTS.SCALE;
 			const ry = (s.style.angle3d || 20) / UI_CONSTANTS.SCALE;
 			const color = app.colors.get(s.style.fillColor) || 'white';
 			const drawColor = app.colors.get(s.style.stroke) || 'black';
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
 
-			return `\\begin{scope}[shift={(${cx},${cy})}]
+			return `\\begin{scope}[shift={(${cx},${cy})}, ${cleanOpts}]
 	\\draw[${drawColor}, fill=${color}] (0,0) circle (${r.toFixed(2)});
 	\\draw[${drawColor}] (${(-r).toFixed(2)},0) arc (180:360:${r.toFixed(2)} and ${ry.toFixed(2)});
 	\\draw[${drawColor}, dashed] (${(-r).toFixed(2)},0) arc (180:0:${r.toFixed(2)} and ${ry.toFixed(2)});
 	\\draw[${drawColor}] (0,${r.toFixed(2)}) arc (90:-90:${ry.toFixed(2)} and ${r.toFixed(2)});
 	\\end{scope}`;
-		}
+		},
+		isStandaloneCommand: true
+	}),
+	pyramid_3d: createShapeDef('pyramid_3d', {
+		onDown: (x, y, style) => ({
+			type: 'pyramid_3d',
+			x1: x, y1: y,
+			x2: x + 60, y2: y + 60,
+			style: { ...style, depth3d: 30, angle3d: 45 }
+		}),
+		render: (s, ctx) => {
+			const w = s.x2 - s.x1;
+			const h = s.y2 - s.y1;
+			const d = s.style.depth3d || 30;
+			const ang = (s.style.angle3d || 45) * Math.PI / 180;
+			const dx = d * Math.cos(ang);
+			const dy = -d * Math.sin(ang);
+
+			const b1 = {x: s.x1, y: s.y2};
+			const b2 = {x: s.x2, y: s.y2};
+			const b3 = {x: s.x2 + dx, y: s.y2 + dy};
+			const b4 = {x: s.x1 + dx, y: s.y2 + dy};
+			const apex = {x: s.x1 + w/2 + dx/2, y: s.y1};
+
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.beginPath();
+				ctx.moveTo(b1.x, b1.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(apex.x, apex.y); ctx.closePath(); ctx.fill();
+				ctx.beginPath();
+				ctx.moveTo(b2.x, b2.y); ctx.lineTo(b3.x, b3.y); ctx.lineTo(apex.x, apex.y); ctx.closePath(); ctx.fill();
+			}
+
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.moveTo(b1.x, b1.y); ctx.lineTo(b4.x, b4.y); ctx.lineTo(b3.x, b3.y);
+			ctx.moveTo(b4.x, b4.y); ctx.lineTo(apex.x, apex.y);
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.setLineDash([]);
+			ctx.moveTo(b1.x, b1.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(b3.x, b3.y);
+			ctx.moveTo(b1.x, b1.y); ctx.lineTo(apex.x, apex.y);
+			ctx.moveTo(b2.x, b2.y); ctx.lineTo(apex.x, apex.y);
+			ctx.moveTo(b3.x, b3.y); ctx.lineTo(apex.x, apex.y);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, apex.x, b1.y + 15);
+		},
+		toTikZ: (s, opts) => {
+			const x = toTikZ(s.x1);
+			const y = toTikZ(s.y2, true);
+			const w = (s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const h = (s.y2 - s.y1) / UI_CONSTANTS.SCALE;
+			const d = s.style.depth3d / UI_CONSTANTS.SCALE;
+			const ang = s.style.angle3d || 45;
+			const color = app.colors.get(s.style.fillColor) || 'white';
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			return `\\begin{scope}[shift={(${x},${y})}, ${cleanOpts}]
+	\\coordinate (A) at (0,0); \\coordinate (B) at (${w.toFixed(2)},0); \\coordinate (C) at (${ang}:${d.toFixed(2)});
+	\\coordinate (D) at ($(B)+(C)$); \\coordinate (E) at ($(A)+(C)$);
+	\\coordinate (Apex) at ($(A)!0.5!(D) + (0,${h.toFixed(2)})$);
+	\\draw[dashed] (E) -- (A) (E) -- (C) (E) -- (Apex);
+	\\draw[fill=${color}, opacity=0.5] (A) -- (B) -- (Apex) -- cycle;
+	\\draw[fill=${color}, opacity=0.5] (B) -- (D) -- (Apex) -- cycle;
+	\\draw (A) -- (B) -- (D) (B) -- (Apex) (A) -- (Apex) (D) -- (Apex);
+	\\end{scope}`;
+		},
+		getBoundingBox: (s) => {
+			const d = s.style.depth3d || 30;
+			return { minX: s.x1 - d, minY: s.y1 - 10, maxX: s.x2 + d, maxY: s.y2 + 10 };
+		},
+		isStandaloneCommand: true
+	}),
+	cone_3d: createShapeDef('cone_3d', {
+		onDown: (x, y, style) => ({
+			type: 'cone_3d',
+			x1: x, y1: y,
+			x2: x + 60, y2: y + 80,
+			style: { ...style, depth3d: 15 }
+		}),
+		render: (s, ctx) => {
+			const w = s.x2 - s.x1;
+			const h = s.y2 - s.y1;
+			const rx = w / 2;
+			const ry = s.style.depth3d || 15;
+			const cx = s.x1 + rx;
+			const apex = {x: cx, y: s.y1};
+
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.beginPath();
+				ctx.moveTo(s.x1, s.y2); ctx.lineTo(apex.x, apex.y); ctx.lineTo(s.x2, s.y2); ctx.fill();
+				ctx.beginPath();
+				ctx.ellipse(cx, s.y2, rx, ry, 0, 0, Math.PI * 2); ctx.fill();
+			}
+
+			ctx.beginPath();
+			ctx.moveTo(s.x1, s.y2); ctx.lineTo(apex.x, apex.y); ctx.lineTo(s.x2, s.y2);
+			ctx.ellipse(cx, s.y2, rx, ry, 0, 0, Math.PI);
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.ellipse(cx, s.y2, rx, ry, 0, Math.PI, Math.PI * 2);
+			ctx.stroke();
+			ctx.setLineDash([]);
+			renderShapeLabel(s, ctx, cx, s.y2 + ry + 10);
+		},
+		toTikZ: (s, opts) => {
+			const cx = toTikZ(s.x1 + (s.x2 - s.x1) / 2);
+			const y2 = toTikZ(s.y2, true);
+			const h = (s.y2 - s.y1) / UI_CONSTANTS.SCALE;
+			const rx = ((s.x2 - s.x1) / 2) / UI_CONSTANTS.SCALE;
+			const ry = (s.style.depth3d || 15) / UI_CONSTANTS.SCALE;
+			const color = app.colors.get(s.style.fillColor) || 'white';
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			return `\\begin{scope}[shift={(${cx},${y2})}, ${cleanOpts}]
+	\\draw[fill=${color}] (${-rx.toFixed(2)},0) -- (0,${h.toFixed(2)}) -- (${rx.toFixed(2)},0);
+	\\draw[fill=${color}] (0,0) ellipse (${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw (${-rx.toFixed(2)},0) arc (180:360:${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw[dashed] (${-rx.toFixed(2)},0) arc (180:0:${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\end{scope}`;
+		},
+		isStandaloneCommand: true
+	}),
+	prism_3d: createShapeDef('prism_3d', {
+		onDown: (x, y, style) => ({
+			type: 'prism_3d',
+			x1: x, y1: y,
+			x2: x + 60, y2: y + 60,
+			style: { ...style, depth3d: 30, angle3d: 45 }
+		}),
+		render: (s, ctx) => {
+			const w = s.x2 - s.x1;
+			const h = s.y2 - s.y1;
+			const d = s.style.depth3d || 30;
+			const ang = (s.style.angle3d || 45) * Math.PI / 180;
+			const dx = d * Math.cos(ang);
+			const dy = -d * Math.sin(ang);
+
+			const p1 = {x: s.x1, y: s.y2};
+			const p2 = {x: s.x1 + w, y: s.y2};
+			const p3 = {x: s.x1 + w/2, y: s.y1};
+			const p1b = {x: p1.x + dx, y: p1.y + dy};
+			const p2b = {x: p2.x + dx, y: p2.y + dy};
+			const p3b = {x: p3.x + dx, y: p3.y + dy};
+
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.beginPath();
+				ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath(); ctx.fill();
+				ctx.beginPath();
+				ctx.moveTo(p2.x, p2.y); ctx.lineTo(p2b.x, p2b.y); ctx.lineTo(p3b.x, p3b.y); ctx.lineTo(p3.x, p3.y); ctx.closePath(); ctx.fill();
+				ctx.beginPath();
+				ctx.moveTo(p3.x, p3.y); ctx.lineTo(p3b.x, p3b.y); ctx.lineTo(p1b.x, p1b.y); ctx.lineTo(p1.x, p1.y); ctx.closePath(); ctx.fill();
+			}
+
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.moveTo(p1.x, p1.y); ctx.lineTo(p1b.x, p1b.y);
+			ctx.moveTo(p1b.x, p1b.y); ctx.lineTo(p2b.x, p2b.y);
+			ctx.moveTo(p1b.x, p1b.y); ctx.lineTo(p3b.x, p3b.y);
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.setLineDash([]);
+			ctx.moveTo(p1.x, p1.y); ctx.lineTo(p2.x, p2.y); ctx.lineTo(p3.x, p3.y); ctx.closePath();
+			ctx.moveTo(p2.x, p2.y); ctx.lineTo(p2b.x, p2b.y);
+			ctx.moveTo(p3.x, p3.y); ctx.lineTo(p3b.x, p3b.y);
+			ctx.moveTo(p2b.x, p2b.y); ctx.lineTo(p3b.x, p3b.y);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, p1.x + w/2, p1.y + h/2);
+		},
+		toTikZ: (s, opts) => {
+			const x = toTikZ(s.x1);
+			const y = toTikZ(s.y2, true);
+			const w = (s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const h = (s.y2 - s.y1) / UI_CONSTANTS.SCALE;
+			const d = s.style.depth3d / UI_CONSTANTS.SCALE;
+			const ang = s.style.angle3d || 45;
+			const color = app.colors.get(s.style.fillColor) || 'white';
+			const drawColor = app.colors.get(s.style.stroke) || 'black';
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			const fillOpts = s.style.fillType !== 'none' ? `fill=${color}` : '';
+
+			return `\\begin{scope}[shift={(${x},${y})}, ${cleanOpts}]
+	\\coordinate (A) at (0,0); \\coordinate (B) at (${w.toFixed(2)},0); \\coordinate (C) at (${(w/2).toFixed(2)},${h.toFixed(2)});
+	\\coordinate (Ap) at (${ang}:${d.toFixed(2)}); \\coordinate (Bp) at ($(B)+(Ap)$); \\coordinate (Cp) at ($(C)+(Ap)$);
+	\\draw[${drawColor}, dashed] (Ap) -- (A) (Ap) -- (Bp) (Ap) -- (Cp);
+	\\draw[${drawColor}, ${fillOpts}] (A) -- (B) -- (C) -- cycle;
+	\\draw[${drawColor}, ${fillOpts}] (B) -- (Bp) -- (Cp) -- (C) -- cycle;
+	\\draw[${drawColor}, ${fillOpts}] (A) -- (C) -- (Cp) -- (Ap) -- cycle;
+	\\draw[${drawColor}] (B) -- (Bp) -- (Cp) -- (C) -- cycle;
+	\\end{scope}`;
+		},
+		isStandaloneCommand: true
+	}),
+	plane_3d: createShapeDef('plane_3d', {
+		onDown: (x, y, style) => ({
+			type: 'plane_3d',
+			x1: x, y1: y,
+			x2: x + 100, y2: y + 60,
+			style: { ...style, depth3d: 40, angle3d: 30 }
+		}),
+		render: (s, ctx) => {
+			const w = s.x2 - s.x1;
+			const d = s.style.depth3d || 40;
+			const ang = (s.style.angle3d || 30) * Math.PI / 180;
+			const dx = d * Math.cos(ang);
+			const dy = -d * Math.sin(ang);
+
+			ctx.beginPath();
+			ctx.moveTo(s.x1, s.y1);
+			ctx.lineTo(s.x1 + w, s.y1);
+			ctx.lineTo(s.x1 + w + dx, s.y1 + dy);
+			ctx.lineTo(s.x1 + dx, s.y1 + dy);
+			ctx.closePath();
+			
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.fill();
+			}
+			ctx.stroke();
+
+			const cx = s.x1 + w/2 + dx/2;
+			const cy = s.y1 + dy/2;
+			renderShapeLabel(s, ctx, cx, cy);
+		},
+		toTikZ: (s, opts) => {
+			const x = toTikZ(s.x1);
+			const y = toTikZ(s.y1, true);
+			const w = (s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const d = s.style.depth3d / UI_CONSTANTS.SCALE;
+			const ang = s.style.angle3d || 30;
+			const color = app.colors.get(s.style.fillColor) || 'blue!20';
+			const cleanOpts = opts ? opts.slice(1, -1) + ', ' : '';
+			return `\\draw[${cleanOpts}fill=${color}, opacity=0.5] (${x},${y}) -- ++(${w.toFixed(2)},0) -- ++(${ang}:${d.toFixed(2)}) -- ++(${-w.toFixed(2)},0) -- cycle;`;
+		},
+		getHandles: (s) => {
+			return [
+				{ x: s.x1, y: s.y1, pos: 'tl', cursor: 'move' },
+				{ x: s.x2, y: s.y1, pos: 'tr', cursor: 'ew-resize' }
+			];
+		},
+		isStandaloneCommand: true
 	}),
 };

@@ -79,7 +79,10 @@ export function generateCode() {
 	if (hasCircuits) packages.add('circuitikz');
 
 	const hasGeometric = app.shapes.some(s => ['star', 'diamond', 'ellipse', 'polygon', 'flow_decision'].includes(s.type));
-	if (hasGeometric) libraries.add('shapes.geometric');
+	if (hasGeometric) {
+		libraries.add('shapes.geometric');
+		libraries.add('calc');
+	}
 
 	const hasArrows = app.shapes.some(s => s.style.arrow && s.style.arrow !== 'none');
 	if (hasArrows || style.globalArrow) libraries.add('arrows.meta');
@@ -95,14 +98,18 @@ export function generateCode() {
 		libraries.add('positioning');
 	}
 
-	const has3D = app.shapes.some(s => ['cube', 'repere_cartesian', 'cylinder_3d', 'sphere_3d'].includes(s.type));
+	const has3D = app.shapes.some(s => ['cube', 'repere_cartesian', 'cylinder_3d', 'sphere_3d', 'pyramid_3d', 'cone_3d', 'prism_3d', 'plane_3d'].includes(s.type));
 	if (has3D) {
 		libraries.add('arrows.meta');
 		libraries.add('angles');
+		libraries.add('calc');
 	}
 
 	const hasSpring = app.shapes.some(s => s.type === 'spring');
-	if (hasSpring) libraries.add('decorations.pathmorphing');
+	if (hasSpring) {
+		libraries.add('decorations.pathmorphing');
+		libraries.add('calc');
+	}
 
 	if (app.shapes.some(s => s.style.freehandMode === 'rounded')) libraries.add('calc');
 
@@ -233,8 +240,6 @@ export function generateCode() {
 			out += `	${shapeDef.toTikZ(s, optStr)}\n`;
 		} else if (s.type === 'text') {
 			out += `	\\node${optStr} at ${shapeDef.toTikZ(s)}\n`;
-		} else if (s.type === 'line' || s.type === 'rect' || s.type === 'circle' || s.type === 'ellipse') {
-			out += `	\\draw${optStr} ${shapeDef.toTikZ(s)}\n`;
 		} else {
 			out += `	\\draw${optStr} ${shapeDef.toTikZ(s)}\n`;
 		}

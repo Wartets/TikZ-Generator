@@ -2666,27 +2666,61 @@ export const ShapeManager = {
 			const h = Math.abs(s.y2 - s.y1);
 			const x = Math.min(s.x1, s.x2);
 			const y = Math.min(s.y1, s.y2);
-			
 			ctx.beginPath();
 			ctx.moveTo(x, y);
-			ctx.lineTo(x + w/2, y);
-			ctx.arc(x + w/2, y + h/2, h/2, -Math.PI/2, Math.PI/2);
+			ctx.lineTo(x + w * 0.5, y);
+			ctx.arc(x + w * 0.5, y + h * 0.5, h * 0.5, -Math.PI / 2, Math.PI / 2);
 			ctx.lineTo(x, y + h);
 			ctx.closePath();
 			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
-			renderShapeLabel(s, ctx, x + w/2, y + h/2);
+			renderShapeLabel(s, ctx, x + w * 0.4, y + h * 0.5);
 		},
 		toTikZ: (s) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
-			const text = s.style.text ? `, label={${s.style.text}}` : '';
-			return `\\node[and port, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[and gate US, draw, logic gate inputs=nn, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
+		}),
+		isStandaloneCommand: true
+	}),
+	logic_nand: createShapeDef('logic_nand', {
+		onDown: (x, y, style) => ({ type: 'logic_nand', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			const br = h * 0.1;
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.lineTo(x + w * 0.4, y);
+			ctx.arc(x + w * 0.4, y + h * 0.5, h * 0.5, -Math.PI / 2, Math.PI / 2);
+			ctx.lineTo(x, y + h);
+			ctx.closePath();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(x + w * 0.4 + h * 0.5 + br, y + h * 0.5, br, 0, Math.PI * 2);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w * 0.4, y + h * 0.5);
+		},
+		toTikZ: (s) => {
+			const cx = toTikZ((s.x1 + s.x2) / 2);
+			const cy = toTikZ((s.y1 + s.y2) / 2, true);
+			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[nand gate US, draw, logic gate inputs=nn, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+		},
+		getBoundingBox: (s) => ({
+			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
+			maxX: Math.max(s.x1, s.x2) + (Math.abs(s.y2 - s.y1) * 0.2), maxY: Math.max(s.y1, s.y2)
 		}),
 		isStandaloneCommand: true
 	}),
@@ -2698,27 +2732,137 @@ export const ShapeManager = {
 			const h = Math.abs(s.y2 - s.y1);
 			const x = Math.min(s.x1, s.x2);
 			const y = Math.min(s.y1, s.y2);
-			
 			ctx.beginPath();
 			ctx.moveTo(x, y);
-			ctx.quadraticCurveTo(x + w/4, y + h/2, x, y + h);
-			ctx.quadraticCurveTo(x + w*1.2, y + h, x + w, y + h/2);
-			ctx.quadraticCurveTo(x + w*1.2, y, x, y);
+			ctx.quadraticCurveTo(x + w * 0.4, y + h * 0.5, x, y + h);
+			ctx.quadraticCurveTo(x + w * 0.5, y + h, x + w, y + h * 0.5);
+			ctx.quadraticCurveTo(x + w * 0.5, y, x, y);
 			ctx.closePath();
 			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
-			renderShapeLabel(s, ctx, x + w/2, y + h/2);
+			renderShapeLabel(s, ctx, x + w * 0.4, y + h * 0.5);
 		},
 		toTikZ: (s) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
-			const text = s.style.text ? `, label={${s.style.text}}` : '';
-			return `\\node[or port, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[or gate US, draw, logic gate inputs=nn, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
 			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
+		}),
+		isStandaloneCommand: true
+	}),
+	logic_xor: createShapeDef('logic_xor', {
+		onDown: (x, y, style) => ({ type: 'logic_xor', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			const offset = w * 0.15;
+			ctx.beginPath();
+			ctx.moveTo(x + offset, y);
+			ctx.quadraticCurveTo(x + offset + w * 0.4, y + h * 0.5, x + offset, y + h);
+			ctx.quadraticCurveTo(x + offset + w * 0.5, y + h, x + w, y + h * 0.5);
+			ctx.quadraticCurveTo(x + offset + w * 0.5, y, x + offset, y);
+			ctx.closePath();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.quadraticCurveTo(x + w * 0.4, y + h * 0.5, x, y + h);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w * 0.5, y + h * 0.5);
+		},
+		toTikZ: (s) => {
+			const cx = toTikZ((s.x1 + s.x2) / 2);
+			const cy = toTikZ((s.y1 + s.y2) / 2, true);
+			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[xor gate US, draw, logic gate inputs=nn, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+		},
+		getBoundingBox: (s) => ({
+			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
+			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
+		}),
+		isStandaloneCommand: true
+	}),
+	logic_nor: createShapeDef('logic_nor', {
+		onDown: (x, y, style) => ({ type: 'logic_nor', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			const br = h * 0.1;
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.quadraticCurveTo(x + w * 0.3, y + h * 0.5, x, y + h);
+			ctx.quadraticCurveTo(x + w * 0.4, y + h, x + w * 0.9, y + h * 0.5);
+			ctx.quadraticCurveTo(x + w * 0.4, y, x, y);
+			ctx.closePath();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(x + w * 0.9 + br, y + h * 0.5, br, 0, Math.PI * 2);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w * 0.4, y + h * 0.5);
+		},
+		toTikZ: (s) => {
+			const cx = toTikZ((s.x1 + s.x2) / 2);
+			const cy = toTikZ((s.y1 + s.y2) / 2, true);
+			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[nor gate US, draw, logic gate inputs=nn, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+		},
+		getBoundingBox: (s) => ({
+			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
+			maxX: Math.max(s.x1, s.x2) + (Math.abs(s.y2 - s.y1) * 0.2), maxY: Math.max(s.y1, s.y2)
+		}),
+		isStandaloneCommand: true
+	}),
+	logic_xnor: createShapeDef('logic_xnor', {
+		onDown: (x, y, style) => ({ type: 'logic_xnor', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			const offset = w * 0.15;
+			const br = h * 0.1;
+			ctx.beginPath();
+			ctx.moveTo(x + offset, y);
+			ctx.quadraticCurveTo(x + offset + w * 0.3, y + h * 0.5, x + offset, y + h);
+			ctx.quadraticCurveTo(x + offset + w * 0.4, y + h, x + w * 0.9, y + h * 0.5);
+			ctx.quadraticCurveTo(x + offset + w * 0.4, y, x + offset, y);
+			ctx.closePath();
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(x, y);
+			ctx.quadraticCurveTo(x + w * 0.3, y + h * 0.5, x, y + h);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(x + w * 0.9 + br, y + h * 0.5, br, 0, Math.PI * 2);
+			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w * 0.5, y + h * 0.5);
+		},
+		toTikZ: (s) => {
+			const cx = toTikZ((s.x1 + s.x2) / 2);
+			const cy = toTikZ((s.y1 + s.y2) / 2, true);
+			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[xnor gate US, draw, logic gate inputs=nn, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+		},
+		getBoundingBox: (s) => ({
+			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
+			maxX: Math.max(s.x1, s.x2) + (Math.abs(s.y2 - s.y1) * 0.2), maxY: Math.max(s.y1, s.y2)
 		}),
 		isStandaloneCommand: true
 	}),
@@ -2730,26 +2874,25 @@ export const ShapeManager = {
 			const h = Math.abs(s.y2 - s.y1);
 			const x = Math.min(s.x1, s.x2);
 			const y = Math.min(s.y1, s.y2);
-			
+			const br = h * 0.15;
 			ctx.beginPath();
 			ctx.moveTo(x, y);
 			ctx.lineTo(x, y + h);
-			ctx.lineTo(x + w - 5, y + h/2);
+			ctx.lineTo(x + w - br * 2, y + h * 0.5);
 			ctx.closePath();
 			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
-			
 			ctx.beginPath();
-			ctx.arc(x + w, y + h/2, 5, 0, Math.PI * 2);
+			ctx.arc(x + w - br, y + h * 0.5, br, 0, Math.PI * 2);
 			ctx.stroke();
-			renderShapeLabel(s, ctx, x + w/2, y + h/2);
+			renderShapeLabel(s, ctx, x + w * 0.3, y + h * 0.5);
 		},
 		toTikZ: (s) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
-			const text = s.style.text ? `, label={${s.style.text}}` : '';
-			return `\\node[not port, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
+			const text = s.style.text ? `, label={center:${s.style.text}}` : '';
+			return `\\node[not gate US, draw, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),

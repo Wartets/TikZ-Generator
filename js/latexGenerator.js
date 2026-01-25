@@ -89,6 +89,12 @@ export function generateCode() {
 		packages.add('pgfplots');
 	}
 
+	const hasLogic = app.shapes.some(s => s.type.startsWith('logic_'));
+	if (hasLogic) {
+		libraries.add('circuits.logic.US');
+		libraries.add('positioning');
+	}
+
 	if (app.shapes.some(s => s.style.freehandMode === 'rounded')) libraries.add('calc');
 
 	if (usePreamble) {

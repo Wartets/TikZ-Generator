@@ -447,6 +447,38 @@ export const TOOL_CONFIG = {
 		group: 'logic',
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
+	logic_nand: {
+		displayName: 'Porte NON-ET',
+		handler: 'DrawingTool',
+		icon: '<i class="mdi mdi-gate-nand"></i>',
+		cursor: 'crosshair',
+		group: 'logic',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
+	},
+	logic_nor: {
+		displayName: 'Porte NON-OU',
+		handler: 'DrawingTool',
+		icon: '<i class="mdi mdi-gate-nor"></i>',
+		cursor: 'crosshair',
+		group: 'logic',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
+	},
+	logic_xor: {
+		displayName: 'Porte OU-X',
+		handler: 'DrawingTool',
+		icon: '<i class="mdi mdi-gate-xor"></i>',
+		cursor: 'crosshair',
+		group: 'logic',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
+	},
+	logic_xnor: {
+		displayName: 'Porte NON-OU-X',
+		handler: 'DrawingTool',
+		icon: '<i class="mdi mdi-gate-xnor"></i>',
+		cursor: 'crosshair',
+		group: 'logic',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
+	},
 	flow_start: {
 		displayName: 'Début/Fin',
 		handler: 'DrawingTool',

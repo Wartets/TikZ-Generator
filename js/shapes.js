@@ -3161,4 +3161,124 @@ export const ShapeManager = {
 		getBoundingBox: (s) => ({ minX: s.x1 - 10, minY: s.y1 - 10, maxX: s.x1 + 10, maxY: s.y1 + 10 }),
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' }]
 	}),
+	repere_cartesian: createShapeDef('repere_cartesian', {
+		render: (s, ctx) => {
+			const depth = (s.style.depth3d || 20);
+			const angle = (s.style.angle3d || 45) * Math.PI / 180;
+			const dx = depth * Math.cos(angle);
+			const dy = -depth * Math.sin(angle);
+			ctx.beginPath();
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y1);
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1, s.y1 - (s.x2 - s.x1));
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1 + dx, s.y1 + dy);
+			ctx.stroke();
+			drawArrow(ctx, s.x2, s.y1, 0, 'stealth', 1, s.style.width);
+			drawArrow(ctx, s.x1, s.y1 - (s.x2 - s.x1), -Math.PI / 2, 'stealth', 1, s.style.width);
+			drawArrow(ctx, s.x1 + dx, s.y1 + dy, angle - Math.PI, 'stealth', 1, s.style.width);
+			renderShapeLabel(s, ctx, s.x1, s.y1);
+		},
+		toTikZ: (s) => {
+			const x = toTikZ(s.x1); const y = toTikZ(s.y1, true);
+			const len = toTikZ(s.x2 - s.x1);
+			const d = toTikZ(s.style.depth3d || 20);
+			const ang = s.style.angle3d || 45;
+			return `\\draw[->] (${x},${y}) -- ++(${len},0) node[right] {$x$};
+	\\draw[->] (${x},${y}) -- ++(0,${len}) node[above] {$z$};
+	\\draw[->] (${x},${y}) -- ++(${ang}:${d}) node[anchor=south west] {$y$};`;
+		},
+		isStandaloneCommand: true
+	}),
+	cube: createShapeDef('cube', {
+		render: (s, ctx) => {
+			const w = s.x2 - s.x1; const h = s.y2 - s.y1;
+			const d = (s.style.depth3d || 20);
+			const ang = (s.style.angle3d || 45) * Math.PI / 180;
+			const dx = d * Math.cos(ang); const dy = -d * Math.sin(ang);
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = getFillStyle(ctx, s);
+				ctx.fillRect(s.x1, s.y1, w, h);
+			}
+			ctx.strokeRect(s.x1, s.y1, w, h);
+			ctx.beginPath();
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1 + dx, s.y1 + dy);
+			ctx.lineTo(s.x1 + w + dx, s.y1 + dy); ctx.lineTo(s.x1 + w, s.y1);
+			ctx.moveTo(s.x1 + w, s.y1 + h); ctx.lineTo(s.x1 + w + dx, s.y1 + h + dy);
+			ctx.lineTo(s.x1 + w + dx, s.y1 + dy);
+			ctx.stroke();
+		},
+		toTikZ: (s) => {
+			const x = toTikZ(s.x1); const y = toTikZ(s.y1, true);
+			const w = toTikZ(s.x2 - s.x1); const h = toTikZ(s.y2 - s.y1, false);
+			const d = toTikZ(s.style.depth3d || 20);
+			const ang = s.style.angle3d || 45;
+			return `\\draw (${x},${y}) rectangle ++(${w},${h});
+	\\draw (${x},${y}+${h}) -- ++(${ang}:${d}) -- ++(${w},0) -- ++(-${ang}:${d});
+	\\draw (${x}+${w},${y}) -- ++(${ang}:${d}) -- ++(0,${h});`;
+		},
+		isStandaloneCommand: true
+	}),
+	cylinder_3d: createShapeDef('cylinder_3d', {
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1); const h = Math.abs(s.y2 - s.y1);
+			const rx = w / 2; const ry = h * 0.15;
+			const cx = (s.x1 + s.x2) / 2;
+			ctx.beginPath();
+			ctx.ellipse(cx, s.y1 + ry, rx, ry, 0, 0, Math.PI * 2);
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.moveTo(cx - rx, s.y1 + ry); ctx.lineTo(cx - rx, s.y2 - ry);
+			ctx.moveTo(cx + rx, s.y1 + ry); ctx.lineTo(cx + rx, s.y2 - ry);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.ellipse(cx, s.y2 - ry, rx, ry, 0, 0, Math.PI);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.ellipse(cx, s.y2 - ry, rx, ry, 0, Math.PI, Math.PI * 2);
+			ctx.stroke();
+			ctx.setLineDash([]);
+		},
+		toTikZ: (s) => {
+			const cx = toTikZ((s.x1 + s.x2) / 2);
+			const y1 = toTikZ(s.y1, true); const y2 = toTikZ(s.y2, true);
+			const rx = toTikZ(Math.abs(s.x2 - s.x1) / 2);
+			const ry = toTikZ(Math.abs(s.y2 - s.y1) * 0.15);
+			return `\\draw (${cx},${y1}) ellipse (${rx} and ${ry});
+	\\draw (${cx}-${rx},${y1}) -- (${cx}-${rx},${y2});
+	\\draw (${cx}+${rx},${y1}) -- (${cx}+${rx},${y2});
+	\\draw (${cx}-${rx},${y2}) arc (180:360:${rx} and ${ry});
+	\\draw[dashed] (${cx}-${rx},${y2}) arc (180:0:${rx} and ${ry});`;
+		},
+		isStandaloneCommand: true
+	}),
+	sphere_3d: createShapeDef('sphere_3d', {
+		render: (s, ctx) => {
+			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			ctx.beginPath();
+			ctx.arc(s.x1, s.y1, r, 0, Math.PI * 2);
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.ellipse(s.x1, s.y1, r, r * 0.3, 0, 0, Math.PI);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.setLineDash([5, 5]);
+			ctx.ellipse(s.x1, s.y1, r, r * 0.3, 0, Math.PI, Math.PI * 2);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.ellipse(s.x1, s.y1, r * 0.3, r, 0, -Math.PI / 2, Math.PI / 2);
+			ctx.stroke();
+			ctx.setLineDash([]);
+		},
+		toTikZ: (s) => {
+			const x = toTikZ(s.x1); const y = toTikZ(s.y1, true);
+			const r = toTikZ(Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2)));
+			return `\\draw (${x},${y}) circle (${r});
+	\\draw (${x}-${r},${y}) arc (180:360:${r} and ${r}*0.3);
+	\\draw[dashed] (${x}-${r},${y}) arc (180:0:${r} and ${r}*0.3);
+	\\draw (${x},${y}+${r}) arc (90:-90:${r}*0.3 and ${r});`;
+		},
+		isStandaloneCommand: true
+	}),
 };

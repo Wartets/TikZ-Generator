@@ -543,6 +543,38 @@ export const TOOL_CONFIG = {
 		group: 'drawing',
 		allow: ['pointType', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
+	repere_cartesian: {
+		displayName: 'Repère 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-axis-x-y-z"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'depth3d', 'angle3d']
+	},
+	cube: {
+		displayName: 'Pavé 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-box"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
+	},
+	cylinder_3d: {
+		displayName: 'Cylindre 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-cylinder"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+	},
+	sphere_3d: {
+		displayName: 'Sphère 3D',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-sphere"></i>',
+		cursor: 'crosshair',
+		group: 'pseudo3d',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+	},
 };
 
 export const SETTINGS_CONFIG = {
@@ -1131,5 +1163,26 @@ export const SETTINGS_CONFIG = {
 		},
 		tikzValue: (v) => null,
 		group: 'plot-legend'
+	},
+	depth3d: {
+		label: 'Profondeur',
+		type: 'range',
+		propName: 'depth3d',
+		defaultValue: 20,
+		min: 0, max: 100, step: 1,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-3d',
+		groupOptions: { type: 'row' }
+	},
+	angle3d: {
+		label: 'Angle 3D',
+		type: 'range',
+		propName: 'angle3d',
+		defaultValue: 45,
+		min: 0, max: 90, step: 5,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'geo-3d'
 	},
 };

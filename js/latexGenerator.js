@@ -95,6 +95,9 @@ export function generateCode() {
 		libraries.add('positioning');
 	}
 
+	const has3D = app.shapes.some(s => ['cube', 'repere_cartesian', 'cylinder_3d', 'sphere_3d'].includes(s.type));
+	if (has3D) libraries.add('perspective');
+
 	const hasSpring = app.shapes.some(s => s.type === 'spring');
 	if (hasSpring) libraries.add('decorations.pathmorphing');
 

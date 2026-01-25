@@ -20,7 +20,8 @@ export function createToolsUI() {
 		circuits: document.getElementById('tools-circuits'),
 		optics: document.getElementById('tools-optics'),
 		logic: document.getElementById('tools-logic'),
-		flowchart: document.getElementById('tools-flowchart')
+		flowchart: document.getElementById('tools-flowchart'),
+		pseudo3d: document.getElementById('tools-pseudo3d')
 	};
 
 	Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });

@@ -78,10 +78,15 @@ export function generateCode() {
 	const hasCircuits = app.shapes.some(s => ['resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'battery', 'lamp', 'switch', 'ground', 'ammeter', 'voltmeter', 'transistor_npn', 'potentiometer'].includes(s.type));
 	if (hasCircuits) packages.add('circuitikz');
 
-	const hasGeometric = app.shapes.some(s => ['star', 'diamond', 'ellipse', 'polygon', 'flow_decision'].includes(s.type));
+	const hasGeometric = app.shapes.some(s => ['star', 'diamond', 'ellipse', 'polygon', 'flow_decision', 'wedge'].includes(s.type));
 	if (hasGeometric) {
 		libraries.add('shapes.geometric');
 		libraries.add('calc');
+	}
+
+	const hasPatterns = app.shapes.some(s => s.type === 'support');
+	if (hasPatterns) {
+		libraries.add('patterns');
 	}
 
 	const hasArrows = app.shapes.some(s => s.style.arrow && s.style.arrow !== 'none');
@@ -105,10 +110,11 @@ export function generateCode() {
 		libraries.add('calc');
 	}
 
-	const hasSpring = app.shapes.some(s => s.type === 'spring');
+	const hasSpring = app.shapes.some(s => s.type === 'spring' || s.type === 'damper');
 	if (hasSpring) {
 		libraries.add('decorations.pathmorphing');
 		libraries.add('calc');
+		libraries.add('decorations.markings');
 	}
 
 	if (app.shapes.some(s => s.style.freehandMode === 'rounded')) libraries.add('calc');

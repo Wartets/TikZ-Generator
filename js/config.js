@@ -543,6 +543,38 @@ export const TOOL_CONFIG = {
 		group: 'physics',
 		allow: ['pointType', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
+	wedge: {
+		displayName: 'Plan Incliné',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-triangle"></i>',
+		cursor: 'crosshair',
+		group: 'physics',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'wedgeAngle']
+	},
+	support: {
+		displayName: 'Support/Mur',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-layout-bottombar"></i>',
+		cursor: 'crosshair',
+		group: 'physics',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'hatchAngle']
+	},
+	damper: {
+		displayName: 'Amortisseur',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-cylinder"></i>',
+		cursor: 'crosshair',
+		group: 'physics',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'damperWidth']
+	},
+	pendulum: {
+		displayName: 'Pendule',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-brand-pending"></i>',
+		cursor: 'crosshair',
+		group: 'physics',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'swingAngle', 'bobSize', 'pendulumLength']
+	},
 	repere_cartesian: {
 		displayName: 'Repère 3D',
 		handler: 'DrawingTool',
@@ -1247,5 +1279,65 @@ export const SETTINGS_CONFIG = {
 		unit: 'px',
 		tikzValue: (v) => null,
 		group: 'geo-3d-axes'
+	},
+	wedgeAngle: {
+		label: 'Angle Pente',
+		type: 'range',
+		propName: 'wedgeAngle',
+		defaultValue: 30,
+		min: 5, max: 85, step: 1,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'geo-poly'
+	},
+	hatchAngle: {
+		label: 'Angle Hachures',
+		type: 'range',
+		propName: 'hatchAngle',
+		defaultValue: 45,
+		min: -90, max: 90, step: 15,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'fill-main'
+	},
+	damperWidth: {
+		label: 'Largeur Amort.',
+		type: 'range',
+		propName: 'damperWidth',
+		defaultValue: 10,
+		min: 5, max: 30, step: 1,
+		unit: 'pt',
+		tikzValue: (v) => null,
+		group: 'geo-ratio'
+	},
+	swingAngle: {
+		label: 'Angle Pendule',
+		type: 'range',
+		propName: 'swingAngle',
+		defaultValue: -30,
+		min: -180, max: 180, step: 1,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'geo-poly'
+	},
+	pendulumLength: {
+		label: 'Longueur Fil',
+		type: 'range',
+		propName: 'pendulumLength',
+		defaultValue: 100,
+		min: 10, max: 300, step: 10,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-poly'
+	},
+	bobSize: {
+		label: 'Taille Masse',
+		type: 'range',
+		propName: 'bobSize',
+		defaultValue: 10,
+		min: 2, max: 40, step: 1,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-poly'
 	},
 };

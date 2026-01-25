@@ -3688,4 +3688,262 @@ export const ShapeManager = {
 		},
 		isStandaloneCommand: true
 	}),
+	wedge: createShapeDef('wedge', {
+		onDown: (x, y, style) => ({
+			type: 'wedge',
+			x1: x, y1: y,
+			x2: x + 100, y2: y,
+			style: { ...style, wedgeAngle: 30 }
+		}),
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const ang = (s.style.wedgeAngle || 30) * Math.PI / 180;
+			const h = w * Math.tan(ang);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			
+			ctx.beginPath();
+			ctx.moveTo(x, y + h);
+			ctx.lineTo(x + w, y + h);
+			if (s.x2 > s.x1) {
+				ctx.lineTo(x, y);
+			} else {
+				ctx.lineTo(x + w, y);
+			}
+			ctx.closePath();
+			
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.stroke();
+			
+			renderShapeLabel(s, ctx, x + w / 3, y + 2 * h / 3);
+		},
+		toTikZ: (s, opts) => {
+			const x = toTikZ(Math.min(s.x1, s.x2));
+			const w = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const ang = s.style.wedgeAngle || 30;
+			const h = w * Math.tan(ang * Math.PI / 180);
+			const yBase = toTikZ(Math.min(s.y1, s.y2) + h * UI_CONSTANTS.SCALE, true);
+			
+			const dir = s.x2 > s.x1 ? 180 : 0;
+			return `\\draw${opts} (${x}, ${yBase}) -- ++(${w}, 0) -- ++(${dir - 180 + 180}:${w}) -- cycle;`;
+		},
+		getBoundingBox: (s) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const ang = (s.style.wedgeAngle || 30) * Math.PI / 180;
+			const h = w * Math.tan(ang);
+			const y = Math.min(s.y1, s.y2);
+			return {
+				minX: Math.min(s.x1, s.x2),
+				minY: y,
+				maxX: Math.max(s.x1, s.x2),
+				maxY: y + h
+			};
+		},
+		getHandles: (s) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const ang = (s.style.wedgeAngle || 30) * Math.PI / 180;
+			const h = w * Math.tan(ang);
+			const y = Math.min(s.y1, s.y2);
+			return [
+				{ x: s.x1, y: y + h, pos: 'bl', cursor: 'ew-resize' },
+				{ x: s.x2, y: y + h, pos: 'br', cursor: 'ew-resize' }
+			];
+		},
+		resize: (s, mx, my, handle) => {
+			if (handle === 'bl') s.x1 = mx;
+			if (handle === 'br') s.x2 = mx;
+		},
+		isStandaloneCommand: true
+	}),
+	support: createShapeDef('support', {
+		onDown: (x, y, style) => ({
+			type: 'support',
+			x1: x, y1: y,
+			x2: x + 100, y2: y + 20,
+			style: { ...style, hatchAngle: 45, fillType: 'none' }
+		}),
+		render: (s, ctx) => {
+			const w = Math.abs(s.x2 - s.x1);
+			const h = Math.abs(s.y2 - s.y1);
+			const x = Math.min(s.x1, s.x2);
+			const y = Math.min(s.y1, s.y2);
+			
+			ctx.save();
+			ctx.beginPath();
+			ctx.rect(x, y, w, h);
+			ctx.clip();
+			
+			const spacing = 10;
+			const ang = (s.style.hatchAngle || 45) * Math.PI / 180;
+			
+			ctx.beginPath();
+			const diag = Math.sqrt(w*w + h*h);
+			const cx = x + w/2;
+			const cy = y + h/2;
+			
+			ctx.translate(cx, cy);
+			ctx.rotate(ang);
+			ctx.translate(-cx, -cy);
+			
+			for(let i = -diag; i < diag; i += spacing) {
+				ctx.moveTo(cx + i, cy - diag);
+				ctx.lineTo(cx + i, cy + diag);
+			}
+			ctx.stroke();
+			ctx.restore();
+			
+			ctx.strokeRect(x, y, w, h);
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.globalAlpha = 0.3;
+				ctx.fillRect(x, y, w, h);
+			}
+			renderShapeLabel(s, ctx, x + w / 2, y + h / 2);
+		},
+		toTikZ: (s, opts) => {
+			const w = toTikZ(Math.abs(s.x2 - s.x1));
+			const h = toTikZ(Math.abs(s.y2 - s.y1));
+			const x = toTikZ(Math.min(s.x1, s.x2));
+			const y = toTikZ(Math.min(s.y1, s.y2), true);
+			const ang = s.style.hatchAngle || 45;
+			
+			let patternOpt = `pattern=north east lines, pattern color=${app.colors.get(s.style.stroke) || 'black'}`;
+			if (ang === -45 || ang === 135) patternOpt = `pattern=north west lines, pattern color=${app.colors.get(s.style.stroke) || 'black'}`;
+			else if (ang === 0 || ang === 180) patternOpt = `pattern=horizontal lines, pattern color=${app.colors.get(s.style.stroke) || 'black'}`;
+			else if (ang === 90 || ang === -90) patternOpt = `pattern=vertical lines, pattern color=${app.colors.get(s.style.stroke) || 'black'}`;
+			
+			const cleanOpts = opts ? opts.slice(1, -1) + ', ' : '';
+			return `\\draw[${cleanOpts}${patternOpt}] (${x}, ${y-h}) rectangle (${x+w}, ${y});`;
+		},
+		isStandaloneCommand: true
+	}),
+	damper: createShapeDef('damper', {
+		onDown: (x, y, style) => ({
+			type: 'damper',
+			x1: x, y1: y,
+			x2: x + 100, y2: y,
+			style: { ...style, damperWidth: 10 }
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx * dx + dy * dy);
+			const angle = Math.atan2(dy, dx);
+			const w = (s.style.damperWidth || 10) * UI_CONSTANTS.SCALE / 20; 
+			const cylLen = dist * 0.4;
+			const rodLen = dist * 0.4;
+			
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - cylLen/2, 0);
+			
+			ctx.moveTo(dist/2 - cylLen/2, -w);
+			ctx.lineTo(dist/2 + cylLen/2, -w);
+			ctx.lineTo(dist/2 + cylLen/2, w);
+			ctx.lineTo(dist/2 - cylLen/2, w);
+			
+			const pistonX = dist/2; 
+			ctx.moveTo(pistonX, -w + 2);
+			ctx.lineTo(pistonX, w - 2);
+			ctx.moveTo(pistonX, 0);
+			ctx.lineTo(dist, 0);
+			
+			ctx.stroke();
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1 + s.x2) / 2, (s.y1 + s.y2) / 2);
+		},
+		toTikZ: (s, opts) => {
+			const w = (s.style.damperWidth || 10) / 20 * 0.4; 
+			const len = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2)) / UI_CONSTANTS.SCALE;
+			const angle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1) * 180 / Math.PI;
+			const x1 = toTikZ(s.x1);
+			const y1 = toTikZ(s.y1, true);
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			
+			return `\\draw[${cleanOpts}, decoration={markings, mark connection node=dmp, mark=at position 0.5 with 
+	{
+		\\node (dmp) [inner sep=0, outer sep=0, transform shape, minimum width=${w}cm, minimum height=${len*0.6}cm, draw=none] {};
+		\\draw ($(dmp.north west)!0.0!(dmp.north east)$) -- ($(dmp.south west)!0.0!(dmp.south east)$) -- ($(dmp.south west)!1.0!(dmp.south east)$) -- ($(dmp.north west)!1.0!(dmp.north east)$);
+		\\draw ($(dmp.west)!0.0!(dmp.east)$) -- ($(dmp.west)!0.4!(dmp.east)$) ($(dmp.west)!0.6!(dmp.east)$) -- ($(dmp.west)!1.0!(dmp.east)$);
+		\\draw ($(dmp.west)!0.4!(dmp.east) + (0,${w*0.8})$) -- ($(dmp.west)!0.4!(dmp.east) - (0,${w*0.8})$);
+	}}, decorate] (${x1}, ${y1}) -- ++(${angle}:${len});`;
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' },
+			{ x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }
+		],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		isStandaloneCommand: true
+	}),
+	pendulum: createShapeDef('pendulum', {
+		onDown: (x, y, style) => ({
+			type: 'pendulum',
+			x1: x, y1: y,
+			x2: x, y2: y + 100, 
+			style: { ...style, swingAngle: 0, pendulumLength: 100, bobSize: 10 }
+		}),
+		render: (s, ctx) => {
+			const len = s.style.pendulumLength || 100;
+			const ang = (s.style.swingAngle || 0) * Math.PI / 180 + Math.PI / 2;
+			const bobR = s.style.bobSize || 10;
+			
+			const endX = s.x1 + len * Math.cos(ang);
+			const endY = s.y1 + len * Math.sin(ang);
+			
+			ctx.beginPath();
+			ctx.moveTo(s.x1 - 10, s.y1); ctx.lineTo(s.x1 + 10, s.y1);
+			for(let i=-10; i<10; i+=4) {
+				ctx.moveTo(s.x1 + i, s.y1); ctx.lineTo(s.x1 + i + 2, s.y1 - 4);
+			}
+			ctx.stroke();
+			
+			ctx.beginPath();
+			ctx.moveTo(s.x1, s.y1);
+			ctx.lineTo(endX, endY);
+			ctx.stroke();
+			
+			ctx.beginPath();
+			ctx.arc(endX, endY, bobR, 0, Math.PI * 2);
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.fill();
+			}
+			ctx.stroke();
+			renderShapeLabel(s, ctx, endX, endY + bobR + 10);
+		},
+		toTikZ: (s, opts) => {
+			const x = toTikZ(s.x1);
+			const y = toTikZ(s.y1, true);
+			const len = s.style.pendulumLength / UI_CONSTANTS.SCALE;
+			const ang = -(s.style.swingAngle || 0) - 90;
+			const bobR = s.style.bobSize / UI_CONSTANTS.SCALE;
+			const cleanOpts = opts ? opts.slice(1, -1) : '';
+			const fillOpt = s.style.fillType !== 'none' ? `fill=${app.colors.get(s.style.fillColor) || s.style.fillColor}` : 'fill=white';
+			
+			return `\\draw[${cleanOpts}] (${x}, ${y}) -- ++(${ang}:${len}) coordinate (bob); \\draw[${cleanOpts}, ${fillOpt}] (bob) circle (${bobR}); \\draw (${x}-0.2, ${y}) -- (${x}+0.2, ${y}); \\fill[pattern=north east lines] (${x}-0.2, ${y}) rectangle (${x}+0.2, ${y}+0.1);`;
+		},
+		getBoundingBox: (s) => {
+			const len = s.style.pendulumLength || 100;
+			const bobR = s.style.bobSize || 10;
+			return {
+				minX: s.x1 - len - bobR,
+				minY: s.y1 - 10,
+				maxX: s.x1 + len + bobR,
+				maxY: s.y1 + len + bobR
+			};
+		},
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'pivot', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			s.x1 = mx; s.y1 = my;
+		},
+		isStandaloneCommand: true
+	}),
 };

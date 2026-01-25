@@ -9,7 +9,7 @@ export function toTikZ(val, isY = false, shapeId = null, property = null) {
 	if (isY) res = (canvas.height - val) / UI_CONSTANTS.SCALE;
 	const formattedVal = parseFloat(res.toFixed(3));
 	
-	if (shapeId !== null && property !== null) {
+	if (!app.isPreviewMode && shapeId !== null && property !== null) {
 		return `<span class="tikz-number" data-shape-id="${shapeId}" data-property="${property}" data-is-y="${isY}">${formattedVal}</span>`;
 	}
 	

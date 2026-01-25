@@ -292,56 +292,38 @@ export function render() {
 	const visibleRight = visibleLeft + canvas.width / app.view.scale;
 	const visibleBottom = visibleTop + canvas.height / app.view.scale;
 	
-	ctx.save();
+	const baseGrid = UI_CONSTANTS.GRID_SIZE;
+	let currentStep = baseGrid;
+	const minPixelSpacing = 15;
 	
-	const baseGridSize = UI_CONSTANTS.GRID_SIZE;
-	const zoomLevel = Math.log2(app.view.scale);
-	const gridScale = Math.pow(2, Math.floor(zoomLevel));
-	const step = baseGridSize / gridScale;
-	const majorStep = step * 5;
-	
-	const opacityFactor = 1 - (zoomLevel - Math.floor(zoomLevel));
-	
-	const startX = Math.floor(visibleLeft / step) * step;
-	const startY = Math.floor(visibleTop / step) * step;
+	while (currentStep * app.view.scale < minPixelSpacing) {
+		currentStep *= 2;
+	}
+
+	const startX = Math.floor(visibleLeft / currentStep) * currentStep;
+	const startY = Math.floor(visibleTop / currentStep) * currentStep;
 
 	ctx.lineWidth = 1 / app.view.scale;
 
-	ctx.beginPath();
-	ctx.strokeStyle = `rgba(94, 106, 94, ${0.1 * opacityFactor})`;
-	
-	for (let x = startX; x < visibleRight; x += step) {
-		if (Math.abs(x % majorStep) > 0.001) {
+	const drawGridLines = (step, color, width) => {
+		ctx.beginPath();
+		ctx.strokeStyle = color;
+		ctx.lineWidth = width / app.view.scale;
+		for (let x = startX; x < visibleRight; x += step) {
 			ctx.moveTo(x, visibleTop);
 			ctx.lineTo(x, visibleBottom);
 		}
-	}
-	for (let y = startY; y < visibleBottom; y += step) {
-		if (Math.abs(y % majorStep) > 0.001) {
+		for (let y = startY; y < visibleBottom; y += step) {
 			ctx.moveTo(visibleLeft, y);
 			ctx.lineTo(visibleRight, y);
 		}
-	}
-	ctx.stroke();
+		ctx.stroke();
+	};
 
-	ctx.beginPath();
-	const majorAlpha = 0.1 + (0.2 * opacityFactor);
-	ctx.strokeStyle = `rgba(94, 106, 94, ${Math.min(0.3, majorAlpha)})`;
-	
-	const majorStartX = Math.floor(visibleLeft / majorStep) * majorStep;
-	const majorStartY = Math.floor(visibleTop / majorStep) * majorStep;
+	drawGridLines(currentStep, 'rgba(94, 106, 94, 0.1)', 1);
 
-	for (let x = majorStartX; x < visibleRight; x += majorStep) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x, visibleBottom);
-	}
-	for (let y = majorStartY; y < visibleBottom; y += majorStep) {
-		ctx.moveTo(visibleLeft, y);
-		ctx.lineTo(visibleRight, y);
-	}
-	ctx.stroke();
-	
-	ctx.restore();
+	const majorStep = currentStep * 5;
+	drawGridLines(majorStep, 'rgba(94, 106, 94, 0.25)', 1.5);
 
 	ctx.save();
 	ctx.strokeStyle = UI_CONSTANTS.AXES_RENDER_COLOR;
@@ -455,10 +437,17 @@ export function render() {
 
 	if (app.selectionBox.active) {
 		ctx.save();
-		ctx.strokeStyle = UI_CONSTANTS.SELECTION_COLOR;
+		const isCrossing = app.selectionBox.w < 0;
+		ctx.strokeStyle = isCrossing ? UI_CONSTANTS.SELECTION_CROSSING_STROKE : UI_CONSTANTS.SELECTION_WINDOW_STROKE;
+		ctx.fillStyle = isCrossing ? UI_CONSTANTS.SELECTION_CROSSING_FILL : UI_CONSTANTS.SELECTION_WINDOW_FILL;
 		ctx.lineWidth = 1 / app.view.scale;
-		ctx.fillStyle = 'rgba(94, 106, 210, 0.1)';
-		ctx.setLineDash([4 / app.view.scale, 2 / app.view.scale]);
+		
+		if (isCrossing) {
+			ctx.setLineDash([4 / app.view.scale, 2 / app.view.scale]);
+		} else {
+			ctx.setLineDash([]);
+		}
+		
 		ctx.fillRect(app.selectionBox.startX, app.selectionBox.startY, app.selectionBox.w, app.selectionBox.h);
 		ctx.strokeRect(app.selectionBox.startX, app.selectionBox.startY, app.selectionBox.w, app.selectionBox.h);
 		ctx.restore();

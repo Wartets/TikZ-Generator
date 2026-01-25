@@ -36,7 +36,8 @@ export const app = {
 	lastMouse: { x: 0, y: 0 },
 	snapMarker: null,
 	clipboard: [],
-	nextShapeId: 0
+	nextShapeId: 0,
+	isPreviewMode: false
 };
 
 // Variable exportée pour le renderer (guides dynamiques)

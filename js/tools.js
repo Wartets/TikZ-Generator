@@ -568,13 +568,20 @@ export class SelectTool extends BaseTool {
 			const by = Math.min(app.selectionBox.startY, app.selectionBox.startY + app.selectionBox.h);
 			const bw = Math.abs(app.selectionBox.w);
 			const bh = Math.abs(app.selectionBox.h);
+			const isCrossing = app.selectionBox.w < 0;
 
 			if (bw > 2 || bh > 2) {
 				const newlySelected = [];
 				app.shapes.forEach(s => {
 					const box = ShapeManager[s.type].getBoundingBox(s);
-					if (box.maxX >= bx && box.minX <= bx + bw && box.maxY >= by && box.minY <= by + bh) {
-						newlySelected.push(s);
+					
+					const isIntersecting = !(box.minX > bx + bw || box.maxX < bx || box.minY > by + bh || box.maxY < by);
+					const isContained = box.minX >= bx && box.maxX <= bx + bw && box.minY >= by && box.maxY <= by + bh;
+
+					if (isCrossing) {
+						if (isIntersecting) newlySelected.push(s);
+					} else {
+						if (isContained) newlySelected.push(s);
 					}
 				});
 				

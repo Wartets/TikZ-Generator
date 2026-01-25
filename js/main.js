@@ -14,6 +14,7 @@ let currentState = { ...initialState };
 
 // Gestionnaires d'événements souris
 function onMouseDown(e) {
+	app.isPreviewMode = true; 
 	if (app.activeTool instanceof EyedropperTool) {
 		app.activeTool.onMouseDown(e);
 		return;
@@ -51,6 +52,8 @@ function onMouseMove(e) {
 }
 
 function onMouseUp(e) {
+	app.isPreviewMode = false;
+	
 	if (app.isPanning) {
 		app.isPanning = false;
 		canvas.parentElement.classList.remove('grabbing');
@@ -60,6 +63,7 @@ function onMouseUp(e) {
 	if (app.activeTool && app.activeTool.onMouseUp) {
 		app.activeTool.onMouseUp(e);
 	}
+	generateCode();
 }
 
 // Raccourcis clavier
@@ -156,9 +160,7 @@ function init() {
 	setupCollapsibles();
 	setupTabs();
 	setupTextEditing();
-	/* Cette fonctionnalité ne fonctionne pas et activée, cause beaucoup de lag
-	Il faut la laisser désactivée
-	setupOutputInteraction();  */
+	setupOutputInteraction();
 	
 	document.getElementById('global-settings-container').addEventListener('input', (e) => {
 		if (e.target.dataset.global) {

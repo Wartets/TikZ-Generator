@@ -3248,33 +3248,40 @@ export const ShapeManager = {
 			const dx = d * Math.cos(ang);
 			const dy = -d * Math.sin(ang);
 
-			const f = [
-				{x: s.x1, y: s.y1}, {x: s.x1 + w, y: s.y1},
-				{x: s.x1 + w, y: s.y1 + h}, {x: s.x1, y: s.y1 + h}
-			];
-			const b = f.map(p => ({x: p.x + dx, y: p.y + dy}));
+			const f1 = {x: s.x1, y: s.y1};
+			const f2 = {x: s.x1 + w, y: s.y1};
+			const f3 = {x: s.x1 + w, y: s.y1 + h};
+			const f4 = {x: s.x1, y: s.y1 + h};
+
+			const b1 = {x: f1.x + dx, y: f1.y + dy};
+			const b2 = {x: f2.x + dx, y: f2.y + dy};
+			const b3 = {x: f3.x + dx, y: f3.y + dy};
+			const b4 = {x: f4.x + dx, y: f4.y + dy};
 
 			if (s.style.fillType && s.style.fillType !== 'none') {
 				ctx.fillStyle = s.style.fillColor;
 				ctx.beginPath();
-				ctx.moveTo(f[0].x, f[0].y); ctx.lineTo(b[0].x, b[0].y);
-				ctx.lineTo(b[1].x, b[1].y); ctx.lineTo(f[1].x, f[1].y);
-				ctx.fill();
+				ctx.moveTo(f1.x, f1.y); ctx.lineTo(f2.x, f2.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(b1.x, b1.y); ctx.closePath(); ctx.fill();
 				ctx.beginPath();
-				ctx.moveTo(f[1].x, f[1].y); ctx.lineTo(b[1].x, b[1].y);
-				ctx.lineTo(b[2].x, b[2].y); ctx.lineTo(f[2].x, f[2].y);
-				ctx.fill();
-				ctx.fillRect(s.x1, s.y1, w, h);
+				ctx.moveTo(f2.x, f2.y); ctx.lineTo(f3.x, f3.y); ctx.lineTo(b3.x, b3.y); ctx.lineTo(b2.x, b2.y); ctx.closePath(); ctx.fill();
+				ctx.beginPath();
+				ctx.moveTo(f1.x, f1.y); ctx.lineTo(f2.x, f2.y); ctx.lineTo(f3.x, f3.y); ctx.lineTo(f4.x, f4.y); ctx.closePath(); ctx.fill();
 			}
 
 			ctx.beginPath();
-			ctx.rect(s.x1, s.y1, w, h);
-			ctx.moveTo(f[0].x, f[0].y); ctx.lineTo(b[0].x, b[0].y);
-			ctx.lineTo(b[1].x, b[1].y); ctx.lineTo(f[1].x, f[1].y);
-			ctx.moveTo(b[1].x, b[1].y); ctx.lineTo(b[2].x, b[2].y);
-			ctx.lineTo(f[2].x, f[2].y);
-			ctx.moveTo(b[0].x, b[0].y); ctx.lineTo(b[3].x, b[3].y);
-			ctx.lineTo(b[2].x, b[2].y);
+			ctx.setLineDash([5, 5]);
+			ctx.moveTo(b4.x, b4.y); ctx.lineTo(b1.x, b1.y);
+			ctx.moveTo(b4.x, b4.y); ctx.lineTo(b3.x, b3.y);
+			ctx.moveTo(b4.x, b4.y); ctx.lineTo(f4.x, f4.y);
+			ctx.stroke();
+
+			ctx.beginPath();
+			ctx.setLineDash([]);
+			ctx.moveTo(f1.x, f1.y); ctx.lineTo(f2.x, f2.y); ctx.lineTo(f3.x, f3.y); ctx.lineTo(f4.x, f4.y); ctx.closePath();
+			ctx.moveTo(f1.x, f1.y); ctx.lineTo(b1.x, b1.y);
+			ctx.moveTo(f2.x, f2.y); ctx.lineTo(b2.x, b2.y);
+			ctx.moveTo(f3.x, f3.y); ctx.lineTo(b3.x, b3.y);
+			ctx.moveTo(b1.x, b1.y); ctx.lineTo(b2.x, b2.y); ctx.lineTo(b3.x, b3.y);
 			ctx.stroke();
 			
 			renderShapeLabel(s, ctx, s.x1 + w / 2, s.y1 + h / 2);
@@ -3288,13 +3295,15 @@ export const ShapeManager = {
 			const ang = s.style.angle3d || 45;
 			const color = app.colors.get(s.style.fillColor) || 'white';
 			const drawColor = app.colors.get(s.style.stroke) || 'black';
-			
 			const opts = s.style.fillType !== 'none' ? `fill=${color}, draw=${drawColor}` : `draw=${drawColor}`;
 
 			return `\\begin{scope}[shift={(${x},${y})}]
-	\\draw[${opts}] (0,0) rectangle (${w.toFixed(2)},${(-h).toFixed(2)});
+	\\draw[${opts}] (0,0) -- (${w.toFixed(2)},0) -- (${w.toFixed(2)},${(-h).toFixed(2)}) -- (0,${(-h).toFixed(2)}) -- cycle;
 	\\draw[${opts}] (0,0) -- (${ang}:${d.toFixed(2)}) -- ++(${w.toFixed(2)},0) -- (${w.toFixed(2)},0);
 	\\draw[${opts}] (${w.toFixed(2)},0) -- ++(${ang}:${d.toFixed(2)}) -- ++(0,${(-h).toFixed(2)}) -- (${w.toFixed(2)},${(-h).toFixed(2)});
+	\\draw[${drawColor}, dashed] (0,${(-h).toFixed(2)}) -- ++(${ang}:${d.toFixed(2)}) coordinate (B4);
+	\\draw[${drawColor}, dashed] (B4) -- ++(${w.toFixed(2)},0);
+	\\draw[${drawColor}, dashed] (B4) -- ++(0,${h.toFixed(2)});
 	\\end{scope}`;
 		},
 		getBoundingBox: (s) => {

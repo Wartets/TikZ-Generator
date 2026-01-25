@@ -1169,7 +1169,7 @@ export const SETTINGS_CONFIG = {
 		type: 'range',
 		propName: 'depth3d',
 		defaultValue: 20,
-		min: 0, max: 100, step: 1,
+		min: 0, max: 100, step: 0.2,
 		unit: 'px',
 		tikzValue: (v) => null,
 		group: 'geo-3d',
@@ -1180,7 +1180,7 @@ export const SETTINGS_CONFIG = {
 		type: 'range',
 		propName: 'angle3d',
 		defaultValue: 45,
-		min: 0, max: 90, step: 5,
+		min: 0, max: 180, step: 2,
 		unit: '°',
 		tikzValue: (v) => null,
 		group: 'geo-3d'

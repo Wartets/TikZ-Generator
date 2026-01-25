@@ -1983,26 +1983,20 @@ export const ShapeManager = {
 			const dy = s.y2 - s.y1;
 			const dist = Math.sqrt(dx*dx + dy*dy);
 			const angle = Math.atan2(dy, dx);
-			
 			ctx.save();
 			ctx.translate(s.x1, s.y1);
 			ctx.rotate(angle);
 			ctx.beginPath();
 			ctx.moveTo(0, 0);
-			const l = dist;
-			const w = 10;
-			ctx.lineTo(l * 0.25, 0);
-			ctx.lineTo(l * 0.3, -w);
-			ctx.lineTo(l * 0.35, w);
-			ctx.lineTo(l * 0.4, -w);
-			ctx.lineTo(l * 0.45, w);
-			ctx.lineTo(l * 0.5, -w);
-			ctx.lineTo(l * 0.55, w);
-			ctx.lineTo(l * 0.6, -w);
-			ctx.lineTo(l * 0.65, w);
-			ctx.lineTo(l * 0.7, -w);
-			ctx.lineTo(l * 0.75, 0);
-			ctx.lineTo(l, 0);
+			const unit = dist / 10;
+			ctx.lineTo(unit * 2.5, 0);
+			for (let i = 0; i < 5; i++) {
+				const x = unit * (2.5 + (i + 0.5) * 1);
+				const y = (i % 2 === 0) ? -unit : unit;
+				ctx.lineTo(x, y);
+			}
+			ctx.lineTo(unit * 7.5, 0);
+			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
 			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
@@ -2027,13 +2021,12 @@ export const ShapeManager = {
 			const dy = s.y2 - s.y1;
 			const dist = Math.sqrt(dx*dx + dy*dy);
 			const angle = Math.atan2(dy, dx);
-			
 			ctx.save();
 			ctx.translate(s.x1, s.y1);
 			ctx.rotate(angle);
 			ctx.beginPath();
-			const w = 12;
-			const gap = 4;
+			const w = 15;
+			const gap = 3;
 			ctx.moveTo(0, 0);
 			ctx.lineTo(dist/2 - gap, 0);
 			ctx.moveTo(dist/2 - gap, -w);
@@ -2066,20 +2059,20 @@ export const ShapeManager = {
 			const dy = s.y2 - s.y1;
 			const dist = Math.sqrt(dx*dx + dy*dy);
 			const angle = Math.atan2(dy, dx);
-			
 			ctx.save();
 			ctx.translate(s.x1, s.y1);
 			ctx.rotate(angle);
 			ctx.beginPath();
 			ctx.moveTo(0, 0);
-			const loops = 4;
-			const loopW = (dist * 0.4) / loops;
-			ctx.lineTo(dist * 0.3, 0);
-			for(let i=0; i<loops; i++) {
-				const lx = dist * 0.3 + i*loopW;
-				ctx.arc(lx + loopW/2, 0, loopW/2, Math.PI, 0);
+			const startX = dist * 0.25;
+			const endX = dist * 0.75;
+			const loopCount = 4;
+			const loopWidth = (endX - startX) / loopCount;
+			ctx.lineTo(startX, 0);
+			for (let i = 0; i < loopCount; i++) {
+				ctx.arc(startX + (i + 0.5) * loopWidth, 0, loopWidth / 2, Math.PI, 0, false);
 			}
-			ctx.moveTo(dist * 0.7, 0);
+			ctx.moveTo(endX, 0);
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
@@ -2105,24 +2098,20 @@ export const ShapeManager = {
 			const dy = s.y2 - s.y1;
 			const dist = Math.sqrt(dx*dx + dy*dy);
 			const angle = Math.atan2(dy, dx);
-			
 			ctx.save();
 			ctx.translate(s.x1, s.y1);
 			ctx.rotate(angle);
 			ctx.beginPath();
-			const w = 10;
+			const size = 10;
 			ctx.moveTo(0, 0);
-			ctx.lineTo(dist/2 - w, 0);
-			
-			ctx.moveTo(dist/2 - w, -w);
-			ctx.lineTo(dist/2 - w, w);
-			ctx.lineTo(dist/2 + w, 0);
-			ctx.lineTo(dist/2 - w, -w);
-			
-			ctx.moveTo(dist/2 + w, -w);
-			ctx.lineTo(dist/2 + w, w);
-			
-			ctx.moveTo(dist/2 + w, 0);
+			ctx.lineTo(dist/2 - size, 0);
+			ctx.moveTo(dist/2 - size, -size);
+			ctx.lineTo(dist/2 - size, size);
+			ctx.lineTo(dist/2 + size, 0);
+			ctx.lineTo(dist/2 - size, -size);
+			ctx.moveTo(dist/2 + size, -size);
+			ctx.lineTo(dist/2 + size, size);
+			ctx.moveTo(dist/2 + size, 0);
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
@@ -2136,7 +2125,7 @@ export const ShapeManager = {
 		},
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
-			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 10;
 		},
 		isStandaloneCommand: true
 	}),
@@ -2148,29 +2137,25 @@ export const ShapeManager = {
 			const dy = s.y2 - s.y1;
 			const dist = Math.sqrt(dx*dx + dy*dy);
 			const angle = Math.atan2(dy, dx);
-			
 			ctx.save();
 			ctx.translate(s.x1, s.y1);
 			ctx.rotate(angle);
 			ctx.beginPath();
-			const w = 15;
-			const gap = 3;
+			const r = 15;
 			ctx.moveTo(0, 0);
-			ctx.lineTo(dist/2 - gap, 0);
-			
-			ctx.moveTo(dist/2 - gap, -w);
-			ctx.lineTo(dist/2 - gap, w);
-			
-			ctx.moveTo(dist/2 + gap, -w/2);
-			ctx.lineTo(dist/2 + gap, w/2);
-			
-			ctx.moveTo(dist/2 + gap, 0);
+			ctx.lineTo(dist/2 - r, 0);
+			ctx.moveTo(dist/2 + r, 0);
+			ctx.arc(dist/2, 0, r, 0, Math.PI * 2);
+			ctx.moveTo(dist/2 - 8, -5); ctx.lineTo(dist/2 - 2, -5);
+			ctx.moveTo(dist/2 - 5, -8); ctx.lineTo(dist/2 - 5, -2);
+			ctx.moveTo(dist/2 + 2, 5); ctx.lineTo(dist/2 + 8, 5);
+			ctx.moveTo(dist/2 + r, 0);
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
 			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[battery1] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[V] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -2178,7 +2163,7 @@ export const ShapeManager = {
 		},
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
-			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 15;
 		},
 		isStandaloneCommand: true
 	}),
@@ -2219,6 +2204,45 @@ export const ShapeManager = {
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
 			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
+		isStandaloneCommand: true
+	}),
+	battery: createShapeDef('battery', {
+		onDown: (x, y, style) => ({ type: 'battery', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const w1 = 15;
+			const w2 = 8;
+			const d = 4;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - d*1.5, 0);
+			for (let i = -1; i <= 1; i += 2) {
+				ctx.moveTo(dist/2 + i*d - d/2, -w1); ctx.lineTo(dist/2 + i*d - d/2, w1);
+				ctx.moveTo(dist/2 + i*d + d/2, -w2); ctx.lineTo(dist/2 + i*d + d/2, w2);
+			}
+			ctx.moveTo(dist/2 + d*1.5, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[battery] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 10;
 		},
 		isStandaloneCommand: true
 	}),
@@ -2346,6 +2370,164 @@ export const ShapeManager = {
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
 			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 5;
+		},
+		isStandaloneCommand: true
+	}),
+	ammeter: createShapeDef('ammeter', {
+		onDown: (x, y, style) => ({ type: 'ammeter', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			const r = 15;
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - r, 0);
+			ctx.moveTo(dist/2 + r, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(dist/2, 0, r, 0, Math.PI * 2);
+			ctx.stroke();
+			ctx.rotate(-angle);
+			ctx.font = "bold 14px serif";
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.fillText("A", dist/2 * Math.cos(angle), dist/2 * Math.sin(angle));
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[ammeter] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 15;
+		},
+		isStandaloneCommand: true
+	}),
+	voltmeter: createShapeDef('voltmeter', {
+		onDown: (x, y, style) => ({ type: 'voltmeter', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			const r = 15;
+			ctx.beginPath();
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2 - r, 0);
+			ctx.moveTo(dist/2 + r, 0);
+			ctx.lineTo(dist, 0);
+			ctx.stroke();
+			ctx.beginPath();
+			ctx.arc(dist/2, 0, r, 0, Math.PI * 2);
+			ctx.stroke();
+			ctx.rotate(-angle);
+			ctx.font = "bold 14px serif";
+			ctx.textAlign = "center";
+			ctx.textBaseline = "middle";
+			ctx.fillText("V", dist/2 * Math.cos(angle), dist/2 * Math.sin(angle));
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[voltmeter] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 15;
+		},
+		isStandaloneCommand: true
+	}),
+	transistor_npn: createShapeDef('transistor_npn', {
+		onDown: (x, y, style) => ({ type: 'transistor_npn', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const size = 15;
+			ctx.moveTo(0, 0);
+			ctx.lineTo(dist/2, 0);
+			ctx.moveTo(dist/2, -size);
+			ctx.lineTo(dist/2, size);
+			ctx.moveTo(dist/2, -size/2); ctx.lineTo(dist/2 + size, -size * 1.5);
+			ctx.moveTo(dist/2, size/2); ctx.lineTo(dist/2 + size, size * 1.5);
+			const arrowX = dist/2 + size * 0.7;
+			const arrowY = size/2 + size * 0.7 * 1.0;
+			ctx.moveTo(arrowX, arrowY);
+			ctx.lineTo(arrowX - 5, arrowY);
+			ctx.moveTo(arrowX, arrowY);
+			ctx.lineTo(arrowX, arrowY - 5);
+			ctx.stroke();
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
+		},
+		toTikZ: (s) => `\\node[npn] at (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) {}${getTikZLabelNode(s)};`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 15;
+		},
+		isStandaloneCommand: true
+	}),
+	potentiometer: createShapeDef('potentiometer', {
+		onDown: (x, y, style) => ({ type: 'potentiometer', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const dx = s.x2 - s.x1;
+			const dy = s.y2 - s.y1;
+			const dist = Math.sqrt(dx*dx + dy*dy);
+			const angle = Math.atan2(dy, dx);
+			ctx.save();
+			ctx.translate(s.x1, s.y1);
+			ctx.rotate(angle);
+			ctx.beginPath();
+			const unit = dist / 10;
+			const w = 10;
+			ctx.moveTo(0, 0); ctx.lineTo(unit * 2.5, 0);
+			ctx.strokeRect(unit * 2.5, -w/2, unit * 5, w);
+			ctx.moveTo(unit * 7.5, 0); ctx.lineTo(dist, 0);
+			ctx.moveTo(dist/2, -w*1.5); ctx.lineTo(dist/2, -w/2);
+			ctx.moveTo(dist/2 - 3, -w/2 - 3); ctx.lineTo(dist/2, -w/2); ctx.lineTo(dist/2 + 3, -w/2 - 3);
+			ctx.stroke();
+			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
+		},
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[pR] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
+			else if (handle === 'end') { s.x2 = mx; s.y2 = my; }
+		},
+		hitTest: (s, x, y) => {
+			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
+			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < (UI_CONSTANTS.HIT_TOLERANCE / scale) + 15;
 		},
 		isStandaloneCommand: true
 	}),

@@ -75,7 +75,7 @@ export function generateCode() {
 	const packages = new Set(['tikz']);
 	const libraries = new Set();
 	
-	const hasCircuits = app.shapes.some(s => ['resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground'].includes(s.type));
+	const hasCircuits = app.shapes.some(s => ['resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'battery', 'lamp', 'switch', 'ground', 'ammeter', 'voltmeter', 'transistor_npn', 'potentiometer'].includes(s.type));
 	if (hasCircuits) packages.add('circuitikz');
 
 	const hasGeometric = app.shapes.some(s => ['star', 'diamond', 'ellipse', 'polygon', 'flow_decision'].includes(s.type));

@@ -322,7 +322,7 @@ export const TOOL_CONFIG = {
 	source_dc: {
 		displayName: 'Source DC',
 		handler: 'DrawingTool',
-		icon: '<i class="fa-solid fa-car-battery"></i>',
+		icon: '<i class="fa-solid fa-circle-minus"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
@@ -331,6 +331,14 @@ export const TOOL_CONFIG = {
 		displayName: 'Source AC',
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-water"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	battery: {
+		displayName: 'Batterie',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-car-battery"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
@@ -355,6 +363,38 @@ export const TOOL_CONFIG = {
 		displayName: 'Masse',
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-arrow-down"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	ammeter: {
+		displayName: 'Ampèremètre',
+		handler: 'DrawingTool',
+		icon: '<span style="font-weight:bold; font-family:serif;">A</span>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	voltmeter: {
+		displayName: 'Voltmètre',
+		handler: 'DrawingTool',
+		icon: '<span style="font-weight:bold; font-family:serif;">V</span>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	transistor_npn: {
+		displayName: 'Transistor NPN',
+		handler: 'DrawingTool',
+		icon: '<i class="mdi mdi-transit-connection-variant"></i>',
+		cursor: 'crosshair',
+		group: 'circuits',
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	potentiometer: {
+		displayName: 'Potentiomètre',
+		handler: 'DrawingTool',
+		icon: '<i class="fa-solid fa-sliders"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']

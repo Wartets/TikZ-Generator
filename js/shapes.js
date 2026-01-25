@@ -180,6 +180,91 @@ export const createShapeDef = (type, overrides) => {
 	};
 };
 
+export function renderShapeLabel(s, ctx, cx, cy) {
+	if (!s.style.text) return;
+
+	const style = s.style;
+	const sizeMap = {
+		'tiny': 8, 'scriptsize': 10, 'footnotesize': 12, 'small': 13,
+		'normalsize': 16, 'large': 18, 'Large': 22, 'LARGE': 26, 'huge': 30, 'Huge': 36
+	};
+	const fontMap = {
+		'serif': 'serif',
+		'sans': 'sans-serif',
+		'mono': 'monospace'
+	};
+	const fontSize = sizeMap[style.textSize] || 16;
+	const fontFamily = fontMap[style.textFont] || 'sans-serif';
+	const weight = style.textWeight === 'bfseries' ? 'bold ' : '';
+	const slant = style.textSlant === 'itshape' ? 'italic ' : '';
+
+	ctx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
+	ctx.fillStyle = style.stroke;
+	ctx.globalAlpha = style.opacity;
+
+	const anchor = style.textAnchor || 'center';
+	let textAlign = 'center';
+	let textBaseline = 'middle';
+
+	if (anchor.includes('east')) textAlign = 'right';
+	else if (anchor.includes('west')) textAlign = 'left';
+
+	if (anchor.includes('north')) textBaseline = 'top';
+	else if (anchor.includes('south')) textBaseline = 'bottom';
+
+	ctx.save();
+	ctx.translate(cx, cy);
+
+	if (style.textRotate) {
+		ctx.rotate(style.textRotate * Math.PI / 180);
+	}
+
+	ctx.textAlign = textAlign;
+	ctx.textBaseline = textBaseline;
+
+	const lines = style.text.split('\\\\');
+	const lineHeight = fontSize * 1.2;
+	let offsetY = 0;
+
+	if (textBaseline === 'middle') {
+		offsetY = -((lines.length - 1) * lineHeight) / 2;
+	} else if (textBaseline === 'bottom') {
+		offsetY = -((lines.length - 1) * lineHeight);
+	}
+
+	lines.forEach((line, i) => {
+		ctx.fillText(line.trim(), 0, offsetY + (i * lineHeight));
+	});
+
+	ctx.restore();
+}
+
+export function getTikZLabelNode(s) {
+	if (!s.style.text) return '';
+	
+	const text = s.style.text;
+	const fontFamilies = { 'serif': '\\rmfamily', 'sans': '\\sffamily', 'mono': '\\ttfamily' };
+	const fontCmd = fontFamilies[s.style.textFont] || '';
+	const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries ' : '';
+	const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape ' : '';
+	const sizeCmd = s.style.textSize && s.style.textSize !== 'normalsize' ? `\\${s.style.textSize}` : '';
+	
+	let fontContent = [];
+	if(fontCmd) fontContent.push(fontCmd);
+	if(sizeCmd) fontContent.push(sizeCmd);
+	const fontStr = fontContent.length > 0 ? `, font=${fontContent.join(' ')}` : '';
+	
+	const innerContent = `${weightCmd}${slantCmd}${text}`;
+	const anchor = s.style.textAnchor && s.style.textAnchor !== 'center' ? `, anchor=${s.style.textAnchor}` : '';
+	
+	if (['line', 'curve', 'arc', 'wave', 'axes'].includes(s.type)) {
+		return ` node[pos=0.5${anchor}${fontStr}] {${innerContent}}`;
+	} else {
+		const center = getShapeCenter(s);
+		return `\\node[${anchor.substring(2) || 'anchor=center'}${fontStr}] at (${toTikZ(center.x, false, s.id, 'cx')},${toTikZ(center.y, true, s.id, 'cy')}) {${innerContent}};`;
+	}
+}
+
 // La fonction principale qui calcule le centre
 export function getShapeCenter(s) {
 	if (s.type === 'polygon' || s.type === 'star') {
@@ -439,8 +524,9 @@ export const ShapeManager = {
 			ctx.moveTo(s.x1, s.y1);
 			ctx.lineTo(s.x2, s.y2);
 			ctx.stroke();
+			renderShapeLabel(s, ctx, (s.x1 + s.x2)/2, (s.y1 + s.y2)/2);
 		},
-		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) -- (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) -- (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		onDown: (x, y, style) => ({ type: 'line', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
 		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
 		getHandles: (s) => [
@@ -513,6 +599,9 @@ export const ShapeManager = {
 			}
 			
 			ctx.stroke();
+			
+			const center = getShapeCenter(s);
+			renderShapeLabel(s, ctx, center.x, center.y);
 		},
 		toTikZ: (s, opts) => {
 			const simplifyVal = s.style.simplifyTolerance !== undefined ? s.style.simplifyTolerance : 2;
@@ -544,7 +633,7 @@ export const ShapeManager = {
 				finalOpts = finalOpts.slice(0, -1) + extraOpts + ']';
 			}
 			
-			return `\\draw${finalOpts} plot coordinates {${coords}}${pathSuffix};`;
+			return `\\draw${finalOpts} plot coordinates {${coords}}${pathSuffix};${getTikZLabelNode(s)}`;
 		},
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
@@ -627,8 +716,9 @@ export const ShapeManager = {
 		render: (s, ctx) => {
 			if (s.style.fill) ctx.fillRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
 			ctx.strokeRect(s.x1, s.y1, s.x2 - s.x1, s.y2 - s.y1);
+			renderShapeLabel(s, ctx, (s.x1 + s.x2)/2, (s.y1 + s.y2)/2);
 		},
-		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) rectangle (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`
+		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) rectangle (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')}); ${getTikZLabelNode(s)}`
 	}),
 	circle: createShapeDef('circle', {
 		render: (s, ctx) => {
@@ -636,10 +726,11 @@ export const ShapeManager = {
 			ctx.arc(s.x1, s.y1, r, 0, Math.PI * 2);
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
 		toTikZ: (s) => {
 			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
-			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) circle (${toTikZ(r, false, s.id, 'radius')});`;
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) circle (${toTikZ(r, false, s.id, 'radius')}); ${getTikZLabelNode(s)}`;
 		},
 		getBoundingBox: (s) => {
 			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
@@ -688,11 +779,12 @@ export const ShapeManager = {
 			ctx.ellipse(s.x1, s.y1, rx, ry, 0, 0, Math.PI * 2);
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
 		toTikZ: (s) => {
 			const rx = Math.abs(s.x2 - s.x1);
 			const ry = Math.abs(s.y2 - s.y1);
-			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) ellipse (${toTikZ(rx, false, s.id, 'rx')} and ${toTikZ(ry, false, s.id, 'ry')});`;
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) ellipse (${toTikZ(rx, false, s.id, 'rx')} and ${toTikZ(ry, false, s.id, 'ry')}); ${getTikZLabelNode(s)}`;
 		},
 		getBoundingBox: (s) => {
 			const rx = Math.abs(s.x2 - s.x1);
@@ -770,12 +862,15 @@ export const ShapeManager = {
 			ctx.closePath();
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			const cx = (s.x1 + s.x2 + s.x3) / 3;
+			const cy = (s.y1 + s.y2 + s.y3) / 3;
+			renderShapeLabel(s, ctx, cx, cy);
 		},
 		toTikZ: (s) => {
 			const p1 = `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})`;
 			const p2 = `(${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})`;
 			const p3 = `(${toTikZ(s.x3, false, s.id, 'x3')},${toTikZ(s.y3, true, s.id, 'y3')})`;
-			return `${p1} -- ${p2} -- ${p3} -- cycle;`;
+			return `${p1} -- ${p2} -- ${p3} -- cycle; ${getTikZLabelNode(s)}`;
 		},
 		move: (s, dx, dy) => {
 			s.x1 += dx; s.y1 += dy;
@@ -816,6 +911,7 @@ export const ShapeManager = {
 			ctx.closePath();
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, cx, cy);
 		},
 		toTikZ: (s) => {
 			const cx = (s.x1 + s.x2) / 2;
@@ -826,7 +922,7 @@ export const ShapeManager = {
 			const p3 = `(${toTikZ(cx, false, s.id, 'cx')},${toTikZ(s.y2, true, s.id, 'y2')})`;
 			const p4 = `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(cy, true, s.id, 'cy')})`;
 
-			return `${p1} -- ${p2} -- ${p3} -- ${p4} -- cycle;`;
+			return `${p1} -- ${p2} -- ${p3} -- ${p4} -- cycle; ${getTikZLabelNode(s)}`;
 		},
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
@@ -886,6 +982,7 @@ export const ShapeManager = {
 			ctx.closePath();
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
 		toTikZ: (s) => {
 			const sides = s.style.polySides || 5;
@@ -899,7 +996,7 @@ export const ShapeManager = {
 				const py = s.y1 + radius * Math.sin(angle);
 				coords.push(`(${toTikZ(px, false, s.id, `p${i}x`)},${toTikZ(py, true, s.id, `p${i}y`)})`);
 			}
-			return `${coords.join(' -- ')} -- cycle;`;
+			return `${coords.join(' -- ')} -- cycle; ${getTikZLabelNode(s)}`;
 		},
 		getBoundingBox: (s) => {
 			const radius = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
@@ -952,6 +1049,7 @@ export const ShapeManager = {
 			ctx.closePath();
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
 		toTikZ: (s) => {
 			const points = s.style.starPoints || 5;
@@ -969,7 +1067,7 @@ export const ShapeManager = {
 				const py = s.y1 + r * Math.sin(angle);
 				coords.push(`(${toTikZ(px, false, s.id, `p${i}x`)},${toTikZ(py, true, s.id, `p${i}y`)})`);
 			}
-			return `${coords.join(' -- ')} -- cycle;`;
+			return `${coords.join(' -- ')} -- cycle; ${getTikZLabelNode(s)}`;
 		},
 		getBoundingBox: (s) => {
 			const radius = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
@@ -1050,10 +1148,11 @@ export const ShapeManager = {
 				drawArrow(ctx, s.x2, s.y2, 0, arrowStyle, s.style.width);
 				drawArrow(ctx, s.x1, s.y1, -Math.PI / 2, arrowStyle, s.style.width);
 			}
+			renderShapeLabel(s, ctx, (s.x1 + s.x2)/2, (s.y1 + s.y2)/2);
 		},
 		toTikZ: (s, opts) => {
 			const finalOpts = opts || '[]';
-			return `\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x2, false, s.id, 'x_end')},${toTikZ(s.y2, true, s.id, 'y_origin')}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y1, true, s.id, 'y_end')}) node[above] {$y$};`;
+			return `\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x2, false, s.id, 'x_end')},${toTikZ(s.y2, true, s.id, 'y_origin')}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y1, true, s.id, 'y_end')}) node[above] {$y$}; ${getTikZLabelNode(s)}`;
 		},
 		isStandaloneCommand: true,
 		hitTest: (s, x, y) => {
@@ -1084,12 +1183,14 @@ export const ShapeManager = {
 		render: (s, ctx) => {
 			ctx.arc(s.x1, s.y1, s.radius, s.startAngle, s.endAngle, false);
 			ctx.stroke();
+			const midAngle = (s.startAngle + s.endAngle) / 2;
+			renderShapeLabel(s, ctx, s.x1 + s.radius * Math.cos(midAngle), s.y1 + s.radius * Math.sin(midAngle));
 		},
 		toTikZ: (s) => {
 			const startDeg = Math.round(s.startAngle * 180 / Math.PI);
 			const endDeg = Math.round(s.endAngle * 180 / Math.PI);
 			const r = toTikZ(s.radius, false, s.id, 'radius');
-			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) arc (${startDeg}:${endDeg}:${r});`;
+			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) arc (${startDeg}:${endDeg}:${r})${getTikZLabelNode(s)};`;
 		},
 		move: (s, dx, dy) => {
 			s.x1 += dx; s.y1 += dy;
@@ -1181,8 +1282,9 @@ export const ShapeManager = {
 			ctx.moveTo(s.x1, s.y1);
 			ctx.bezierCurveTo(s.cp1x, s.cp1y, s.cp2x, s.cp2y, s.x2, s.y2);
 			ctx.stroke();
+			renderShapeLabel(s, ctx, (s.x1+s.x2+s.cp1x+s.cp2x)/4, (s.y1+s.y2+s.cp1y+s.cp2y)/4);
 		},
-		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) .. controls (${toTikZ(s.cp1x, false, s.id, 'cp1x')},${toTikZ(s.cp1y, true, s.id, 'cp1y')}) and (${toTikZ(s.cp2x, false, s.id, 'cp2x')},${toTikZ(s.cp2y, true, s.id, 'cp2y')}) .. (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) .. controls (${toTikZ(s.cp1x, false, s.id, 'cp1x')},${toTikZ(s.cp1y, true, s.id, 'cp1y')}) and (${toTikZ(s.cp2x, false, s.id, 'cp2x')},${toTikZ(s.cp2y, true, s.id, 'cp2y')}) .. (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getBoundingBox: (s) => {
 			const { x1: x0, y1: y0, x2: x3, y2: y3, cp1x: x1, cp1y: y1, cp2x: x2, cp2y: y2 } = s;
 			let minX = Math.min(x0, x3);
@@ -1357,6 +1459,7 @@ export const ShapeManager = {
 			}
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
 		toTikZ: (s) => {
 			const dx = s.x2 - s.x1;
@@ -1389,7 +1492,7 @@ export const ShapeManager = {
 			}
 			
 			const opts = buildTikzOptions(s);
-			return `\\draw${opts} [shift={(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(numericLen * 20)}, variable=\\x] (\\x, ${plotFunc});`;
+			return `\\draw${opts} [shift={(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')})}, rotate=${angle.toFixed(2)}] plot[domain=0:${len}, samples=${Math.ceil(numericLen * 20)}, variable=\\x] (\\x, ${plotFunc})${getTikZLabelNode(s)};`;
 		},
 		getHandles: (s) => [
 			{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' },
@@ -1436,8 +1539,9 @@ export const ShapeManager = {
 			ctx.lineTo(l, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[R] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[R] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1474,8 +1578,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[C] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[C] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1512,8 +1617,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[L] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[L] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1554,8 +1660,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[D] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[D] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1595,8 +1702,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[battery1] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[battery1] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1634,8 +1742,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[sV] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[sV] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1675,8 +1784,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[lamp] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[lamp] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1715,8 +1825,9 @@ export const ShapeManager = {
 			ctx.lineTo(dist, 0);
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
-		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[switch] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')});`,
+		toTikZ: (s) => `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) to[switch] (${toTikZ(s.x2, false, s.id, 'x2')},${toTikZ(s.y2, true, s.id, 'y2')})${getTikZLabelNode(s)};`,
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
 			if (handle === 'start') { s.x1 = mx; s.y1 = my; }
@@ -1755,10 +1866,11 @@ export const ShapeManager = {
 			
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
 		toTikZ: (s) => {
 			const angle = Math.atan2(s.y2 - s.y1, s.x2 - s.x1) * 180 / Math.PI;
-			return `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) node[ground, rotate=${angle-270}] {};`;
+			return `\\draw (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) node[ground, rotate=${angle-270}] {}${getTikZLabelNode(s)};`;
 		},
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'start', cursor: 'move' }, { x: s.x2, y: s.y2, pos: 'end', cursor: 'move' }],
 		resize: (s, mx, my, handle) => {
@@ -1798,6 +1910,7 @@ export const ShapeManager = {
 			ctx.lineTo(cx, s.y2);
 			ctx.lineTo(cx + 5, s.y2 - 5);
 			ctx.stroke();
+			renderShapeLabel(s, ctx, cx, cy);
 		},
 		toTikZ: (s, opts) => {
 			const w = toTikZ(Math.abs(s.x2 - s.x1));
@@ -1810,7 +1923,7 @@ export const ShapeManager = {
 				axisOpts += ", " + opts.substring(1, opts.length - 1);
 			}
 			
-			return `\\draw[${axisOpts}] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2}); \\draw${opts || ''} (${cx}, ${cy}) ellipse (${w/2} and ${h/2});`;
+			return `\\draw[${axisOpts}] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2}); \\draw${opts || ''} (${cx}, ${cy}) ellipse (${w/2} and ${h/2}); ${getTikZLabelNode(s)}`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
@@ -1843,6 +1956,7 @@ export const ShapeManager = {
 			ctx.moveTo(cx, s.y2); ctx.lineTo(cx, s.y2 - 10);
 			ctx.moveTo(cx - 5, s.y2); ctx.lineTo(cx, s.y2 - 5); ctx.lineTo(cx + 5, s.y2);
 			ctx.stroke();
+			renderShapeLabel(s, ctx, cx, cy);
 		},
 		toTikZ: (s, opts) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
@@ -1854,7 +1968,7 @@ export const ShapeManager = {
 				axisOpts += ", " + opts.substring(1, opts.length - 1);
 			}
 
-			return `\\draw[${axisOpts}] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2});`;
+			return `\\draw[${axisOpts}] (${cx}, ${cy - h/2}) -- (${cx}, ${cy + h/2}); ${getTikZLabelNode(s)}`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
@@ -1885,11 +1999,12 @@ export const ShapeManager = {
 			}
 			ctx.stroke();
 			ctx.restore();
+			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
 		toTikZ: (s, opts) => {
 			const x1 = toTikZ(s.x1); const y1 = toTikZ(s.y1, true);
 			const x2 = toTikZ(s.x2); const y2 = toTikZ(s.y2, true);
-			return `\\draw${opts || ''} (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw${opts || ''} ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15);`;
+			return `\\draw${opts || ''} (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw${opts || ''} ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15); ${getTikZLabelNode(s)}`;
 		},
 		onDown: (x, y, style) => ({ type: 'mirror', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
 		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
@@ -1912,12 +2027,14 @@ export const ShapeManager = {
 			ctx.closePath();
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w/2, y + h/2);
 		},
 		toTikZ: (s) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
-			return `\\node[and port, scale=${scale.toFixed(2)}] at (${cx}, ${cy}) {};`;
+			const text = s.style.text ? `, label={${s.style.text}}` : '';
+			return `\\node[and port, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
@@ -1942,12 +2059,14 @@ export const ShapeManager = {
 			ctx.closePath();
 			if (s.style.fill) ctx.fill();
 			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w/2, y + h/2);
 		},
 		toTikZ: (s) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
-			return `\\node[or port, scale=${scale.toFixed(2)}] at (${cx}, ${cy}) {};`;
+			const text = s.style.text ? `, label={${s.style.text}}` : '';
+			return `\\node[or port, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
@@ -1975,12 +2094,14 @@ export const ShapeManager = {
 			ctx.beginPath();
 			ctx.arc(x + w, y + h/2, 5, 0, Math.PI * 2);
 			ctx.stroke();
+			renderShapeLabel(s, ctx, x + w/2, y + h/2);
 		},
 		toTikZ: (s) => {
 			const cx = toTikZ((s.x1 + s.x2) / 2);
 			const cy = toTikZ((s.y1 + s.y2) / 2, true);
 			const scale = Math.abs(s.x2 - s.x1) / UI_CONSTANTS.SCALE;
-			return `\\node[not port, scale=${scale.toFixed(2)}] at (${cx}, ${cy}) {};`;
+			const text = s.style.text ? `, label={${s.style.text}}` : '';
+			return `\\node[not port, scale=${scale.toFixed(2)}${text}] at (${cx}, ${cy}) {};`;
 		},
 		getBoundingBox: (s) => ({
 			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),

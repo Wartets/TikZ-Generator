@@ -105,7 +105,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-pointer"></i>',
 		cursor: 'default',
 		group: 'general',
-		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'rotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'rotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillColor', 'starPoints', 'starRatio', 'polySides', 'waveType', 'waveAmplitude', 'waveLength', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed']
 	},
 	duplicate: {
 		displayName: 'Dupliquer',
@@ -161,7 +161,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-pencil"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	line: {
 		displayName: 'Ligne',
@@ -169,7 +169,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-line"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'arrowHead', 'rotate', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'arrowHead', 'rotate', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	rect: {
 		displayName: 'Rectangle',
@@ -177,7 +177,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-rectangle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	circle: {
 		displayName: 'Cercle',
@@ -185,7 +185,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-circle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	ellipse: {
 		displayName: 'Ellipse',
@@ -193,7 +193,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-oval"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	triangle: {
 		displayName: 'Triangle',
@@ -201,7 +201,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-triangle"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	diamond: {
 		displayName: 'Losange',
@@ -209,7 +209,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	grid: {
 		displayName: 'Grille',
@@ -225,7 +225,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-axis-arrow"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	arc: {
 		displayName: 'Arc',
@@ -233,7 +233,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-angle-acute"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	curve: {
 		displayName: 'Courbe',
@@ -241,7 +241,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-vector-curve"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	wave: {
 		displayName: 'Onde',
@@ -249,7 +249,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-wave-sine"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['waveType', 'waveAmplitude', 'rotate', 'waveLength', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'waveType', 'waveAmplitude', 'rotate', 'waveLength', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	polygon: {
 		displayName: 'Polygone',
@@ -257,7 +257,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-polygon"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['polySides', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'polySides', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	star: {
 		displayName: 'Étoile',
@@ -265,7 +265,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-star"></i>',
 		cursor: 'crosshair',
 		group: 'drawing',
-		allow: ['starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	resistor: {
 		displayName: 'Résistance',
@@ -273,7 +273,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-wave-square"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'rotate', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'rotate', 'opacity', 'strokeColor']
 	},
 	capacitor: {
 		displayName: 'Condensateur',
@@ -281,7 +281,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-pause"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	inductor: {
 		displayName: 'Bobine',
@@ -289,7 +289,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-infinity"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	diode: {
 		displayName: 'Diode',
@@ -297,7 +297,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-play" style="font-size: 0.7em;"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	source_dc: {
 		displayName: 'Source DC',
@@ -305,7 +305,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-car-battery"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	source_ac: {
 		displayName: 'Source AC',
@@ -313,7 +313,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-water"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	lamp: {
 		displayName: 'Lampe',
@@ -321,7 +321,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-regular fa-lightbulb"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	switch: {
 		displayName: 'Interrupteur',
@@ -329,7 +329,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-toggle-off"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	ground: {
 		displayName: 'Masse',
@@ -337,7 +337,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="fa-solid fa-arrow-down"></i>',
 		cursor: 'crosshair',
 		group: 'circuits',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	lens_convex: {
 		displayName: 'Lentille Convergente',
@@ -345,7 +345,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-magnify"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	lens_concave: {
 		displayName: 'Lentille Divergente',
@@ -353,7 +353,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-magnify-minus"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	mirror: {
 		displayName: 'Miroir',
@@ -361,7 +361,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-mirror"></i>',
 		cursor: 'crosshair',
 		group: 'optics',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	logic_and: {
 		displayName: 'Porte ET',
@@ -369,7 +369,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-and"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	logic_or: {
 		displayName: 'Porte OU',
@@ -377,7 +377,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-or"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	logic_not: {
 		displayName: 'Porte NON',
@@ -385,7 +385,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="mdi mdi-gate-not"></i>',
 		cursor: 'crosshair',
 		group: 'logic',
-		allow: ['lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	flow_start: {
 		displayName: 'Début/Fin',
@@ -393,7 +393,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-player-record"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	flow_process: {
 		displayName: 'Processus',
@@ -401,7 +401,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-settings"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 	flow_decision: {
 		displayName: 'Décision',
@@ -409,7 +409,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
 		group: 'flowchart',
-		allow: ['textString', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
+		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillColor']
 	},
 };
 
@@ -418,7 +418,7 @@ export const SETTINGS_CONFIG = {
 		label: 'Contenu',
 		type: 'textarea',
 		propName: 'text',
-		defaultValue: 'Nouveau Texte',
+		defaultValue: '',
 		tikzValue: (v) => null
 	},
 	textSize: {

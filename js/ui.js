@@ -45,23 +45,23 @@ export function createToolsUI() {
 export function createSettingsUI() {
 	const container = document.getElementById('settings-container');
 	container.innerHTML = '';
-	const settingsGroups = {};
+	
+	const settingsGroups = new Map();
 
 	for (const key in SETTINGS_CONFIG) {
 		const config = SETTINGS_CONFIG[key];
 		const groupName = config.group || `group-${key}`;
 
-		if (!settingsGroups[groupName]) {
-			settingsGroups[groupName] = {
+		if (!settingsGroups.has(groupName)) {
+			settingsGroups.set(groupName, {
 				configs: [],
 				options: config.groupOptions || {}
-			};
+			});
 		}
-		settingsGroups[groupName].configs.push({ key, ...config });
+		settingsGroups.get(groupName).configs.push({ key, ...config });
 	}
 
-	for (const groupName in settingsGroups) {
-		const groupInfo = settingsGroups[groupName];
+	settingsGroups.forEach((groupInfo, groupName) => {
 		const groupContainer = document.createElement('div');
 		
 		if (groupInfo.options.type === 'row') {
@@ -130,22 +130,12 @@ export function createSettingsUI() {
 							<input type="color" id="${key}" data-setting="${key}" style="height:32px; width:100%;">
 						</div>`;
 					break;
-				case 'color-checkbox':
-					controlHtml = `
-						<div class="color-input">
-							<div class="slider-row">
-								<label>${config.label}</label>
-								<input type="checkbox" id="hasFill" data-setting="hasFill">
-							</div>
-							<input type="color" id="${key}" data-setting="${key}" style="height:32px; width:100%;">
-						</div>`;
-					break;
 			}
 			controlWrapper.innerHTML = controlHtml;
 			groupContainer.appendChild(controlWrapper);
 		});
 		container.appendChild(groupContainer);
-	}
+	});
 }
 
 export function createGlobalSettingsUI() {

@@ -430,66 +430,358 @@ export const TOOL_CONFIG = {
 };
 
 export const SETTINGS_CONFIG = {
+	strokeColor: {
+		label: 'Contour',
+		type: 'color',
+		propName: 'stroke',
+		defaultValue: '#000000',
+		tikzKey: 'draw',
+		isColor: true,
+		tikzValue: (v) => v === '#000000' ? null : v,
+		group: 'main-style',
+		groupOptions: { type: 'row' }
+	},
+	opacity: {
+		label: 'Opacité',
+		type: 'range',
+		propName: 'opacity',
+		defaultValue: 1,
+		min: 0.1, max: 1, step: 0.1,
+		unit: '%',
+		tikzKey: 'opacity',
+		tikzValue: (v) => v === 1 ? null : v,
+		group: 'main-style'
+	},
+	lineWidth: {
+		label: 'Épaisseur',
+		type: 'range',
+		propName: 'width',
+		defaultValue: 1,
+		min: 0.1, max: 5, step: 0.1,
+		unit: 'pt',
+		tikzKey: 'line width',
+		tikzSuffix: 'pt',
+		tikzValue: (v) => v === 1 ? null : v,
+		group: 'line-props',
+		groupOptions: { type: 'row' }
+	},
+	lineStyle: {
+		label: 'Style trait',
+		type: 'select',
+		propName: 'dash',
+		defaultValue: 'solid',
+		options: {
+			solid: 'Plein',
+			dashed: 'Tirets',
+			dotted: 'Points',
+			'densely dashed': 'Serré',
+		},
+		tikzValue: (v) => v === 'solid' ? null : v,
+		group: 'line-props'
+	},
+	rotate: {
+		label: 'Rotation Forme',
+		type: 'range',
+		propName: 'rotate',
+		defaultValue: 0,
+		min: 0, max: 360, step: 1,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'transform'
+	},
+	doubleLine: {
+		label: 'Double',
+		type: 'checkbox',
+		propName: 'double',
+		defaultValue: false,
+		tikzValue: (v) => v ? 'double' : null,
+		group: 'line-bools',
+		groupOptions: { type: 'row' }
+	},
+	isClosed: {
+		label: 'Fermé',
+		type: 'checkbox',
+		propName: 'isClosed',
+		defaultValue: false,
+		tikzValue: (v) => null,
+		group: 'line-bools'
+	},
+	arrowStyle: {
+		label: 'Flèches',
+		type: 'select',
+		propName: 'arrow',
+		defaultValue: 'none',
+		options: {
+			none: 'Aucune',
+			'->': 'Fin',
+			'<-': 'Début',
+			'<->': 'Les deux',
+		},
+		tikzValue: (v) => v === 'none' ? null : v,
+		excludeFrom: ['text', 'grid', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision'],
+		group: 'arrows-main',
+		groupOptions: { type: 'row' }
+	},
+	arrowHead: {
+		label: 'Pointe',
+		type: 'select',
+		propName: 'arrowHead',
+		defaultValue: 'stealth',
+		options: {
+			'stealth': 'Stealth',
+			'latex': 'LaTeX',
+			'to': 'Standard',
+			'triangle 45': 'Triangle',
+			'circle': 'Cercle',
+			'diamond': 'Losange'
+		},
+		tikzValue: (v) => null,
+		excludeFrom: ['text', 'grid'],
+		group: 'arrows-main'
+	},
+	arrowScale: {
+		label: 'Taille Pointe',
+		type: 'range',
+		propName: 'arrowScale',
+		defaultValue: 1,
+		min: 0.5, max: 3, step: 0.1,
+		unit: 'x',
+		tikzValue: (v) => null,
+		excludeFrom: ['text', 'grid'],
+		group: 'arrows-size'
+	},
+	fillType: {
+		label: 'Remplissage',
+		type: 'select',
+		propName: 'fillType',
+		defaultValue: 'none',
+		options: {
+			'none': 'Aucun',
+			'solid': 'Uni',
+			'linear': 'Linéaire',
+			'radial': 'Radial',
+			'ball': 'Ball'
+		},
+		tikzValue: (v) => null,
+		group: 'fill-main',
+		groupOptions: { type: 'row' }
+	},
+	shadingAngle: {
+		label: 'Angle',
+		type: 'number',
+		propName: 'shadingAngle',
+		defaultValue: 0,
+		step: 15,
+		tikzValue: (v) => null,
+		group: 'fill-main'
+	},
+	fillColor: {
+		label: 'Couleur 1',
+		type: 'color',
+		propName: 'fill',
+		defaultValue: '#5e6ad2',
+		tikzValue: (v) => null,
+		group: 'fill-colors',
+		groupOptions: { type: 'row' }
+	},
+	fillColor2: {
+		label: 'Couleur 2',
+		type: 'color',
+		propName: 'fill2',
+		defaultValue: '#ffffff',
+		tikzValue: (v) => null,
+		group: 'fill-colors'
+	},
+	cornerRadius: {
+		label: 'Arrondi',
+		type: 'range',
+		propName: 'cornerRadius',
+		defaultValue: 5,
+		min: 0, max: 50, step: 1,
+		unit: 'pt',
+		tikzValue: (v) => null,
+		group: 'geo-smooth',
+		groupOptions: { type: 'row' }
+	},
+	smoothness: {
+		label: 'Lissage',
+		type: 'range',
+		propName: 'tension',
+		defaultValue: 0.7,
+		min: 0, max: 2, step: 0.1,
+		unit: '',
+		tikzKey: 'tension',
+		excludeFrom: ['line', 'rect', 'circle', 'ellipse', 'triangle', 'diamond', 'grid', 'axes', 'arc', 'curve', 'wave', 'polygon', 'star', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision'],
+		group: 'geo-smooth'
+	},
+	freehandMode: {
+		label: 'Mode Traçé',
+		type: 'select',
+		propName: 'freehandMode',
+		defaultValue: 'smooth',
+		options: {
+			'smooth': 'Lissé',
+			'sharp': 'Brut',
+			'rounded': 'Arrondi'
+		},
+		tikzValue: (v) => null,
+		group: 'geo-mode'
+	},
+	simplifyTolerance: {
+		label: 'Simplification',
+		type: 'range',
+		propName: 'simplifyTolerance',
+		defaultValue: 2,
+		min: 0.1, max: 20, step: 0.1,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-mode'
+	},
+	polySides: {
+		label: 'Côtés',
+		type: 'range',
+		propName: 'polySides',
+		defaultValue: 5,
+		min: 3, max: 12, step: 1,
+		unit: '',
+		tikzValue: (v) => null,
+		group: 'geo-poly',
+		groupOptions: { type: 'row' }
+	},
+	starPoints: {
+		label: 'Pointes',
+		type: 'range',
+		propName: 'starPoints',
+		defaultValue: 5,
+		min: 3, max: 12, step: 1,
+		unit: '',
+		tikzValue: (v) => null,
+		group: 'geo-poly'
+	},
+	starRatio: {
+		label: 'Ratio Étoile',
+		type: 'range',
+		propName: 'starRatio',
+		defaultValue: 0.5,
+		min: 0.1, max: 0.9, step: 0.1,
+		unit: '',
+		tikzValue: (v) => null,
+		group: 'geo-ratio',
+		groupOptions: { type: 'row' }
+	},
+	gridStep: {
+		label: 'Pas Grille',
+		type: 'range',
+		propName: 'gridStep',
+		defaultValue: 0.5,
+		min: 0.1, max: 2, step: 0.1,
+		unit: 'cm',
+		tikzValue: (v) => null,
+		group: 'geo-ratio'
+	},
+	waveType: {
+		label: 'Type Onde',
+		type: 'select',
+		propName: 'waveType',
+		defaultValue: 'sine',
+		options: {
+			'sine': 'Sinus',
+			'triangle': 'Triangle',
+			'square': 'Carré',
+			'sawtooth': 'Scie'
+		},
+		tikzValue: (v) => null,
+		group: 'geo-wave',
+		groupOptions: { type: 'row' }
+	},
+	waveAmplitude: {
+		label: 'Amplitude',
+		type: 'range',
+		propName: 'waveAmplitude',
+		defaultValue: 0.5,
+		min: 0.1, max: 5, step: 0.1,
+		unit: 'cm',
+		tikzValue: (v) => null,
+		group: 'geo-wave-props',
+		groupOptions: { type: 'row' }
+	},
+	waveLength: {
+		label: 'Longueur',
+		type: 'range',
+		propName: 'waveLength',
+		defaultValue: 1,
+		min: 0.1, max: 5, step: 0.1,
+		unit: 'cm',
+		tikzValue: (v) => null,
+		group: 'geo-wave-props'
+	},
 	pointSize: {
-		label: 'Taille du point',
+		label: 'Taille Point',
 		type: 'range',
 		propName: 'pointSize',
 		defaultValue: 3,
 		min: 1, max: 20, step: 0.5,
 		unit: 'pt',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'geo-point',
+		groupOptions: { type: 'row' }
 	},
 	pointType: {
-		label: 'Style de point',
+		label: 'Style Point',
 		type: 'select',
 		propName: 'pointType',
 		defaultValue: 'dot',
 		options: {
-			'dot': 'Disque (Plein)',
-			'circle': 'Cercle (Vide)',
-			'cross': 'Croix (X)',
-			'plus': 'Plus (+)'
+			'dot': 'Plein',
+			'circle': 'Vide',
+			'cross': 'Croix',
+			'plus': 'Plus'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'geo-point'
 	},
 	textString: {
-		label: 'Contenu',
+		label: 'Contenu Texte',
 		type: 'textarea',
 		propName: 'text',
 		defaultValue: '',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'text-content'
+	},
+	textFont: {
+		label: 'Police',
+		type: 'select',
+		propName: 'textFont',
+		defaultValue: 'sans',
+		options: {
+			'serif': 'Serif',
+			'sans': 'Sans',
+			'mono': 'Mono'
+		},
+		tikzValue: (v) => null,
+		group: 'text-font',
+		groupOptions: { type: 'row' }
 	},
 	textSize: {
-		label: 'Taille TikZ',
+		label: 'Taille',
 		type: 'select',
 		propName: 'textSize',
 		defaultValue: 'normalsize',
 		options: {
 			'tiny': 'Tiny',
-			'scriptsize': 'Scriptsize',
-			'footnotesize': 'Footnotesize',
+			'scriptsize': 'Script',
+			'footnotesize': 'Foot',
 			'small': 'Small',
 			'normalsize': 'Normal',
 			'large': 'Large',
-			'Large': 'Large +',
+			'Large': 'Large+',
 			'LARGE': 'LARGE',
 			'huge': 'Huge',
-			'Huge': 'Huge +'
+			'Huge': 'Huge+'
 		},
 		tikzKey: 'font',
-		tikzValue: (v) => v === 'normalsize' ? null : `\\${v}`
-	},
-	textFont: {
-		label: 'Famille de police',
-		type: 'select',
-		propName: 'textFont',
-		defaultValue: 'sans',
-		options: {
-			'serif': 'Serif (Roman)',
-			'sans': 'Sans Serif',
-			'mono': 'Monospace (Typewriter)'
-		},
-		tikzValue: (v) => null
+		tikzValue: (v) => v === 'normalsize' ? null : `\\${v}`,
+		group: 'text-font'
 	},
 	textWeight: {
 		label: 'Graisse',
@@ -500,7 +792,9 @@ export const SETTINGS_CONFIG = {
 			'none': 'Normal',
 			'bfseries': 'Gras'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'text-style',
+		groupOptions: { type: 'row' }
 	},
 	textSlant: {
 		label: 'Style',
@@ -511,82 +805,29 @@ export const SETTINGS_CONFIG = {
 			'none': 'Normal',
 			'itshape': 'Italique'
 		},
-		tikzValue: (v) => null
-	},
-	rotate: {
-		label: 'Rotation',
-		type: 'range',
-		propName: 'rotate',
-		defaultValue: 0,
-		min: 0, max: 360, step: 1,
-		unit: '°',
-		tikzValue: (v) => null
-	},
-	smoothness: {
-		label: 'Lissage',
-		type: 'range',
-		propName: 'tension',
-		defaultValue: 0.7,
-		min: 0, max: 2, step: 0.1,
-		unit: '',
-		tikzKey: 'tension',
-		excludeFrom: ['line', 'rect', 'circle', 'ellipse', 'triangle', 'diamond', 'grid', 'axes', 'arc', 'curve', 'wave', 'polygon', 'star', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision']
-	},
-	simplifyTolerance: {
-		label: 'Simplification',
-		type: 'range',
-		propName: 'simplifyTolerance',
-		defaultValue: 2,
-		min: 0.1, max: 20, step: 0.1,
-		unit: 'px',
-		tikzValue: (v) => null
-	},
-	isClosed: {
-		label: 'Fermer la forme',
-		type: 'checkbox',
-		propName: 'isClosed',
-		defaultValue: false,
-		tikzValue: (v) => null
-	},
-	freehandMode: {
-		label: 'Type de tracé',
-		type: 'select',
-		propName: 'freehandMode',
-		defaultValue: 'smooth',
-		options: {
-			'smooth': 'Courbe (Lissé)',
-			'sharp': 'Linéaire (Brut)',
-			'rounded': 'Arrondi'
-		},
-		tikzValue: (v) => null
-	},
-	cornerRadius: {
-		label: 'Rayon des coins',
-		type: 'range',
-		propName: 'cornerRadius',
-		defaultValue: 5,
-		min: 1, max: 50, step: 1,
-		unit: 'pt',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'text-style'
 	},
 	textAnchor: {
-		label: 'Ancrage TikZ',
+		label: 'Ancrage',
 		type: 'select',
 		propName: 'textAnchor',
 		defaultValue: 'center',
 		options: {
 			'center': 'Centre',
-			'north': 'Nord (Haut)',
-			'south': 'Sud (Bas)',
-			'east': 'Est (Droite)',
-			'west': 'Ouest (Gauche)',
-			'north east': 'Nord-Est',
-			'north west': 'Nord-Ouest',
-			'south east': 'Sud-Est',
-			'south west': 'Sud-Ouest'
+			'north': 'Nord',
+			'south': 'Sud',
+			'east': 'Est',
+			'west': 'Ouest',
+			'north east': 'NE',
+			'north west': 'NO',
+			'south east': 'SE',
+			'south west': 'SO'
 		},
 		tikzKey: 'anchor',
-		tikzValue: (v) => v === 'center' ? null : v
+		tikzValue: (v) => v === 'center' ? null : v,
+		group: 'text-align',
+		groupOptions: { type: 'row' }
 	},
 	textAlign: {
 		label: 'Alignement',
@@ -600,10 +841,11 @@ export const SETTINGS_CONFIG = {
 			'justify': 'Justifié'
 		},
 		tikzKey: 'align',
-		tikzValue: (v) => v === 'none' ? null : v
+		tikzValue: (v) => v === 'none' ? null : v,
+		group: 'text-align'
 	},
 	textWidth: {
-		label: 'Largeur max (0=auto)',
+		label: 'Largeur (cm)',
 		type: 'range',
 		propName: 'textWidth',
 		defaultValue: 0,
@@ -611,215 +853,25 @@ export const SETTINGS_CONFIG = {
 		unit: 'cm',
 		tikzKey: 'text width',
 		tikzSuffix: 'cm',
-		tikzValue: (v) => v === 0 ? null : v
-	},
-	polySides: {
-		label: 'Côtés',
-		type: 'range',
-		propName: 'polySides',
-		defaultValue: 5,
-		min: 3, max: 12, step: 1,
-		unit: '',
-		tikzValue: (v) => null
-	},
-	starPoints: {
-		label: 'Pointes',
-		type: 'range',
-		propName: 'starPoints',
-		defaultValue: 5,
-		min: 3, max: 12, step: 1,
-		unit: '',
-		tikzValue: (v) => null
-	},
-	starRatio: {
-		label: 'Ratio interne',
-		type: 'range',
-		propName: 'starRatio',
-		defaultValue: 0.5,
-		min: 0.1, max: 0.9, step: 0.1,
-		unit: '',
-		tikzValue: (v) => null
-	},
-	waveType: {
-		label: 'Type d\'onde',
-		type: 'select',
-		propName: 'waveType',
-		defaultValue: 'sine',
-		options: {
-			'sine': 'Sinus',
-			'triangle': 'Triangle',
-			'square': 'Carré',
-			'sawtooth': 'Dents de scie'
-		},
-		tikzValue: (v) => null
-	},
-	waveAmplitude: {
-		label: 'Amplitude',
-		type: 'range',
-		propName: 'waveAmplitude',
-		defaultValue: 0.5,
-		min: 0.1, max: 5, step: 0.1,
-		unit: 'cm',
-		tikzValue: (v) => null
-	},
-	waveLength: {
-		label: 'Longueur d\'onde',
-		type: 'range',
-		propName: 'waveLength',
-		defaultValue: 1,
-		min: 0.1, max: 5, step: 0.1,
-		unit: 'cm',
-		tikzValue: (v) => null
-	},
-	gridStep: {
-		label: 'Pas de grille',
-		type: 'range',
-		propName: 'gridStep',
-		defaultValue: 0.5,
-		min: 0.1, max: 2, step: 0.1,
-		unit: 'cm',
-		tikzValue: (v) => null
-	},
-	lineStyle: {
-		label: 'Style de trait',
-		type: 'select',
-		propName: 'dash',
-		defaultValue: 'solid',
-		options: {
-			solid: 'Trait plein',
-			dashed: 'Tirets',
-			dotted: 'Points',
-			'densely dashed': 'Tirets serrés',
-		},
-		tikzValue: (v) => v === 'solid' ? null : v
-	},
-	doubleLine: {
-		label: 'Double trait',
-		type: 'checkbox',
-		propName: 'double',
-		defaultValue: false,
-		tikzValue: (v) => v ? 'double' : null
-	},
-	arrowStyle: {
-		label: 'Direction Flèches',
-		type: 'select',
-		propName: 'arrow',
-		defaultValue: 'none',
-		options: {
-			none: 'Aucune',
-			'->': 'Fin',
-			'<-': 'Début',
-			'<->': 'Les deux',
-		},
-		tikzValue: (v) => v === 'none' ? null : v,
-		excludeFrom: ['text', 'grid', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision']
-	},
-	arrowHead: {
-		label: 'Style de pointe',
-		type: 'select',
-		propName: 'arrowHead',
-		defaultValue: 'stealth',
-		options: {
-			'stealth': 'Stealth',
-			'latex': 'LaTeX',
-			'to': 'Standard',
-			'triangle 45': 'Triangle',
-			'circle': 'Cercle',
-			'diamond': 'Losange'
-		},
-		tikzValue: (v) => null,
-		excludeFrom: ['text', 'grid']
-	},
-	arrowScale: {
-		label: 'Taille de pointe',
-		type: 'range',
-		propName: 'arrowScale',
-		defaultValue: 1,
-		min: 0.5, max: 3, step: 0.1,
-		unit: 'x',
-		tikzValue: (v) => null,
-		excludeFrom: ['text', 'grid']
-	},
-	lineWidth: {
-		label: 'Épaisseur',
-		type: 'range',
-		propName: 'width',
-		defaultValue: 1,
-		min: 0.1, max: 5, step: 0.1,
-		unit: 'pt',
-		tikzKey: 'line width',
-		tikzSuffix: 'pt',
-		tikzValue: (v) => v === 1 ? null : v
-	},
-	opacity: {
-		label: 'Opacité',
-		type: 'range',
-		propName: 'opacity',
-		defaultValue: 1,
-		min: 0.1, max: 1, step: 0.1,
-		unit: '%',
-		tikzKey: 'opacity',
-		tikzValue: (v) => v === 1 ? null : v,
-		group: 'color-controls'
-	},
-	strokeColor: {
-		label: 'Contour',
-		type: 'color',
-		propName: 'stroke',
-		defaultValue: '#000000',
-		tikzKey: 'draw',
-		isColor: true,
-		tikzValue: (v) => v === '#000000' ? null : v,
-		group: 'color-controls',
+		tikzValue: (v) => v === 0 ? null : v,
+		group: 'text-pos',
 		groupOptions: { type: 'row' }
 	},
-	fillType: {
-		label: 'Type de Remplissage',
-		type: 'select',
-		propName: 'fillType',
-		defaultValue: 'none',
-		options: {
-			'none': 'Aucun',
-			'solid': 'Uni',
-			'linear': 'Dégradé (Linéaire)',
-			'radial': 'Dégradé (Radial)',
-			'ball': 'Shading Ball'
-		},
-		tikzValue: (v) => null,
-		group: 'fill-controls'
-	},
-	fillColor: {
-		label: 'Couleur 1 (Interne)',
-		type: 'color',
-		propName: 'fill',
-		defaultValue: '#5e6ad2',
-		tikzValue: (v) => null,
-		group: 'fill-controls'
-	},
-	fillColor2: {
-		label: 'Couleur 2 (Externe)',
-		type: 'color',
-		propName: 'fill2',
-		defaultValue: '#ffffff',
-		tikzValue: (v) => null,
-		group: 'fill-controls'
-	},
-	shadingAngle: {
-		label: 'Angle Shading',
-		type: 'range',
-		propName: 'shadingAngle',
+	textRotate: {
+		label: 'Rotation Txt',
+		type: 'number',
+		propName: 'textRotate',
 		defaultValue: 0,
-		min: 0, max: 360, step: 15,
-		unit: '°',
-		tikzValue: (v) => null,
-		group: 'fill-controls'
+		step: 5,
+		group: 'text-pos'
 	},
 	plotFunction: {
 		label: 'Fonction f(x)',
 		type: 'text',
 		propName: 'plotFunction',
 		defaultValue: 'sin(x)',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-func'
 	},
 	plotDomainMin: {
 		label: 'Min X',
@@ -827,7 +879,9 @@ export const SETTINGS_CONFIG = {
 		propName: 'plotDomainMin',
 		defaultValue: -5,
 		step: 0.1,
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-domain',
+		groupOptions: { type: 'row' }
 	},
 	plotDomainMax: {
 		label: 'Max X',
@@ -835,7 +889,25 @@ export const SETTINGS_CONFIG = {
 		propName: 'plotDomainMax',
 		defaultValue: 5,
 		step: 0.1,
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-domain'
+	},
+	plotYMin: {
+		label: 'Min Y',
+		type: 'text',
+		propName: 'plotYMin',
+		defaultValue: '',
+		tikzValue: (v) => null,
+		group: 'plot-range',
+		groupOptions: { type: 'row' }
+	},
+	plotYMax: {
+		label: 'Max Y',
+		type: 'text',
+		propName: 'plotYMax',
+		defaultValue: '',
+		tikzValue: (v) => null,
+		group: 'plot-range'
 	},
 	plotSamples: {
 		label: 'Échantillons',
@@ -844,24 +916,11 @@ export const SETTINGS_CONFIG = {
 		defaultValue: 100,
 		min: 10, max: 500, step: 10,
 		unit: '',
-		tikzValue: (v) => null
-	},
-	plotXLabel: {
-		label: 'Label Axe X',
-		type: 'text',
-		propName: 'plotXLabel',
-		defaultValue: 'x',
-		tikzValue: (v) => null
-	},
-	plotYLabel: {
-		label: 'Label Axe Y',
-		type: 'text',
-		propName: 'plotYLabel',
-		defaultValue: 'f(x)',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-detail'
 	},
 	plotGrid: {
-		label: 'Grille Axis',
+		label: 'Grille',
 		type: 'select',
 		propName: 'plotGrid',
 		defaultValue: 'major',
@@ -870,35 +929,41 @@ export const SETTINGS_CONFIG = {
 			'major': 'Principale',
 			'both': 'Complète'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-style',
+		groupOptions: { type: 'row' }
 	},
 	plotAxisLines: {
-		label: 'Style des Axes',
+		label: 'Axes',
 		type: 'select',
 		propName: 'plotAxisLines',
 		defaultValue: 'box',
 		options: {
-			'box': 'Boîte (Encadré)',
-			'left': 'Gauche/Bas (L)',
-			'middle': 'Centré (Croix)',
-			'center': 'Centré (Center)',
+			'box': 'Boîte',
+			'left': 'Gauche/Bas',
+			'middle': 'Croix',
+			'center': 'Centré',
 			'none': 'Aucun'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-style'
 	},
-	plotYMin: {
-		label: 'Min Y (Vide=Auto)',
+	plotXLabel: {
+		label: 'Label X',
 		type: 'text',
-		propName: 'plotYMin',
-		defaultValue: '',
-		tikzValue: (v) => null
+		propName: 'plotXLabel',
+		defaultValue: 'x',
+		tikzValue: (v) => null,
+		group: 'plot-labels',
+		groupOptions: { type: 'row' }
 	},
-	plotYMax: {
-		label: 'Max Y (Vide=Auto)',
+	plotYLabel: {
+		label: 'Label Y',
 		type: 'text',
-		propName: 'plotYMax',
-		defaultValue: '',
-		tikzValue: (v) => null
+		propName: 'plotYLabel',
+		defaultValue: 'f(x)',
+		tikzValue: (v) => null,
+		group: 'plot-labels'
 	},
 	plotMark: {
 		label: 'Marqueur',
@@ -907,30 +972,34 @@ export const SETTINGS_CONFIG = {
 		defaultValue: 'none',
 		options: {
 			'none': 'Aucun',
-			'*': 'Point (*)',
-			'x': 'Croix (x)',
-			'+': 'Plus (+)',
-			'o': 'Cercle (o)',
+			'*': 'Point',
+			'x': 'Croix',
+			'+': 'Plus',
+			'o': 'Cercle',
 			'square': 'Carré',
 			'triangle': 'Triangle'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-marks',
+		groupOptions: { type: 'row' }
 	},
 	plotMarkSize: {
-		label: 'Taille Marqueur',
+		label: 'Taille Marq.',
 		type: 'range',
 		propName: 'plotMarkSize',
 		defaultValue: 2,
 		min: 0.5, max: 5, step: 0.5,
 		unit: 'pt',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-marks'
 	},
 	plotLegend: {
 		label: 'Légende',
 		type: 'text',
 		propName: 'plotLegend',
 		defaultValue: '',
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-legend'
 	},
 	plotLegendPos: {
 		label: 'Pos. Légende',
@@ -942,8 +1011,9 @@ export const SETTINGS_CONFIG = {
 			'north west': 'Nord-Ouest',
 			'south east': 'Sud-Est',
 			'south west': 'Sud-Ouest',
-			'outer north east': 'Extérieur NE'
+			'outer north east': 'Ext. NE'
 		},
-		tikzValue: (v) => null
+		tikzValue: (v) => null,
+		group: 'plot-legend'
 	},
 };

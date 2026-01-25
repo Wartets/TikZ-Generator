@@ -3,7 +3,9 @@ import { toTikZ, distToSegment, rotatePoint, simplifyPoints, tikzToPx, getPerpen
 import { canvas, ctx } from './ui.js';
 import { app } from './state.js';
 import { buildTikzOptions } from './latexGenerator.js';
-import { drawArrow } from './renderer.js';
+import { drawArrow, render } from './renderer.js';
+
+const latexCache = new Map();
 
 // Fonctions par défaut pour les formes
 export const getBoundingBoxFromCoords = (s) => ({
@@ -186,59 +188,148 @@ export function renderShapeLabel(s, ctx, cx, cy) {
 	if (!s.style.text) return;
 
 	const style = s.style;
+	const rawText = style.text;
+	const color = style.stroke || '#000000';
+	
 	const sizeMap = {
-		'tiny': 8, 'scriptsize': 10, 'footnotesize': 12, 'small': 13,
-		'normalsize': 16, 'large': 18, 'Large': 22, 'LARGE': 26, 'huge': 30, 'Huge': 36
+		'tiny': 12, 'scriptsize': 14, 'footnotesize': 16, 'small': 18,
+		'normalsize': 20, 'large': 24, 'Large': 28, 'LARGE': 32, 'huge': 36, 'Huge': 42
 	};
-	const fontMap = {
-		'serif': 'serif',
-		'sans': 'sans-serif',
-		'mono': 'monospace'
-	};
-	const fontSize = sizeMap[style.textSize] || 16;
-	const fontFamily = fontMap[style.textFont] || 'sans-serif';
-	const weight = style.textWeight === 'bfseries' ? 'bold ' : '';
-	const slant = style.textSlant === 'itshape' ? 'italic ' : '';
+	const fontSize = sizeMap[style.textSize] || 20;
 
-	ctx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
-	ctx.fillStyle = style.stroke;
-	ctx.globalAlpha = style.opacity;
+	const hasMath = rawText.includes('$');
 
-	const anchor = style.textAnchor || 'center';
-	let textAlign = 'center';
-	let textBaseline = 'middle';
+	if (hasMath) {
+		const parts = rawText.split(/(\$[^$]+\$)/g);
+		let latexContent = '';
+		
+		parts.forEach(part => {
+			if (part.startsWith('$') && part.endsWith('$')) {
+				latexContent += part.slice(1, -1);
+			} else if (part.length > 0) {
+				const escapedPart = part.replace(/[{}]/g, '\\$&');
+				latexContent += `\\text{${escapedPart}}`;
+			}
+		});
 
-	if (anchor.includes('east')) textAlign = 'left';
-	else if (anchor.includes('west')) textAlign = 'right';
+		const cacheKey = `${latexContent}::${color}::${fontSize}`;
+		let img = latexCache.get(cacheKey);
 
-	if (anchor.includes('north')) textBaseline = 'bottom';
-	else if (anchor.includes('south')) textBaseline = 'top';
+		if (!img && typeof MathJax !== 'undefined' && MathJax.tex2svg) {
+			try {
+				const svg = MathJax.tex2svg(latexContent, {
+					display: false,
+					em: 16,
+					ex: 8,
+					containerWidth: 80 * 16
+				}).querySelector('svg');
 
-	ctx.save();
-	ctx.translate(cx, cy);
+				svg.style.color = color;
+				svg.style.fill = color;
+				svg.setAttribute('fill', color);
+				
+				const svgString = new XMLSerializer().serializeToString(svg);
+				const encodedSvg = encodeURIComponent(svgString).replace(/'/g, "%27").replace(/"/g, "%22");
+				
+				img = new Image();
+				img.src = `data:image/svg+xml,${encodedSvg}`;
+				
+				const exHeightStr = svg.getAttribute('height') || "1ex";
+				const exWidthStr = svg.getAttribute('width') || "1ex";
+				const exHeight = parseFloat(exHeightStr.replace('ex', '')) || 1;
+				const exWidth = parseFloat(exWidthStr.replace('ex', '')) || 1;
+				
+				img.dataset.widthEx = exWidth;
+				img.dataset.heightEx = exHeight;
+				
+				latexCache.set(cacheKey, img);
+				
+				img.onload = () => {
+					render();
+				};
+			} catch (e) {
+				console.error(e);
+			}
+		}
 
-	if (style.textRotate) {
-		ctx.rotate(style.textRotate * Math.PI / 180);
+		if (img && img.complete && img.naturalWidth > 0) {
+			ctx.save();
+			ctx.translate(cx, cy);
+			
+			if (style.textRotate) {
+				ctx.rotate(style.textRotate * Math.PI / 180);
+			}
+			
+			ctx.globalAlpha = style.opacity;
+
+			const scaleFactor = fontSize / 16;
+			const displayHeight = (parseFloat(img.dataset.heightEx) * 8) * scaleFactor;
+			const displayWidth = (parseFloat(img.dataset.widthEx) * 8) * scaleFactor;
+
+			let offsetX = -displayWidth / 2;
+			let offsetY = -displayHeight / 2;
+
+			const anchor = style.textAnchor || 'center';
+			
+			if (anchor.includes('east')) offsetX = -displayWidth;
+			else if (anchor.includes('west')) offsetX = 0;
+
+			if (anchor.includes('north')) offsetY = 0;
+			else if (anchor.includes('south')) offsetY = -displayHeight;
+
+			ctx.drawImage(img, offsetX, offsetY, displayWidth, displayHeight);
+			ctx.restore();
+		}
+	} else {
+		const fontMap = {
+			'serif': 'serif',
+			'sans': 'sans-serif',
+			'mono': 'monospace'
+		};
+		const fontFamily = fontMap[style.textFont] || 'sans-serif';
+		const weight = style.textWeight === 'bfseries' ? 'bold ' : '';
+		const slant = style.textSlant === 'itshape' ? 'italic ' : '';
+
+		ctx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
+		ctx.fillStyle = color;
+		ctx.globalAlpha = style.opacity;
+
+		const anchor = style.textAnchor || 'center';
+		let textAlign = 'center';
+		let textBaseline = 'middle';
+
+		if (anchor.includes('east')) textAlign = 'right';
+		else if (anchor.includes('west')) textAlign = 'left';
+
+		if (anchor.includes('north')) textBaseline = 'top';
+		else if (anchor.includes('south')) textBaseline = 'bottom';
+
+		ctx.save();
+		ctx.translate(cx, cy);
+
+		if (style.textRotate) {
+			ctx.rotate(style.textRotate * Math.PI / 180);
+		}
+
+		ctx.textAlign = textAlign;
+		ctx.textBaseline = textBaseline;
+
+		const lines = rawText.split('\\\\');
+		const lineHeight = fontSize * 1.2;
+		let offsetY = 0;
+
+		if (textBaseline === 'middle') {
+			offsetY = -((lines.length - 1) * lineHeight) / 2;
+		} else if (textBaseline === 'bottom') {
+			offsetY = -((lines.length - 1) * lineHeight);
+		}
+
+		lines.forEach((line, i) => {
+			ctx.fillText(line.trim(), 0, offsetY + (i * lineHeight));
+		});
+
+		ctx.restore();
 	}
-
-	ctx.textAlign = textAlign;
-	ctx.textBaseline = textBaseline;
-
-	const lines = style.text.split('\\\\');
-	const lineHeight = fontSize * 1.2;
-	let offsetY = 0;
-
-	if (textBaseline === 'middle') {
-		offsetY = -((lines.length - 1) * lineHeight) / 2;
-	} else if (textBaseline === 'bottom') {
-		offsetY = -((lines.length - 1) * lineHeight);
-	}
-
-	lines.forEach((line, i) => {
-		ctx.fillText(line.trim(), 0, offsetY + (i * lineHeight));
-	});
-
-	ctx.restore();
 }
 
 export function getTikZLabelNode(s) {
@@ -247,23 +338,26 @@ export function getTikZLabelNode(s) {
 	const text = s.style.text;
 	const fontFamilies = { 'serif': '\\rmfamily', 'sans': '\\sffamily', 'mono': '\\ttfamily' };
 	const fontCmd = fontFamilies[s.style.textFont] || '';
-	const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries ' : '';
-	const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape ' : '';
+	const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries' : '';
+	const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape' : '';
 	const sizeCmd = s.style.textSize && s.style.textSize !== 'normalsize' ? `\\${s.style.textSize}` : '';
 	
 	let fontContent = [];
 	if(fontCmd) fontContent.push(fontCmd);
+	if(weightCmd) fontContent.push(weightCmd);
+	if(slantCmd) fontContent.push(slantCmd);
 	if(sizeCmd) fontContent.push(sizeCmd);
-	const fontStr = fontContent.length > 0 ? `, font=${fontContent.join(' ')}` : '';
 	
-	const innerContent = `${weightCmd}${slantCmd}${text}`;
+	const fontStr = fontContent.length > 0 ? `, font=${fontContent.join(' ')}` : '';
 	const anchor = s.style.textAnchor && s.style.textAnchor !== 'center' ? `, anchor=${s.style.textAnchor}` : '';
+	const align = s.style.textAlign && s.style.textAlign !== 'center' && s.style.textAlign !== 'none' ? `, align=${s.style.textAlign}` : '';
+	const textWidth = s.style.textWidth > 0 ? `, text width=${s.style.textWidth}cm` : '';
 	
 	if (['line', 'curve', 'arc', 'wave', 'axes'].includes(s.type)) {
-		return ` node[pos=0.5${anchor}${fontStr}] {${innerContent}}`;
+		return ` node[pos=0.5${anchor}${align}${textWidth}${fontStr}] {${text}}`;
 	} else {
 		const center = getShapeCenter(s);
-		return `\\node[${anchor.substring(2) || 'anchor=center'}${fontStr}] at (${toTikZ(center.x, false, s.id, 'cx')},${toTikZ(center.y, true, s.id, 'cy')}) {${innerContent}};`;
+		return `\\node[${anchor.substring(2) || 'anchor=center'}${align}${textWidth}${fontStr}] at (${toTikZ(center.x, false, s.id, 'cx')},${toTikZ(center.y, true, s.id, 'cy')}) {${text}};`;
 	}
 }
 
@@ -472,96 +566,96 @@ export const ShapeManager = {
 	}),
 	text: createShapeDef('text', {
 		render: (s, ctx) => {
-			const sizeMap = {
-				'tiny': 8, 'scriptsize': 10, 'footnotesize': 12, 'small': 13,
-				'normalsize': 16, 'large': 18, 'Large': 22, 'LARGE': 26, 'huge': 30, 'Huge': 36
-			};
-			const fontMap = {
-				'serif': 'serif',
-				'sans': 'sans-serif',
-				'mono': 'monospace'
-			};
-			const fontSize = sizeMap[s.style.textSize] || 16;
-			const fontFamily = fontMap[s.style.textFont] || 'sans-serif';
-			const weight = s.style.textWeight === 'bfseries' ? 'bold ' : '';
-			const slant = s.style.textSlant === 'itshape' ? 'italic ' : '';
-			
-			const anchors = {
-				'center': { x: 'center', y: 'middle' },
-				'north': { x: 'center', y: 'top' },
-				'south': { x: 'center', y: 'bottom' },
-				'east': { x: 'right', y: 'middle' },
-				'west': { x: 'left', y: 'middle' },
-				'north east': { x: 'right', y: 'top' },
-				'north west': { x: 'left', y: 'top' },
-				'south east': { x: 'right', y: 'bottom' },
-				'south west': { x: 'left', y: 'bottom' }
-			};
-			const anchor = anchors[s.style.textAnchor] || anchors.center;
-			
-			ctx.textAlign = anchor.x;
-			ctx.textBaseline = anchor.y;
-			ctx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
-			ctx.fillStyle = s.style.stroke;
-			ctx.globalAlpha = s.style.opacity;
-
-			const lines = (s.style.text || 'Texte').split('\\\\');
-			const lineHeight = fontSize * 1.2;
-			let currentY = s.y1;
-
-			if (anchor.y === 'middle') currentY -= ((lines.length - 1) * lineHeight) / 2;
-			else if (anchor.y === 'bottom') currentY -= (lines.length - 1) * lineHeight;
-
-			lines.forEach(line => {
-				ctx.fillText(line.trim(), s.x1, currentY);
-				currentY += lineHeight;
-			});
+			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
 		toTikZ: (s) => {
-			const text = s.style.text || 'Texte';
-			const fontFamilies = {
-				'serif': '\\rmfamily',
-				'sans': '\\sffamily',
-				'mono': '\\ttfamily'
-			};
-			const fontCmd = fontFamilies[s.style.textFont] || '';
-			const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries ' : '';
-			const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape ' : '';
-			const familyCmd = fontCmd ? `${fontCmd} ` : '';
-			const innerContent = `${familyCmd}${weightCmd}${slantCmd}${text}`;
-			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) {${innerContent}};`;
+		const text = s.style.text || 'Texte';
+		const fontFamilies = { 'serif': '\\rmfamily', 'sans': '\\sffamily', 'mono': '\\ttfamily' };
+		const fontCmd = fontFamilies[s.style.textFont] || '';
+		const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries' : '';
+		const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape' : '';
+		const sizeCmd = s.style.textSize && s.style.textSize !== 'normalsize' ? `\\${s.style.textSize}` : '';
+		
+		let fontContent = [];
+		if(fontCmd) fontContent.push(fontCmd);
+		if(weightCmd) fontContent.push(weightCmd);
+		if(slantCmd) fontContent.push(slantCmd);
+		if(sizeCmd) fontContent.push(sizeCmd);
+		
+		const fontStr = fontContent.length > 0 ? `, font=${fontContent.join(' ')}` : '';
+		const align = s.style.textAlign && s.style.textAlign !== 'center' ? `, align=${s.style.textAlign}` : '';
+		const textWidth = s.style.textWidth > 0 ? `, text width=${s.style.textWidth}cm` : '';
+		const anchor = s.style.textAnchor && s.style.textAnchor !== 'center' ? `, anchor=${s.style.textAnchor}` : '';
+
+		return `\\node[${anchor.substring(2) || 'anchor=center'}${align}${textWidth}${fontStr}] at (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) {${text}};`;
 		},
 		getBoundingBox: (s) => {
 			const sizeMap = {
-				'tiny': 8, 'scriptsize': 10, 'footnotesize': 12, 'small': 13,
-				'normalsize': 16, 'large': 18, 'Large': 22, 'LARGE': 26, 'huge': 30, 'Huge': 36
+				'tiny': 12, 'scriptsize': 14, 'footnotesize': 16, 'small': 18,
+				'normalsize': 20, 'large': 24, 'Large': 28, 'LARGE': 32, 'huge': 36, 'Huge': 42
 			};
-			const fontSize = sizeMap[s.style.textSize] || 16;
-			const fontMap = { 'serif': 'serif', 'sans': 'sans-serif', 'mono': 'monospace' };
-			const fontFamily = fontMap[s.style.textFont] || 'sans-serif';
-			const weight = s.style.textWeight === 'bfseries' ? 'bold ' : '';
-			const slant = s.style.textSlant === 'itshape' ? 'italic ' : '';
-			
-			const tempCtx = canvas.getContext('2d');
-			tempCtx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
-			
-			const lines = (s.style.text || 'Texte').split('\\\\');
-			let maxWidth = 0;
-			lines.forEach(line => {
-				const metrics = tempCtx.measureText(line.trim());
-				maxWidth = Math.max(maxWidth, metrics.width);
-			});
-			
-			const lineHeight = fontSize * 1.2;
-			const height = lines.length * lineHeight;
-			const padding = 8;
+			const fontSize = sizeMap[s.style.textSize] || 20;
+			const padding = 4;
+			const rawText = s.style.text || 'Texte';
+			const hasMath = rawText.includes('$');
 
-			return { 
-				minX: s.x1 - maxWidth / 2 - padding, 
-				minY: s.y1 - height / 2 - padding, 
-				maxX: s.x1 + maxWidth / 2 + padding, 
-				maxY: s.y1 + height / 2 + padding 
-			};
+			if (hasMath) {
+				const color = s.style.stroke || '#000000';
+				const parts = rawText.split(/(\$[^$]+\$)/g);
+				let latexContent = '';
+				parts.forEach(part => {
+					if (part.startsWith('$') && part.endsWith('$')) {
+						latexContent += part.slice(1, -1);
+					} else if (part.length > 0) {
+						const escapedPart = part.replace(/[{}]/g, '\\$&');
+						latexContent += `\\text{${escapedPart}}`;
+					}
+				});
+
+				const cacheKey = `${latexContent}::${color}::${fontSize}`;
+				const img = latexCache.get(cacheKey);
+
+				if (img && img.complete && img.naturalWidth > 0) {
+					const scaleFactor = fontSize / 16;
+					const displayHeight = (parseFloat(img.dataset.heightEx) * 8) * scaleFactor;
+					const displayWidth = (parseFloat(img.dataset.widthEx) * 8) * scaleFactor;
+					return { 
+						minX: s.x1 - displayWidth / 2 - padding, 
+						minY: s.y1 - displayHeight / 2 - padding, 
+						maxX: s.x1 + displayWidth / 2 + padding, 
+						maxY: s.y1 + displayHeight / 2 + padding 
+					};
+				}
+				return { 
+					minX: s.x1 - 40, minY: s.y1 - 10, 
+					maxX: s.x1 + 40, maxY: s.y1 + 10 
+				};
+			} else {
+				const fontMap = { 'serif': 'serif', 'sans': 'sans-serif', 'mono': 'monospace' };
+				const fontFamily = fontMap[s.style.textFont] || 'sans-serif';
+				const weight = s.style.textWeight === 'bfseries' ? 'bold ' : '';
+				const slant = s.style.textSlant === 'itshape' ? 'italic ' : '';
+				
+				const tempCtx = canvas.getContext('2d');
+				tempCtx.font = `${slant}${weight}${fontSize}px ${fontFamily}`;
+				
+				const lines = rawText.split('\\\\');
+				let maxWidth = 0;
+				lines.forEach(line => {
+					const metrics = tempCtx.measureText(line.trim());
+					maxWidth = Math.max(maxWidth, metrics.width);
+				});
+				
+				const lineHeight = fontSize * 1.2;
+				const height = lines.length * lineHeight;
+
+				return { 
+					minX: s.x1 - maxWidth / 2 - padding, 
+					minY: s.y1 - height / 2 - padding, 
+					maxX: s.x1 + maxWidth / 2 + padding, 
+					maxY: s.y1 + height / 2 + padding 
+				};
+			}
 		},
 		resize: (s, mx, my) => { s.x1 = mx; s.y1 = my; },
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'tl', cursor: 'move' }],

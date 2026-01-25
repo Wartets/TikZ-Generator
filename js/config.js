@@ -549,7 +549,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-axis-x-y-z"></i>',
 		cursor: 'crosshair',
 		group: 'pseudo3d',
-		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'depth3d', 'angle3d']
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'depth3d', 'angle3d', 'axisLenX', 'axisLenY', 'axisLenZ']
 	},
 	cube: {
 		displayName: 'Pavé 3D',
@@ -565,7 +565,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-cylinder"></i>',
 		cursor: 'crosshair',
 		group: 'pseudo3d',
-		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d']
 	},
 	sphere_3d: {
 		displayName: 'Sphère 3D',
@@ -573,7 +573,7 @@ export const TOOL_CONFIG = {
 		icon: '<i class="ti ti-sphere"></i>',
 		cursor: 'crosshair',
 		group: 'pseudo3d',
-		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'angle3d']
 	},
 };
 
@@ -1184,5 +1184,36 @@ export const SETTINGS_CONFIG = {
 		unit: '°',
 		tikzValue: (v) => null,
 		group: 'geo-3d'
+	},
+	axisLenX: {
+		label: 'Longueur X',
+		type: 'range',
+		propName: 'axisLenX',
+		defaultValue: 80,
+		min: 10, max: 300, step: 5,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-3d-axes',
+		groupOptions: { type: 'row' }
+	},
+	axisLenY: {
+		label: 'Longueur Y',
+		type: 'range',
+		propName: 'axisLenY',
+		defaultValue: 60,
+		min: 10, max: 300, step: 5,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-3d-axes'
+	},
+	axisLenZ: {
+		label: 'Longueur Z',
+		type: 'range',
+		propName: 'axisLenZ',
+		defaultValue: 80,
+		min: 10, max: 300, step: 5,
+		unit: 'px',
+		tikzValue: (v) => null,
+		group: 'geo-3d-axes'
 	},
 };

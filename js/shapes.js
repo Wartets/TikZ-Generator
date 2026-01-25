@@ -3162,123 +3162,272 @@ export const ShapeManager = {
 		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' }]
 	}),
 	repere_cartesian: createShapeDef('repere_cartesian', {
+		onDown: (x, y, style) => ({
+			type: 'repere_cartesian',
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: { 
+				...style, 
+				depth3d: 50, 
+				angle3d: 45,
+				axisLenX: 80,
+				axisLenY: 50,
+				axisLenZ: 80
+			}
+		}),
 		render: (s, ctx) => {
-			const depth = (s.style.depth3d || 20);
-			const angle = (s.style.angle3d || 45) * Math.PI / 180;
-			const dx = depth * Math.cos(angle);
-			const dy = -depth * Math.sin(angle);
+			const ang = (s.style.angle3d || 45) * Math.PI / 180;
+			const lx = s.style.axisLenX || 80;
+			const ly = s.style.axisLenY || 50;
+			const lz = s.style.axisLenZ || 80;
+
+			const dy = -ly * Math.sin(ang);
+			const dx = ly * Math.cos(ang);
+
 			ctx.beginPath();
-			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x2, s.y1);
-			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1, s.y1 - (s.x2 - s.x1));
-			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1 + dx, s.y1 + dy);
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1 + lx, s.y1);
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1, s.y1 - lz);
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1 - dx, s.y1 - dy);
 			ctx.stroke();
-			drawArrow(ctx, s.x2, s.y1, 0, 'stealth', 1, s.style.width);
-			drawArrow(ctx, s.x1, s.y1 - (s.x2 - s.x1), -Math.PI / 2, 'stealth', 1, s.style.width);
-			drawArrow(ctx, s.x1 + dx, s.y1 + dy, angle - Math.PI, 'stealth', 1, s.style.width);
-			renderShapeLabel(s, ctx, s.x1, s.y1);
+
+			drawArrow(ctx, s.x1 + lx, s.y1, 0, 'stealth', 1, s.style.width);
+			drawArrow(ctx, s.x1, s.y1 - lz, -Math.PI / 2, 'stealth', 1, s.style.width);
+			drawArrow(ctx, s.x1 - dx, s.y1 - dy, Math.PI - ang, 'stealth', 1, s.style.width);
+
+			const fontSize = 14;
+			ctx.font = `${fontSize}px serif`;
+			ctx.fillText("x", s.x1 + lx + 5, s.y1 + 5);
+			ctx.fillText("z", s.x1 - 5, s.y1 - lz - 5);
+			ctx.fillText("y", s.x1 - dx - 10, s.y1 - dy + 10);
+
+			renderShapeLabel(s, ctx, s.x1, s.y1 + 15);
 		},
 		toTikZ: (s) => {
-			const x = toTikZ(s.x1); const y = toTikZ(s.y1, true);
-			const len = toTikZ(s.x2 - s.x1);
-			const d = toTikZ(s.style.depth3d || 20);
+			const x = toTikZ(s.x1);
+			const y = toTikZ(s.y1, true);
+			const lx = s.style.axisLenX / UI_CONSTANTS.SCALE;
+			const ly = s.style.axisLenY / UI_CONSTANTS.SCALE;
+			const lz = s.style.axisLenZ / UI_CONSTANTS.SCALE;
 			const ang = s.style.angle3d || 45;
-			return `\\draw[->] (${x},${y}) -- ++(${len},0) node[right] {$x$};
-	\\draw[->] (${x},${y}) -- ++(0,${len}) node[above] {$z$};
-	\\draw[->] (${x},${y}) -- ++(${ang}:${d}) node[anchor=south west] {$y$};`;
+			return `\\begin{scope}[shift={(${x},${y})}]
+	\\draw[->, >=stealth] (0,0) -- (${lx.toFixed(2)},0) node[right] {$x$};
+	\\draw[->, >=stealth] (0,0) -- (0,${lz.toFixed(2)}) node[above] {$z$};
+	\\draw[->, >=stealth] (0,0) -- (${ang}:-${ly.toFixed(2)}) node[below left] {$y$};
+	\\end{scope}`;
+		},
+		getBoundingBox: (s) => {
+			const ly = s.style.axisLenY || 50;
+			const ang = (s.style.angle3d || 45) * Math.PI / 180;
+			const dx = ly * Math.cos(ang);
+			return {
+				minX: s.x1 - dx - 10,
+				minY: s.y1 - (s.style.axisLenZ || 80) - 10,
+				maxX: s.x1 + (s.style.axisLenX || 80) + 10,
+				maxY: s.y1 + 20
+			};
+		},
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'origin', cursor: 'move' }],
+		hitTest: (s, x, y) => {
+			const box = ShapeManager.repere_cartesian.getBoundingBox(s);
+			return x >= box.minX && x <= box.maxX && y >= box.minY && y <= box.maxY;
 		},
 		isStandaloneCommand: true
 	}),
 	cube: createShapeDef('cube', {
+		onDown: (x, y, style) => ({
+			type: 'cube',
+			x1: x, y1: y,
+			x2: x + 60, y2: y + 60,
+			style: { ...style, depth3d: 30, angle3d: 45 }
+		}),
 		render: (s, ctx) => {
-			const w = s.x2 - s.x1; const h = s.y2 - s.y1;
-			const d = (s.style.depth3d || 20);
+			const w = s.x2 - s.x1;
+			const h = s.y2 - s.y1;
+			const d = s.style.depth3d || 30;
 			const ang = (s.style.angle3d || 45) * Math.PI / 180;
-			const dx = d * Math.cos(ang); const dy = -d * Math.sin(ang);
+			const dx = d * Math.cos(ang);
+			const dy = -d * Math.sin(ang);
+
+			const f = [
+				{x: s.x1, y: s.y1}, {x: s.x1 + w, y: s.y1},
+				{x: s.x1 + w, y: s.y1 + h}, {x: s.x1, y: s.y1 + h}
+			];
+			const b = f.map(p => ({x: p.x + dx, y: p.y + dy}));
+
 			if (s.style.fillType && s.style.fillType !== 'none') {
-				ctx.fillStyle = getFillStyle(ctx, s);
+				ctx.fillStyle = s.style.fillColor;
+				ctx.beginPath();
+				ctx.moveTo(f[0].x, f[0].y); ctx.lineTo(b[0].x, b[0].y);
+				ctx.lineTo(b[1].x, b[1].y); ctx.lineTo(f[1].x, f[1].y);
+				ctx.fill();
+				ctx.beginPath();
+				ctx.moveTo(f[1].x, f[1].y); ctx.lineTo(b[1].x, b[1].y);
+				ctx.lineTo(b[2].x, b[2].y); ctx.lineTo(f[2].x, f[2].y);
+				ctx.fill();
 				ctx.fillRect(s.x1, s.y1, w, h);
 			}
-			ctx.strokeRect(s.x1, s.y1, w, h);
+
 			ctx.beginPath();
-			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1 + dx, s.y1 + dy);
-			ctx.lineTo(s.x1 + w + dx, s.y1 + dy); ctx.lineTo(s.x1 + w, s.y1);
-			ctx.moveTo(s.x1 + w, s.y1 + h); ctx.lineTo(s.x1 + w + dx, s.y1 + h + dy);
-			ctx.lineTo(s.x1 + w + dx, s.y1 + dy);
+			ctx.rect(s.x1, s.y1, w, h);
+			ctx.moveTo(f[0].x, f[0].y); ctx.lineTo(b[0].x, b[0].y);
+			ctx.lineTo(b[1].x, b[1].y); ctx.lineTo(f[1].x, f[1].y);
+			ctx.moveTo(b[1].x, b[1].y); ctx.lineTo(b[2].x, b[2].y);
+			ctx.lineTo(f[2].x, f[2].y);
+			ctx.moveTo(b[0].x, b[0].y); ctx.lineTo(b[3].x, b[3].y);
+			ctx.lineTo(b[2].x, b[2].y);
 			ctx.stroke();
+			
+			renderShapeLabel(s, ctx, s.x1 + w / 2, s.y1 + h / 2);
 		},
 		toTikZ: (s) => {
-			const x = toTikZ(s.x1); const y = toTikZ(s.y1, true);
-			const w = toTikZ(s.x2 - s.x1); const h = toTikZ(s.y2 - s.y1, false);
-			const d = toTikZ(s.style.depth3d || 20);
+			const x = toTikZ(s.x1);
+			const y = toTikZ(s.y1, true);
+			const w = (s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const h = (s.y2 - s.y1) / UI_CONSTANTS.SCALE;
+			const d = s.style.depth3d / UI_CONSTANTS.SCALE;
 			const ang = s.style.angle3d || 45;
-			return `\\draw (${x},${y}) rectangle ++(${w},${h});
-	\\draw (${x},${y}+${h}) -- ++(${ang}:${d}) -- ++(${w},0) -- ++(-${ang}:${d});
-	\\draw (${x}+${w},${y}) -- ++(${ang}:${d}) -- ++(0,${h});`;
+			const color = app.colors.get(s.style.fillColor) || 'white';
+			const drawColor = app.colors.get(s.style.stroke) || 'black';
+			
+			const opts = s.style.fillType !== 'none' ? `fill=${color}, draw=${drawColor}` : `draw=${drawColor}`;
+
+			return `\\begin{scope}[shift={(${x},${y})}]
+	\\draw[${opts}] (0,0) rectangle (${w.toFixed(2)},${(-h).toFixed(2)});
+	\\draw[${opts}] (0,0) -- (${ang}:${d.toFixed(2)}) -- ++(${w.toFixed(2)},0) -- (${w.toFixed(2)},0);
+	\\draw[${opts}] (${w.toFixed(2)},0) -- ++(${ang}:${d.toFixed(2)}) -- ++(0,${(-h).toFixed(2)}) -- (${w.toFixed(2)},${(-h).toFixed(2)});
+	\\end{scope}`;
 		},
-		isStandaloneCommand: true
+		getBoundingBox: (s) => {
+			const d = s.style.depth3d || 30;
+			const ang = (s.style.angle3d || 45) * Math.PI / 180;
+			const dx = d * Math.cos(ang);
+			const dy = Math.abs(d * Math.sin(ang));
+			return {
+				minX: Math.min(s.x1, s.x1 + dx),
+				minY: Math.min(s.y1, s.y1 - dy),
+				maxX: Math.max(s.x2, s.x2 + dx),
+				maxY: Math.max(s.y2, s.y2 - dy)
+			};
+		}
 	}),
 	cylinder_3d: createShapeDef('cylinder_3d', {
+		onDown: (x, y, style) => ({
+			type: 'cylinder_3d',
+			x1: x, y1: y,
+			x2: x + 60, y2: y + 100,
+			style: { ...style, depth3d: 15 }
+		}),
 		render: (s, ctx) => {
-			const w = Math.abs(s.x2 - s.x1); const h = Math.abs(s.y2 - s.y1);
-			const rx = w / 2; const ry = h * 0.15;
-			const cx = (s.x1 + s.x2) / 2;
+			const w = s.x2 - s.x1;
+			const h = s.y2 - s.y1;
+			const rx = w / 2;
+			const ry = s.style.depth3d || 15;
+			const cx = s.x1 + rx;
+
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.beginPath();
+				ctx.ellipse(cx, s.y1, rx, ry, 0, 0, Math.PI * 2);
+				ctx.fill();
+				ctx.fillRect(s.x1, s.y1, w, h);
+				ctx.beginPath();
+				ctx.ellipse(cx, s.y2, rx, ry, 0, 0, Math.PI);
+				ctx.fill();
+			}
+
 			ctx.beginPath();
-			ctx.ellipse(cx, s.y1 + ry, rx, ry, 0, 0, Math.PI * 2);
-			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.ellipse(cx, s.y1, rx, ry, 0, 0, Math.PI * 2);
+			ctx.moveTo(s.x1, s.y1); ctx.lineTo(s.x1, s.y2);
+			ctx.moveTo(s.x2, s.y1); ctx.lineTo(s.x2, s.y2);
 			ctx.stroke();
+
 			ctx.beginPath();
-			ctx.moveTo(cx - rx, s.y1 + ry); ctx.lineTo(cx - rx, s.y2 - ry);
-			ctx.moveTo(cx + rx, s.y1 + ry); ctx.lineTo(cx + rx, s.y2 - ry);
+			ctx.ellipse(cx, s.y2, rx, ry, 0, 0, Math.PI);
 			ctx.stroke();
-			ctx.beginPath();
-			ctx.ellipse(cx, s.y2 - ry, rx, ry, 0, 0, Math.PI);
-			ctx.stroke();
+
 			ctx.beginPath();
 			ctx.setLineDash([5, 5]);
-			ctx.ellipse(cx, s.y2 - ry, rx, ry, 0, Math.PI, Math.PI * 2);
+			ctx.ellipse(cx, s.y2, rx, ry, 0, Math.PI, Math.PI * 2);
 			ctx.stroke();
 			ctx.setLineDash([]);
+			
+			renderShapeLabel(s, ctx, cx, s.y1 + h / 2);
 		},
 		toTikZ: (s) => {
-			const cx = toTikZ((s.x1 + s.x2) / 2);
-			const y1 = toTikZ(s.y1, true); const y2 = toTikZ(s.y2, true);
-			const rx = toTikZ(Math.abs(s.x2 - s.x1) / 2);
-			const ry = toTikZ(Math.abs(s.y2 - s.y1) * 0.15);
-			return `\\draw (${cx},${y1}) ellipse (${rx} and ${ry});
-	\\draw (${cx}-${rx},${y1}) -- (${cx}-${rx},${y2});
-	\\draw (${cx}+${rx},${y1}) -- (${cx}+${rx},${y2});
-	\\draw (${cx}-${rx},${y2}) arc (180:360:${rx} and ${ry});
-	\\draw[dashed] (${cx}-${rx},${y2}) arc (180:0:${rx} and ${ry});`;
-		},
-		isStandaloneCommand: true
+			const cx = toTikZ(s.x1 + (s.x2 - s.x1) / 2);
+			const y1 = toTikZ(s.y1, true);
+			const h = (s.y2 - s.y1) / UI_CONSTANTS.SCALE;
+			const rx = ((s.x2 - s.x1) / 2) / UI_CONSTANTS.SCALE;
+			const ry = (s.style.depth3d || 15) / UI_CONSTANTS.SCALE;
+			const color = app.colors.get(s.style.fillColor) || 'white';
+			const drawColor = app.colors.get(s.style.stroke) || 'black';
+
+			return `\\begin{scope}[shift={(${cx},${y1})}]
+	\\fill[${color}] (0,0) ellipse (${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\fill[${color}] (${(-rx).toFixed(2)}, 0) rectangle (${rx.toFixed(2)}, ${(-h).toFixed(2)});
+	\\fill[${color}] (0,${(-h).toFixed(2)}) ellipse (${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw[${drawColor}] (0,0) ellipse (${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw[${drawColor}] (${(-rx).toFixed(2)},0) -- (${(-rx).toFixed(2)},${(-h).toFixed(2)});
+	\\draw[${drawColor}] (${rx.toFixed(2)},0) -- (${rx.toFixed(2)},${(-h).toFixed(2)});
+	\\draw[${drawColor}] (${rx.toFixed(2)},${(-h).toFixed(2)}) arc (0:-180:${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw[${drawColor}, dashed] (${rx.toFixed(2)},${(-h).toFixed(2)}) arc (0:180:${rx.toFixed(2)} and ${ry.toFixed(2)});
+	\\end{scope}`;
+		}
 	}),
 	sphere_3d: createShapeDef('sphere_3d', {
+		onDown: (x, y, style) => ({
+			type: 'sphere_3d',
+			x1: x, y1: y,
+			x2: x + 60, y2: y + 60,
+			style: { ...style, angle3d: 20 }
+		}),
 		render: (s, ctx) => {
-			const r = Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2));
+			const r = Math.abs(s.x2 - s.x1) / 2;
+			const cx = s.x1 + r;
+			const cy = s.y1 + r;
+			const ry = s.style.angle3d || 20;
+
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.beginPath();
+				ctx.arc(cx, cy, r, 0, Math.PI * 2);
+				ctx.fill();
+			}
+
 			ctx.beginPath();
-			ctx.arc(s.x1, s.y1, r, 0, Math.PI * 2);
-			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
+			ctx.arc(cx, cy, r, 0, Math.PI * 2);
 			ctx.stroke();
+
 			ctx.beginPath();
-			ctx.ellipse(s.x1, s.y1, r, r * 0.3, 0, 0, Math.PI);
+			ctx.ellipse(cx, cy, r, ry, 0, 0, Math.PI);
 			ctx.stroke();
+
 			ctx.beginPath();
 			ctx.setLineDash([5, 5]);
-			ctx.ellipse(s.x1, s.y1, r, r * 0.3, 0, Math.PI, Math.PI * 2);
-			ctx.stroke();
-			ctx.beginPath();
-			ctx.ellipse(s.x1, s.y1, r * 0.3, r, 0, -Math.PI / 2, Math.PI / 2);
+			ctx.ellipse(cx, cy, r, ry, 0, Math.PI, Math.PI * 2);
 			ctx.stroke();
 			ctx.setLineDash([]);
+
+			ctx.beginPath();
+			ctx.ellipse(cx, cy, ry, r, 0, -Math.PI / 2, Math.PI / 2);
+			ctx.stroke();
+			
+			renderShapeLabel(s, ctx, cx, cy);
 		},
 		toTikZ: (s) => {
-			const x = toTikZ(s.x1); const y = toTikZ(s.y1, true);
-			const r = toTikZ(Math.sqrt(Math.pow(s.x2 - s.x1, 2) + Math.pow(s.y2 - s.y1, 2)));
-			return `\\draw (${x},${y}) circle (${r});
-	\\draw (${x}-${r},${y}) arc (180:360:${r} and ${r}*0.3);
-	\\draw[dashed] (${x}-${r},${y}) arc (180:0:${r} and ${r}*0.3);
-	\\draw (${x},${y}+${r}) arc (90:-90:${r}*0.3 and ${r});`;
-		},
-		isStandaloneCommand: true
+			const cx = toTikZ(s.x1 + (s.x2 - s.x1) / 2);
+			const cy = toTikZ(s.y1 + (s.x2 - s.x1) / 2, true);
+			const r = ((s.x2 - s.x1) / 2) / UI_CONSTANTS.SCALE;
+			const ry = (s.style.angle3d || 20) / UI_CONSTANTS.SCALE;
+			const color = app.colors.get(s.style.fillColor) || 'white';
+			const drawColor = app.colors.get(s.style.stroke) || 'black';
+
+			return `\\begin{scope}[shift={(${cx},${cy})}]
+	\\draw[${drawColor}, fill=${color}] (0,0) circle (${r.toFixed(2)});
+	\\draw[${drawColor}] (${(-r).toFixed(2)},0) arc (180:360:${r.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw[${drawColor}, dashed] (${(-r).toFixed(2)},0) arc (180:0:${r.toFixed(2)} and ${ry.toFixed(2)});
+	\\draw[${drawColor}] (0,${r.toFixed(2)}) arc (90:-90:${ry.toFixed(2)} and ${r.toFixed(2)});
+	\\end{scope}`;
+		}
 	}),
 };

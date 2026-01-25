@@ -96,7 +96,10 @@ export function generateCode() {
 	}
 
 	const has3D = app.shapes.some(s => ['cube', 'repere_cartesian', 'cylinder_3d', 'sphere_3d'].includes(s.type));
-	if (has3D) libraries.add('perspective');
+	if (has3D) {
+		libraries.add('arrows.meta');
+		libraries.add('angles');
+	}
 
 	const hasSpring = app.shapes.some(s => s.type === 'spring');
 	if (hasSpring) libraries.add('decorations.pathmorphing');

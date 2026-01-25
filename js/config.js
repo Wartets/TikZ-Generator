@@ -275,6 +275,14 @@ export const TOOL_CONFIG = {
 		group: 'drawing',
 		allow: ['textString', 'textSize', 'textAnchor', 'starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
+	plot: {
+		displayName: 'Graphique',
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-chart-line"></i>',
+		cursor: 'crosshair',
+		group: 'drawing',
+		allow: ['plotFunction', 'plotDomainMin', 'plotDomainMax', 'plotYMin', 'plotYMax', 'plotSamples', 'plotXLabel', 'plotYLabel', 'plotGrid', 'plotAxisLines', 'plotMark', 'plotMarkSize', 'plotLegend', 'plotLegendPos', 'lineWidth', 'strokeColor', 'opacity', 'textSize', 'textColor', 'fillType', 'fillColor', 'fillColor2', 'textWeight', 'textSlant']
+	},
 	resistor: {
 		displayName: 'Résistance',
 		handler: 'DrawingTool',
@@ -805,5 +813,137 @@ export const SETTINGS_CONFIG = {
 		unit: '°',
 		tikzValue: (v) => null,
 		group: 'fill-controls'
-	}
+	},
+	plotFunction: {
+		label: 'Fonction f(x)',
+		type: 'text',
+		propName: 'plotFunction',
+		defaultValue: 'sin(x)',
+		tikzValue: (v) => null
+	},
+	plotDomainMin: {
+		label: 'Min X',
+		type: 'number',
+		propName: 'plotDomainMin',
+		defaultValue: -5,
+		step: 0.1,
+		tikzValue: (v) => null
+	},
+	plotDomainMax: {
+		label: 'Max X',
+		type: 'number',
+		propName: 'plotDomainMax',
+		defaultValue: 5,
+		step: 0.1,
+		tikzValue: (v) => null
+	},
+	plotSamples: {
+		label: 'Échantillons',
+		type: 'range',
+		propName: 'plotSamples',
+		defaultValue: 100,
+		min: 10, max: 500, step: 10,
+		unit: '',
+		tikzValue: (v) => null
+	},
+	plotXLabel: {
+		label: 'Label Axe X',
+		type: 'text',
+		propName: 'plotXLabel',
+		defaultValue: 'x',
+		tikzValue: (v) => null
+	},
+	plotYLabel: {
+		label: 'Label Axe Y',
+		type: 'text',
+		propName: 'plotYLabel',
+		defaultValue: 'f(x)',
+		tikzValue: (v) => null
+	},
+	plotGrid: {
+		label: 'Grille Axis',
+		type: 'select',
+		propName: 'plotGrid',
+		defaultValue: 'major',
+		options: {
+			'none': 'Aucune',
+			'major': 'Principale',
+			'both': 'Complète'
+		},
+		tikzValue: (v) => null
+	},
+	plotAxisLines: {
+		label: 'Style des Axes',
+		type: 'select',
+		propName: 'plotAxisLines',
+		defaultValue: 'box',
+		options: {
+			'box': 'Boîte (Encadré)',
+			'left': 'Gauche/Bas (L)',
+			'middle': 'Centré (Croix)',
+			'center': 'Centré (Center)',
+			'none': 'Aucun'
+		},
+		tikzValue: (v) => null
+	},
+	plotYMin: {
+		label: 'Min Y (Vide=Auto)',
+		type: 'text',
+		propName: 'plotYMin',
+		defaultValue: '',
+		tikzValue: (v) => null
+	},
+	plotYMax: {
+		label: 'Max Y (Vide=Auto)',
+		type: 'text',
+		propName: 'plotYMax',
+		defaultValue: '',
+		tikzValue: (v) => null
+	},
+	plotMark: {
+		label: 'Marqueur',
+		type: 'select',
+		propName: 'plotMark',
+		defaultValue: 'none',
+		options: {
+			'none': 'Aucun',
+			'*': 'Point (*)',
+			'x': 'Croix (x)',
+			'+': 'Plus (+)',
+			'o': 'Cercle (o)',
+			'square': 'Carré',
+			'triangle': 'Triangle'
+		},
+		tikzValue: (v) => null
+	},
+	plotMarkSize: {
+		label: 'Taille Marqueur',
+		type: 'range',
+		propName: 'plotMarkSize',
+		defaultValue: 2,
+		min: 0.5, max: 5, step: 0.5,
+		unit: 'pt',
+		tikzValue: (v) => null
+	},
+	plotLegend: {
+		label: 'Légende',
+		type: 'text',
+		propName: 'plotLegend',
+		defaultValue: '',
+		tikzValue: (v) => null
+	},
+	plotLegendPos: {
+		label: 'Pos. Légende',
+		type: 'select',
+		propName: 'plotLegendPos',
+		defaultValue: 'north east',
+		options: {
+			'north east': 'Nord-Est',
+			'north west': 'Nord-Ouest',
+			'south east': 'Sud-Est',
+			'south west': 'Sud-Ouest',
+			'outer north east': 'Extérieur NE'
+		},
+		tikzValue: (v) => null
+	},
 };

@@ -84,6 +84,11 @@ export function generateCode() {
 	const hasArrows = app.shapes.some(s => s.style.arrow && s.style.arrow !== 'none');
 	if (hasArrows || style.globalArrow) libraries.add('arrows.meta');
 
+	const hasPlots = app.shapes.some(s => s.type === 'plot');
+	if (hasPlots) {
+		packages.add('pgfplots');
+	}
+
 	if (app.shapes.some(s => s.style.freehandMode === 'rounded')) libraries.add('calc');
 
 	if (usePreamble) {
@@ -101,6 +106,10 @@ export function generateCode() {
 			out += `\\usepackage{${p}}\n`;
 		});
 		
+		if (hasPlots) {
+			out += "\\pgfplotsset{compat=1.18}\n";
+		}
+		
 		if (libraries.size > 0) {
 			out += `\\usetikzlibrary{${Array.from(libraries).join(', ')}}\n`;
 		}
@@ -108,6 +117,9 @@ export function generateCode() {
 	} else {
 		out += `% Required packages:\n`;
 		packages.forEach(p => out += `\\usepackage{${p}}\n`);
+		if (hasPlots) {
+			out += "\\pgfplotsset{compat=1.18}\n";
+		}
 		if (libraries.size > 0) {
 			out += `\\usetikzlibrary{${Array.from(libraries).join(', ')}}\n`;
 		}

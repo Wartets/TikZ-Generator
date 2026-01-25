@@ -87,6 +87,16 @@ export function createSettingsUI() {
 						<label>${config.label}</label>
 						<textarea id="${key}" data-setting="${key}" class="settings-input" rows="2"></textarea>`;
 					break;
+				case 'text':
+					controlHtml = `
+						<label>${config.label}</label>
+						<input type="text" id="${key}" data-setting="${key}" class="settings-input" value="${config.defaultValue || ''}">`;
+					break;
+				case 'number':
+					controlHtml = `
+						<label>${config.label}</label>
+						<input type="number" id="${key}" data-setting="${key}" class="settings-input" step="${config.step || 'any'}" value="${config.defaultValue || 0}">`;
+					break;
 				case 'select':
 					controlHtml = `
 						<label>${config.label}</label>
@@ -420,7 +430,10 @@ export function updateUIFromShape(s) {
 		'opacity', 'textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 
 		'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'gridStep',
 		'polySides', 'starPoints', 'starRatio', 'simplifyTolerance', 'freehandMode', 'cornerRadius',
-		'pointSize', 'pointType', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle'
+		'pointSize', 'pointType', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle',
+		'plotFunction', 'plotDomainMin', 'plotDomainMax', 'plotYMin', 'plotYMax', 'plotSamples', 
+		'plotXLabel', 'plotYLabel', 'plotGrid', 'plotAxisLines', 'plotMark', 'plotMarkSize', 
+		'plotLegend', 'plotLegendPos'
 	];
 	
 	fields.forEach(id => {

@@ -3,7 +3,7 @@ import { toTikZ, distToSegment, rotatePoint, simplifyPoints, tikzToPx, getPerpen
 import { canvas, ctx } from './ui.js';
 import { app } from './state.js';
 import { buildTikzOptions } from './latexGenerator.js';
-import { drawArrow, render } from './renderer.js';
+import { drawArrow, render, getFillStyle } from './renderer.js';
 
 const latexCache = new Map();
 
@@ -358,6 +358,35 @@ export function getTikZLabelNode(s) {
 	} else {
 		const center = getShapeCenter(s);
 		return `\\node[${anchor.substring(2) || 'anchor=center'}${align}${textWidth}${fontStr}] at (${toTikZ(center.x, false, s.id, 'cx')},${toTikZ(center.y, true, s.id, 'cy')}) {${text}};`;
+	}
+}
+
+function evaluateMath(expression, x) {
+	try {
+		let safeExpression = expression.toLowerCase()
+			.replace(/\s+/g, '')
+			.replace(/sin/g, 'Math.sin')
+			.replace(/cos/g, 'Math.cos')
+			.replace(/tan/g, 'Math.tan')
+			.replace(/asin/g, 'Math.asin')
+			.replace(/acos/g, 'Math.acos')
+			.replace(/atan/g, 'Math.atan')
+			.replace(/abs/g, 'Math.abs')
+			.replace(/sqrt/g, 'Math.sqrt')
+			.replace(/exp/g, 'Math.exp')
+			.replace(/ln/g, 'Math.log')
+			.replace(/log/g, 'Math.log10')
+			.replace(/pi/g, 'Math.PI')
+			.replace(/e/g, 'Math.E')
+			.replace(/\^/g, '**');
+
+		safeExpression = safeExpression.replace(/(\d+)(x)/g, '$1*$2')
+			.replace(/\)(x)/g, ')*$1')
+			.replace(/(x)\(/g, '$1*(');
+
+		return new Function('x', `return ${safeExpression}`)(x);
+	} catch (e) {
+		return 0;
 	}
 }
 
@@ -1683,6 +1712,267 @@ export const ShapeManager = {
 			const t = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1) + (s.style.waveAmplitude || 0.5) * UI_CONSTANTS.SCALE;
 			return distToSegment(x, y, s.x1, s.y1, s.x2, s.y2) < t;
 		},
+		isStandaloneCommand: true
+	}),
+	plot: createShapeDef('plot', {
+		onDown: (x, y, style) => ({ 
+			type: 'plot', 
+			x1: x, y1: y, 
+			x2: x + 200, y2: y + 150,
+			style: { 
+				...style,
+				plotFunction: style.plotFunction || 'sin(x)',
+				plotDomainMin: style.plotDomainMin !== undefined ? style.plotDomainMin : -5,
+				plotDomainMax: style.plotDomainMax !== undefined ? style.plotDomainMax : 5,
+				plotYMin: style.plotYMin || '',
+				plotYMax: style.plotYMax || '',
+				plotSamples: style.plotSamples || 50,
+				plotXLabel: style.plotXLabel || '$x$',
+				plotYLabel: style.plotYLabel || '$f(x)$',
+				plotGrid: style.plotGrid || 'major',
+				plotAxisLines: style.plotAxisLines || 'box',
+				plotMark: style.plotMark || 'none',
+				plotMarkSize: style.plotMarkSize || 2,
+				plotLegend: style.plotLegend || '',
+				plotLegendPos: style.plotLegendPos || 'north east',
+				strokeColor: style.strokeColor || '#5e6ad2',
+				lineWidth: style.lineWidth || 1,
+				fillType: style.fillType || 'none',
+				fillColor: style.fillColor || '#ffffff',
+				textSize: style.textSize || 'normalsize'
+			} 
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const xMin = Math.min(s.x1, s.x2);
+			const yMin = Math.min(s.y1, s.y2);
+			const width = Math.abs(s.x2 - s.x1);
+			const height = Math.abs(s.y2 - s.y1);
+
+			ctx.save();
+			
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				ctx.fillStyle = s.style.fillColor;
+				ctx.fillRect(xMin, yMin, width, height);
+			}
+
+			ctx.beginPath();
+			ctx.rect(xMin, yMin, width, height);
+			ctx.clip();
+
+			const domainMin = parseFloat(s.style.plotDomainMin);
+			const domainMax = parseFloat(s.style.plotDomainMax);
+			const samples = parseInt(s.style.plotSamples) || 50;
+			const funcStr = s.style.plotFunction;
+
+			let yVals = [];
+			let points = [];
+			const step = (domainMax - domainMin) / samples;
+
+			for (let i = 0; i <= samples; i++) {
+				const x = domainMin + i * step;
+				const y = evaluateMath(funcStr, x);
+				points.push({x, y});
+				if (!isNaN(y) && isFinite(y)) yVals.push(y);
+			}
+
+			let userYMin = parseFloat(s.style.plotYMin);
+			let userYMax = parseFloat(s.style.plotYMax);
+			
+			let plotMinY = isNaN(userYMin) ? (yVals.length ? Math.min(...yVals) : -5) : userYMin;
+			let plotMaxY = isNaN(userYMax) ? (yVals.length ? Math.max(...yVals) : 5) : userYMax;
+
+			if (plotMinY >= plotMaxY) {
+				plotMinY -= 1;
+				plotMaxY += 1;
+			}
+			
+			const rangeY = plotMaxY - plotMinY;
+			const rangeX = domainMax - domainMin;
+
+			const mapX = (v) => xMin + ((v - domainMin) / rangeX) * width;
+			const mapY = (v) => yMin + height - ((v - plotMinY) / rangeY) * height;
+
+			if (s.style.plotGrid !== 'none') {
+				ctx.strokeStyle = '#e0e0e0';
+				ctx.lineWidth = 1;
+				ctx.beginPath();
+				
+				const xGridStepVal = rangeX / 10;
+				for (let v = Math.ceil(domainMin/xGridStepVal)*xGridStepVal; v <= domainMax; v += xGridStepVal) {
+					const gx = mapX(v);
+					if(gx >= xMin && gx <= xMin + width) {
+						ctx.moveTo(gx, yMin);
+						ctx.lineTo(gx, yMin + height);
+					}
+				}
+				
+				const yGridStepVal = rangeY / 10;
+				for (let v = Math.ceil(plotMinY/yGridStepVal)*yGridStepVal; v <= plotMaxY; v += yGridStepVal) {
+					const gy = mapY(v);
+					if(gy >= yMin && gy <= yMin + height) {
+						ctx.moveTo(xMin, gy);
+						ctx.lineTo(xMin + width, gy);
+					}
+				}
+				ctx.stroke();
+			}
+
+			const axisStyle = s.style.plotAxisLines;
+			ctx.strokeStyle = '#000000';
+			ctx.lineWidth = 1;
+			ctx.beginPath();
+
+			if (axisStyle === 'box') {
+				ctx.strokeRect(xMin, yMin, width, height);
+			} else if (axisStyle === 'left') {
+				ctx.moveTo(xMin, yMin); ctx.lineTo(xMin, yMin + height);
+				ctx.moveTo(xMin, yMin + height); ctx.lineTo(xMin + width, yMin + height);
+				ctx.stroke();
+			} else if (axisStyle === 'middle' || axisStyle === 'center') {
+				const zeroX = mapX(0);
+				const zeroY = mapY(0);
+				
+				if (zeroX >= xMin && zeroX <= xMin + width) {
+					ctx.moveTo(zeroX, yMin); ctx.lineTo(zeroX, yMin + height);
+				}
+				if (zeroY >= yMin && zeroY <= yMin + height) {
+					ctx.moveTo(xMin, zeroY); ctx.lineTo(xMin + width, zeroY);
+				}
+				ctx.stroke();
+			}
+
+			if (points.length > 1) {
+				ctx.beginPath();
+				ctx.strokeStyle = s.style.stroke || '#5e6ad2';
+				ctx.lineWidth = s.style.width || 2;
+				
+				let first = true;
+				points.forEach(p => {
+					const px = mapX(p.x);
+					const py = mapY(p.y);
+					
+					if (isNaN(px) || isNaN(py) || !isFinite(px) || !isFinite(py)) {
+						first = true;
+					} else {
+						const isInside = px >= xMin - 1 && px <= xMin + width + 1 && py >= yMin - 1 && py <= yMin + height + 1;
+						if (isInside) {
+							if (first) {
+								ctx.moveTo(px, py);
+								first = false;
+							} else {
+								ctx.lineTo(px, py);
+							}
+						} else {
+							first = true;
+						}
+					}
+				});
+				ctx.stroke();
+			}
+
+			if (s.style.plotMark && s.style.plotMark !== 'none') {
+				const size = (s.style.plotMarkSize || 2) * 2;
+				ctx.fillStyle = s.style.stroke || '#5e6ad2';
+				points.forEach(p => {
+					const px = mapX(p.x);
+					const py = mapY(p.y);
+					if (px >= xMin && px <= xMin + width && py >= yMin && py <= yMin + height) {
+						ctx.beginPath();
+						if (s.style.plotMark === 'square') ctx.rect(px-size/2, py-size/2, size, size);
+						else if (s.style.plotMark === 'triangle') {
+							ctx.moveTo(px, py-size/2);
+							ctx.lineTo(px+size/2, py+size/2);
+							ctx.lineTo(px-size/2, py+size/2);
+						}
+						else ctx.arc(px, py, size/2, 0, Math.PI*2);
+						ctx.fill();
+					}
+				});
+			}
+
+			ctx.restore();
+
+			const sizeMap = {
+				'tiny': 10, 'scriptsize': 11, 'footnotesize': 12, 'small': 13,
+				'normalsize': 14, 'large': 16, 'Large': 18, 'LARGE': 20, 'huge': 24, 'Huge': 28
+			};
+			const fontSize = sizeMap[s.style.textSize] || 14;
+
+			ctx.fillStyle = '#000000';
+			ctx.font = `${fontSize}px sans-serif`;
+			ctx.textAlign = 'center';
+			ctx.fillText(s.style.plotXLabel, xMin + width/2, yMin + height + fontSize + 5);
+			
+			ctx.save();
+			ctx.translate(xMin - fontSize - 5, yMin + height/2);
+			ctx.rotate(-Math.PI/2);
+			ctx.fillText(s.style.plotYLabel, 0, 0);
+			ctx.restore();
+		},
+		toTikZ: (s, opts) => {
+			const w = toTikZ(Math.abs(s.x2 - s.x1), false, s.id, 'width');
+			const h = toTikZ(Math.abs(s.y2 - s.y1), false, s.id, 'height');
+			const cx = toTikZ((s.x1 + s.x2) / 2, false, s.id, 'cx');
+			const cy = toTikZ((s.y1 + s.y2) / 2, true, s.id, 'cy');
+			
+			const domainMin = s.style.plotDomainMin;
+			const domainMax = s.style.plotDomainMax;
+			const samples = s.style.plotSamples;
+			const func = s.style.plotFunction;
+			const color = app.colors.get(s.style.stroke) || s.style.stroke;
+			
+			let axisOpts = [];
+			axisOpts.push(`at={(${cx}cm,${cy}cm)}`);
+			axisOpts.push(`anchor=center`);
+			axisOpts.push(`width=${w}cm`);
+			axisOpts.push(`height=${h}cm`);
+			axisOpts.push(`xlabel={${s.style.plotXLabel}}`);
+			axisOpts.push(`ylabel={${s.style.plotYLabel}}`);
+			axisOpts.push(`domain=${domainMin}:${domainMax}`);
+			axisOpts.push(`samples=${samples}`);
+			
+			if (s.style.textSize && s.style.textSize !== 'normalsize') {
+				axisOpts.push(`font=\\${s.style.textSize}`);
+			}
+
+			if (s.style.fillType && s.style.fillType !== 'none') {
+				const bgColor = app.colors.get(s.style.fillColor) || s.style.fillColor;
+				axisOpts.push(`axis background/.style={fill=${bgColor}}`);
+			}
+
+			if (s.style.plotAxisLines && s.style.plotAxisLines !== 'box') {
+				axisOpts.push(`axis lines=${s.style.plotAxisLines}`);
+			}
+			if (s.style.plotYMin !== '') axisOpts.push(`ymin=${s.style.plotYMin}`);
+			if (s.style.plotYMax !== '') axisOpts.push(`ymax=${s.style.plotYMax}`);
+			if (s.style.plotGrid && s.style.plotGrid !== 'none') axisOpts.push(`grid=${s.style.plotGrid}`);
+			if (s.style.plotLegendPos) axisOpts.push(`legend pos=${s.style.plotLegendPos}`);
+
+			let plotOpts = [];
+			plotOpts.push(`color=${color}`);
+			if (s.style.width && s.style.width !== 1) plotOpts.push(`line width=${s.style.width}pt`);
+			if (s.style.plotMark && s.style.plotMark !== 'none') {
+				plotOpts.push(`mark=${s.style.plotMark}`);
+				if (s.style.plotMarkSize) plotOpts.push(`mark size=${s.style.plotMarkSize}pt`);
+			} else {
+				plotOpts.push(`no marks`);
+			}
+
+			let code = `\\begin{axis}[\n    ${axisOpts.join(',\n    ')}\n]\n`;
+			code += `    \\addplot[${plotOpts.join(', ')}] {${func}}`;
+			if (s.style.plotLegend) {
+				code += `;\n    \\addlegendentry{${s.style.plotLegend}}`;
+			} else {
+				code += `;`;
+			}
+			code += `\n\\end{axis}`;
+			return code;
+		},
+		getBoundingBox: (s) => ({
+			minX: Math.min(s.x1, s.x2), minY: Math.min(s.y1, s.y2),
+			maxX: Math.max(s.x1, s.x2), maxY: Math.max(s.y1, s.y2)
+		}),
 		isStandaloneCommand: true
 	}),
 	resistor: createShapeDef('resistor', {

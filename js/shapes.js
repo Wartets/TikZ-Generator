@@ -357,7 +357,7 @@ export function getTikZLabelNode(s) {
 		return ` node[pos=0.5${anchor}${align}${textWidth}${fontStr}] {${text}}`;
 	} else {
 		const center = getShapeCenter(s);
-		return `\\node[${anchor.substring(2) || 'anchor=center'}${align}${textWidth}${fontStr}] at (${toTikZ(center.x, false, s.id, 'cx')},${toTikZ(center.y, true, s.id, 'cy')}) {${text}};`;
+		return ` \\node[${anchor.substring(2) || 'anchor=center'}${align}${textWidth}${fontStr}] at (${toTikZ(center.x, false, s.id, 'cx')},${toTikZ(center.y, true, s.id, 'cy')}) {${text}};`;
 	}
 }
 
@@ -555,31 +555,26 @@ export const ShapeManager = {
 
 			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
-		toTikZ: (s) => {
+		toTikZ: (s, opts) => {
 			const size = s.style.pointSize || 3;
 			const type = s.style.pointType || 'dot';
 			const x = toTikZ(s.x1, false, s.id, 'x1');
 			const y = toTikZ(s.y1, true, s.id, 'y1');
 			const label = getTikZLabelNode(s);
-			const color = s.style.stroke !== '#000000' ? `[draw=${app.colors.get(s.style.stroke) || s.style.stroke}]` : '';
+			const finalOpts = opts || '';
 			
 			let cmd = '';
 			if (type === 'dot') {
-				const fill = s.style.stroke !== '#000000' ? `[fill=${app.colors.get(s.style.stroke) || s.style.stroke}]` : '[fill]';
-				cmd = `\\fill${fill} (${x},${y}) circle (${size}pt)`;
+				cmd = `\\fill${finalOpts} (${x},${y}) circle (${size}pt);`;
 			} else if (type === 'circle') {
-				cmd = `\\draw${color} (${x},${y}) circle (${size}pt)`;
+				cmd = `\\draw${finalOpts} (${x},${y}) circle (${size}pt);`;
 			} else if (type === 'cross') {
-				const sPt = size / 28.3465; 
-				cmd = `\\draw${color} (${x}-${size}pt,${y}-${size}pt) -- (${x}+${size}pt,${y}+${size}pt); \\draw${color} (${x}-${size}pt,${y}+${size}pt) -- (${x}+${size}pt,${y}-${size}pt)`;
+				cmd = `\\draw${finalOpts} (${x}-${size}pt,${y}-${size}pt) -- (${x}+${size}pt,${y}+${size}pt) (${x}-${size}pt,${y}+${size}pt) -- (${x}+${size}pt,${y}-${size}pt);`;
 			} else if (type === 'plus') {
-				cmd = `\\draw${color} (${x}-${size}pt,${y}) -- (${x}+${size}pt,${y}); \\draw${color} (${x},${y}-${size}pt) -- (${x},${y}+${size}pt)`;
+				cmd = `\\draw${finalOpts} (${x}-${size}pt,${y}) -- (${x}+${size}pt,${y}) (${x},${y}-${size}pt) -- (${x},${y}+${size}pt);`;
 			}
 
-			if (type === 'cross' || type === 'plus') {
-				return `${cmd}; \\node${label.substring(5) || ` at (${x},${y}) {}`}`; 
-			}
-			return `${cmd}${label};`;
+			return `${cmd}${label}`;
 		},
 		getBoundingBox: (s) => {
 			const size = (s.style.pointSize || 3) + 2;
@@ -591,7 +586,8 @@ export const ShapeManager = {
 			const size = (s.style.pointSize || 3) + UI_CONSTANTS.HIT_TOLERANCE;
 			const dist = Math.sqrt(Math.pow(x - s.x1, 2) + Math.pow(y - s.y1, 2));
 			return dist <= size;
-		}
+		},
+		isStandaloneCommand: true
 	}),
 	text: createShapeDef('text', {
 		render: (s, ctx) => {

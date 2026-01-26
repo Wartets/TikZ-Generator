@@ -44,12 +44,13 @@ function onMouseMove(e) {
 	}
 
 	const p = getPos(e);
-	coordsDisplay.textContent = `x: ${toTikZ(p.x)}, y: ${toTikZ(p.y, true)} | Zoom: ${Math.round(app.view.scale * 100)}%`;
+	coordsDisplay.textContent = `x: ${p.x.toFixed(3)}, y: ${p.y.toFixed(3)} | Zoom: ${Math.round(app.view.scale * 100)}%`;
 	
 	if (app.activeTool && app.activeTool.onMouseMove) {
 		app.activeTool.onMouseMove(e);
 	}
 }
+
 
 function onMouseUp(e) {
 	app.isPreviewMode = false;

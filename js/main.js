@@ -51,7 +51,6 @@ function onMouseMove(e) {
 	}
 }
 
-
 function onMouseUp(e) {
 	app.isPreviewMode = false;
 	

@@ -365,19 +365,19 @@ function evaluateMath(expression, x) {
 	try {
 		let safeExpression = expression.toLowerCase()
 			.replace(/\s+/g, '')
-			.replace(/sin/g, 'Math.sin')
-			.replace(/cos/g, 'Math.cos')
-			.replace(/tan/g, 'Math.tan')
-			.replace(/asin/g, 'Math.asin')
-			.replace(/acos/g, 'Math.acos')
-			.replace(/atan/g, 'Math.atan')
-			.replace(/abs/g, 'Math.abs')
-			.replace(/sqrt/g, 'Math.sqrt')
-			.replace(/exp/g, 'Math.exp')
-			.replace(/ln/g, 'Math.log')
-			.replace(/log/g, 'Math.log10')
-			.replace(/pi/g, 'Math.PI')
-			.replace(/e/g, 'Math.E')
+			.replace(/\bpi\b/g, 'Math.PI')
+			.replace(/\be\b/g, 'Math.E')
+			.replace(/\bsin\b/g, 'Math.sin')
+			.replace(/\bcos\b/g, 'Math.cos')
+			.replace(/\btan\b/g, 'Math.tan')
+			.replace(/\basin\b/g, 'Math.asin')
+			.replace(/\bacos\b/g, 'Math.acos')
+			.replace(/\batan\b/g, 'Math.atan')
+			.replace(/\babs\b/g, 'Math.abs')
+			.replace(/\bsqrt\b/g, 'Math.sqrt')
+			.replace(/\bexp\b/g, 'Math.exp')
+			.replace(/\bln\b/g, 'Math.log')
+			.replace(/\blog\b/g, 'Math.log10')
 			.replace(/\^/g, '**');
 
 		safeExpression = safeExpression.replace(/(\d+)(x)/g, '$1*$2')
@@ -1863,7 +1863,7 @@ export const ShapeManager = {
 					if (isNaN(px) || isNaN(py) || !isFinite(px) || !isFinite(py)) {
 						first = true;
 					} else {
-						const isInside = px >= xMin - 1 && px <= xMin + width + 1 && py >= yMin - 1 && py <= yMin + height + 1;
+						const isInside = px >= xMin - 5 && px <= xMin + width + 5 && py >= yMin - 5 && py <= yMin + height + 5;
 						if (isInside) {
 							if (first) {
 								ctx.moveTo(px, py);
@@ -1928,7 +1928,7 @@ export const ShapeManager = {
 			const domainMax = s.style.plotDomainMax;
 			const samples = s.style.plotSamples;
 			const func = s.style.plotFunction;
-			const color = app.colors.get(s.style.stroke) || s.style.stroke;
+			const color = app.colors.get(s.style.stroke) || 'black';
 			
 			let axisOpts = [];
 			axisOpts.push(`at={(${cx}cm,${cy}cm)}`);
@@ -1939,6 +1939,7 @@ export const ShapeManager = {
 			axisOpts.push(`ylabel={${s.style.plotYLabel}}`);
 			axisOpts.push(`domain=${domainMin}:${domainMax}`);
 			axisOpts.push(`samples=${samples}`);
+			axisOpts.push(`trig format plots=rad`);
 			
 			if (s.style.textSize && s.style.textSize !== 'normalsize') {
 				axisOpts.push(`font=\\${s.style.textSize}`);

@@ -160,7 +160,7 @@ export function generateCode() {
 
 	const usedColors = new Map();
 	app.shapes.forEach(s => {
-		if (s.style.stroke && s.style.stroke !== '#000000' && s.style.stroke !== '#ffffff') {
+		if (s.style.stroke) {
 			usedColors.set(s.style.stroke.toUpperCase(), true);
 		}
 		if (s.style.fill && s.style.fillType !== 'none') {

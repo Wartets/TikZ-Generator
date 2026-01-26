@@ -87,25 +87,6 @@ body {
 	min-height: 0;
 }
 
-::-webkit-scrollbar {
-	width: 4px;
-	height: 4px;
-}
-
-::-webkit-scrollbar-track {
-	background: transparent;
-}
-
-::-webkit-scrollbar-thumb {
-	background: rgba(255, 255, 255, 0.1);
-	border-radius: 4px;
-	transition: background 0.2s;
-}
-
-::-webkit-scrollbar-thumb:hover {
-	background: rgba(255, 255, 255, 0.2);
-}
-
 .section-wrapper {
 	margin-bottom: 12px;
 }
@@ -1149,4 +1130,23 @@ input[type="range"] {
 	grid-template-columns: repeat(2, 1fr);
 	gap: 6px;
 	width: 100%;
+}
+
+::-webkit-scrollbar {
+	width: 4px;
+	height: 4px;
+}
+
+::-webkit-scrollbar-track {
+	background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+	background: rgba(255, 255, 255, 0.1);
+	border-radius: 4px;
+	transition: background 0.2s;
+}
+
+::-webkit-scrollbar-thumb:hover {
+	background: rgba(255, 255, 255, 0.2);
 }

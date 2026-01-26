@@ -593,26 +593,29 @@ export const ShapeManager = {
 		render: (s, ctx) => {
 			renderShapeLabel(s, ctx, s.x1, s.y1);
 		},
-		toTikZ: (s) => {
-		const text = s.style.text || 'Texte';
-		const fontFamilies = { 'serif': '\\rmfamily', 'sans': '\\sffamily', 'mono': '\\ttfamily' };
-		const fontCmd = fontFamilies[s.style.textFont] || '';
-		const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries' : '';
-		const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape' : '';
-		const sizeCmd = s.style.textSize && s.style.textSize !== 'normalsize' ? `\\${s.style.textSize}` : '';
-		
-		let fontContent = [];
-		if(fontCmd) fontContent.push(fontCmd);
-		if(weightCmd) fontContent.push(weightCmd);
-		if(slantCmd) fontContent.push(slantCmd);
-		if(sizeCmd) fontContent.push(sizeCmd);
-		
-		const fontStr = fontContent.length > 0 ? `, font=${fontContent.join(' ')}` : '';
-		const align = s.style.textAlign && s.style.textAlign !== 'center' ? `, align=${s.style.textAlign}` : '';
-		const textWidth = s.style.textWidth > 0 ? `, text width=${s.style.textWidth}cm` : '';
-		const anchor = s.style.textAnchor && s.style.textAnchor !== 'center' ? `, anchor=${s.style.textAnchor}` : '';
+		toTikZ: (s, opts) => {
+			const text = s.style.text || '';
+			const fontFamilies = { 'serif': '\\rmfamily', 'sans': '\\sffamily', 'mono': '\\ttfamily' };
+			const fontCmd = fontFamilies[s.style.textFont] || '';
+			const weightCmd = s.style.textWeight === 'bfseries' ? '\\bfseries' : '';
+			const slantCmd = s.style.textSlant === 'itshape' ? '\\itshape' : '';
+			const sizeCmd = s.style.textSize && s.style.textSize !== 'normalsize' ? `\\${s.style.textSize}` : '';
+			
+			let fontContent = [];
+			if(fontCmd) fontContent.push(fontCmd);
+			if(weightCmd) fontContent.push(weightCmd);
+			if(slantCmd) fontContent.push(slantCmd);
+			if(sizeCmd) fontContent.push(sizeCmd);
+			
+			const fontStr = fontContent.length > 0 ? `font=${fontContent.join(' ')}` : '';
+			
+			let finalOpts = opts ? opts.slice(1, -1) : '';
+			if (fontStr) {
+				finalOpts = finalOpts ? `${finalOpts}, ${fontStr}` : fontStr;
+			}
 
-		return `\\node[${anchor.substring(2) || 'anchor=center'}${align}${textWidth}${fontStr}] at (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) {${text}};`;
+			const optPart = finalOpts ? `[${finalOpts}] ` : '';
+			return `\\node ${optPart}at (${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) {${text}};`;
 		},
 		getBoundingBox: (s) => {
 			const sizeMap = {
@@ -718,7 +721,8 @@ export const ShapeManager = {
 			const halfH = (box.maxY - box.minY) / 2;
 			
 			return Math.abs(rx) <= halfW && Math.abs(ry) <= halfH;
-		}
+		},
+		isStandaloneCommand: true
 	}),
 	line: createShapeDef('line', {
 		render: (s, ctx) => {

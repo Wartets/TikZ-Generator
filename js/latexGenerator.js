@@ -244,8 +244,6 @@ export function generateCode() {
 		
 		if (shapeDef.isStandaloneCommand) {
 			out += `	${shapeDef.toTikZ(s, optStr)}\n`;
-		} else if (s.type === 'text') {
-			out += `	\\node${optStr} at ${shapeDef.toTikZ(s)}\n`;
 		} else {
 			out += `	\\draw${optStr} ${shapeDef.toTikZ(s)}\n`;
 		}

@@ -818,27 +818,29 @@ export const ShapeManager = {
 			const mode = s.style.freehandMode || 'smooth';
 			const radius = s.style.cornerRadius || 5;
 
-			let extraOpts = '';
+			let extraOpts = [];
 			let pathSuffix = '';
 			
 			if (mode === 'smooth') {
-				extraOpts = isClosed ? `, smooth cycle, tension=${tension}` : `, smooth, tension=${tension}`;
+				extraOpts.push(isClosed ? 'smooth cycle' : 'smooth');
+				extraOpts.push(`tension=${tension}`);
 			} else if (mode === 'rounded') {
-				extraOpts = `, rounded corners=${radius}pt`;
+				extraOpts.push(`rounded corners=${radius}pt`);
 				if (isClosed) pathSuffix = ' -- cycle';
 			} else {
-				extraOpts = ', sharp plot';
+				extraOpts.push('sharp plot');
 				if (isClosed) pathSuffix = ' -- cycle';
 			}
 			
-			let finalOpts = opts || '[]';
-			if (finalOpts === '[]' || finalOpts === '') {
-				finalOpts = `[${extraOpts.startsWith(',') ? extraOpts.substring(2) : extraOpts}]`;
+			let finalOptsStr = '';
+			if (opts) {
+				const base = opts.slice(1, -1);
+				finalOptsStr = `[${base}${extraOpts.length ? ', ' + extraOpts.join(', ') : ''}]`;
 			} else {
-				finalOpts = finalOpts.slice(0, -1) + extraOpts + ']';
+				finalOptsStr = `[${extraOpts.join(', ')}]`;
 			}
 			
-			return `\\draw${finalOpts} plot coordinates {${coords}}${pathSuffix};${getTikZLabelNode(s)}`;
+			return `\\draw${finalOptsStr} plot coordinates {${coords}}${pathSuffix};${getTikZLabelNode(s)}`;
 		},
 		hitTest: (s, x, y) => {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
@@ -1357,7 +1359,11 @@ export const ShapeManager = {
 		},
 		toTikZ: (s, opts) => {
 			const finalOpts = opts || '[]';
-			return `\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x2, false, s.id, 'x_end')},${toTikZ(s.y2, true, s.id, 'y_origin')}) node[right] {$x$};\n	\\draw${finalOpts} (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y2, true, s.id, 'y_origin')}) -- (${toTikZ(s.x1, false, s.id, 'x_origin')},${toTikZ(s.y1, true, s.id, 'y_end')}) node[above] {$y$}; ${getTikZLabelNode(s)}`;
+			const xOrg = toTikZ(s.x1, false, s.id, 'x_origin');
+			const yOrg = toTikZ(s.y2, true, s.id, 'y_origin');
+			const xEnd = toTikZ(s.x2, false, s.id, 'x_end');
+			const yEnd = toTikZ(s.y1, true, s.id, 'y_end');
+			return `\\draw${finalOpts} (${xOrg},${yOrg}) -- (${xEnd},${yOrg}) node[right] {$x$};\n	\\draw${finalOpts} (${xOrg},${yOrg}) -- (${xOrg},${yEnd}) node[above] {$y$}; ${getTikZLabelNode(s)}`;
 		},
 		isStandaloneCommand: true,
 		hitTest: (s, x, y) => {
@@ -1395,7 +1401,9 @@ export const ShapeManager = {
 			const startDeg = Math.round(s.startAngle * 180 / Math.PI);
 			const endDeg = Math.round(s.endAngle * 180 / Math.PI);
 			const r = toTikZ(s.radius, false, s.id, 'radius');
-			return `(${toTikZ(s.x1, false, s.id, 'x1')},${toTikZ(s.y1, true, s.id, 'y1')}) arc (${startDeg}:${endDeg}:${r})${getTikZLabelNode(s)};`;
+			const startX = s.x1 + s.radius * Math.cos(s.startAngle);
+			const startY = s.y1 + s.radius * Math.sin(s.startAngle);
+			return `(${toTikZ(startX, false, s.id, 'startX')},${toTikZ(startY, true, s.id, 'startY')}) arc (${startDeg}:${-endDeg}:${r})${getTikZLabelNode(s)};`;
 		},
 		move: (s, dx, dy) => {
 			s.x1 += dx; s.y1 += dy;
@@ -2650,9 +2658,13 @@ export const ShapeManager = {
 			renderShapeLabel(s, ctx, (s.x1+s.x2)/2, (s.y1+s.y2)/2);
 		},
 		toTikZ: (s, opts) => {
-			const x1 = toTikZ(s.x1); const y1 = toTikZ(s.y1, true);
-			const x2 = toTikZ(s.x2); const y2 = toTikZ(s.y2, true);
-			return `\\draw${opts || ''} (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw${opts || ''} ([shift={(\\i*${x2-x1}, \\i*${y2-y1})}] ${x1}, ${y1}) -- ++(-135:0.15); ${getTikZLabelNode(s)}`;
+			const x1 = toTikZ(s.x1); 
+			const y1 = toTikZ(s.y1, true);
+			const x2 = toTikZ(s.x2); 
+			const y2 = toTikZ(s.y2, true);
+			const dx = (s.x2 - s.x1) / UI_CONSTANTS.SCALE;
+			const dy = (canvas.height - s.y2 - (canvas.height - s.y1)) / UI_CONSTANTS.SCALE;
+			return `\\draw${opts || ''} (${x1}, ${y1}) -- (${x2}, ${y2});\n	\\foreach \\i in {0,0.1,...,1} \\draw${opts || ''} ([shift={(\\i*${dx.toFixed(3)}, \\i*${dy.toFixed(3)})}] ${x1}, ${y1}) -- ++(-135:0.15); ${getTikZLabelNode(s)}`;
 		},
 		onDown: (x, y, style) => ({ type: 'mirror', x1: x, y1: y, x2: x, y2: y, style: { ...style } }),
 		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },

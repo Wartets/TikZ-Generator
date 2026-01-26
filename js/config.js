@@ -151,6 +151,14 @@ export const TOOL_CONFIG = {
 		group: 'general',
 		allow: []
 	},
+	painter: {
+		displayName: 'Pinceau de style',
+		handler: 'PainterTool',
+		icon: '<i class="ti ti-brush"></i>',
+		cursor: 'crosshair',
+		group: 'general',
+		allow: []
+	},
 	point: {
 		displayName: 'Point',
 		handler: 'DrawingTool',

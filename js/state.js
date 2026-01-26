@@ -136,6 +136,33 @@ export function clearAll() {
 	saveToLocalStorage();
 }
 
+export function resetDrawingStyle() {
+	const defaults = generateInitialState();
+	
+	for (const key in defaults) {
+		app.drawingStyle[key] = defaults[key];
+	}
+
+	if (app.selectedShapes.length > 0) {
+		app.selectedShapes.forEach(s => {
+			const allowed = TOOL_CONFIG[s.type].allow || [];
+			for (const key in SETTINGS_CONFIG) {
+				if (allowed.includes(key)) {
+					const config = SETTINGS_CONFIG[key];
+					const prop = config.propName || key;
+					s.style[prop] = config.defaultValue;
+				}
+			}
+		});
+		generateCode();
+		pushState();
+		render();
+		updateUIFromShape(app.selectedShape);
+	} else {
+		updateUIFromDrawingStyle();
+	}
+}
+
 export function copySelection() {
 	if (app.selectedShapes.length > 0) {
 		app.clipboard = app.selectedShapes.map(s => JSON.parse(JSON.stringify(s)));
@@ -531,7 +558,7 @@ export function loadFromLocalStorage() {
 
 // Fonction d'initialisation des outils
 export function initTools() {
-    const toolHandlers = { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool };
+    const toolHandlers = { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool, PainterTool };
     app.toolManager = {};
     for (const toolName in TOOL_CONFIG) {
         const config = TOOL_CONFIG[toolName];

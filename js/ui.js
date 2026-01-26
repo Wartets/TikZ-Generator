@@ -48,6 +48,16 @@ export function createSettingsUI() {
 	const container = document.getElementById('settings-container');
 	container.innerHTML = '';
 	
+	const resetBtnContainer = document.createElement('div');
+	resetBtnContainer.className = 'control-group-wrapper';
+	resetBtnContainer.style.marginBottom = '15px';
+	resetBtnContainer.innerHTML = `
+		<button id="resetStyleBtn" class="btn btn-secondary btn-full">
+			<i class="ti ti-refresh"></i> Réinitialiser Style
+		</button>
+	`;
+	container.appendChild(resetBtnContainer);
+	
 	const settingsGroups = new Map();
 
 	for (const key in SETTINGS_CONFIG) {

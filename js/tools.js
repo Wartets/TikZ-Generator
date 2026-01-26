@@ -3,7 +3,7 @@ import { canvas, ctx, coordsDisplay, setTool } from './ui.js';
 import { getPos, rotatePoint, simplifyPoints, screenToWorld } from './utils.js';
 import { ShapeManager, getHandleAtPos, getShapeAtPos, getShapeCenter } from './shapes.js';
 import { render, renderShape } from './renderer.js';
-import { TOOL_CONFIG, UI_CONSTANTS } from './config.js';
+import { TOOL_CONFIG, UI_CONSTANTS, SETTINGS_CONFIG  } from './config.js';
 import { generateCode } from './latexGenerator.js';
 import { updateUIFromShape, updateSettingsVisibility } from './ui.js';
 import { getSelectionBounds } from './utils.js';
@@ -1058,6 +1058,121 @@ export class EyedropperTool extends BaseTool {
 	
 	onDeactivate() {
 		canvas.parentElement.classList.remove('eyedropper-active');
+		render();
+	}
+}
+
+export class PainterTool extends BaseTool {
+	constructor() {
+		super();
+		this.config = TOOL_CONFIG['painter'];
+		this.sourceStyle = null;
+	}
+
+	onMouseDown(e) {
+		const p = getPos(e);
+		const shape = getShapeAtPos(p.x, p.y);
+
+		if (shape) {
+			if (!this.sourceStyle) {
+				this.sourceStyle = JSON.parse(JSON.stringify(shape.style));
+			} else {
+				const targetType = shape.type;
+				const allowedKeys = TOOL_CONFIG[targetType].allow || [];
+				let changed = false;
+
+				for (const key in SETTINGS_CONFIG) {
+					if (allowedKeys.includes(key)) {
+						const config = SETTINGS_CONFIG[key];
+						const prop = config.propName || key;
+						if (this.sourceStyle[prop] !== undefined) {
+							shape.style[prop] = this.sourceStyle[prop];
+							changed = true;
+						}
+					}
+				}
+
+				if (changed) {
+					generateCode();
+					pushState();
+					render();
+				}
+				this.sourceStyle = null;
+			}
+		}
+	}
+
+	onMouseMove(e) {
+		const p = getPos(e);
+		const shape = getShapeAtPos(p.x, p.y);
+		render();
+
+		const ctx = canvas.getContext('2d');
+		ctx.save();
+		ctx.translate(app.view.x, app.view.y);
+		ctx.scale(app.view.scale, app.view.scale);
+
+		if (shape) {
+			this.highlightShape(shape, ctx);
+		}
+
+		this.drawBrushTip(ctx, p);
+		ctx.restore();
+		
+		if (this.sourceStyle) {
+			coordsDisplay.textContent = `Style copié. Cliquez sur une forme pour l'appliquer.`;
+		} else {
+			coordsDisplay.textContent = `Cliquez sur une forme pour copier son style.`;
+		}
+	}
+
+	highlightShape(shape, ctx) {
+		ctx.save();
+		ctx.strokeStyle = this.sourceStyle ? '#27ae60' : '#5e6ad2';
+		ctx.lineWidth = 3 / app.view.scale;
+		
+		if (shape.style.rotate) {
+			const center = getShapeCenter(shape);
+			ctx.translate(center.x, center.y);
+			ctx.rotate(shape.style.rotate * Math.PI / 180);
+			ctx.translate(-center.x, -center.y);
+		}
+
+		const shapeDef = ShapeManager[shape.type];
+		if (shapeDef && shapeDef.render) {
+			shapeDef.render(shape, ctx);
+		}
+		ctx.restore();
+	}
+
+	drawBrushTip(ctx, p) {
+		const size = 10 / app.view.scale;
+		ctx.beginPath();
+		ctx.arc(p.x, p.y, size, 0, Math.PI * 2);
+		ctx.fillStyle = this.sourceStyle ? 'rgba(46, 204, 113, 0.3)' : 'rgba(94, 106, 210, 0.3)';
+		ctx.strokeStyle = this.sourceStyle ? '#27ae60' : '#5e6ad2';
+		ctx.lineWidth = 2 / app.view.scale;
+		ctx.fill();
+		ctx.stroke();
+		
+		if (this.sourceStyle) {
+			ctx.font = `${12 / app.view.scale}px Arial`;
+			ctx.fillStyle = '#27ae60';
+			ctx.fillText("READY", p.x + size + 2, p.y);
+		}
+	}
+
+	onActivate() {
+		canvas.style.cursor = 'none';
+		this.sourceStyle = null;
+		app.selectedShapes = [];
+		app.selectedShape = null;
+		render();
+	}
+
+	onDeactivate() {
+		canvas.style.cursor = 'default';
+		this.sourceStyle = null;
 		render();
 	}
 }

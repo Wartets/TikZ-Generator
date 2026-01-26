@@ -5,8 +5,8 @@ import { generateCode } from './latexGenerator.js';
 import { getPos, getSelectionBounds, toTikZ } from './utils.js';
 import { ShapeManager, getShapeAtPos } from './shapes.js';
 import { GLOBAL_SETTINGS_CONFIG, UI_CONSTANTS, TOOL_CONFIG, SETTINGS_CONFIG } from './config.js';
-import { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool } from './tools.js';
-import { alignSelected, distributeSelected, matchSize, rotateSelected, generateInitialState } from './state.js';
+import { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool, PainterTool } from './tools.js';
+import { alignSelected, distributeSelected, matchSize, rotateSelected, generateInitialState, resetDrawingStyle } from './state.js';
 
 const initialState = generateInitialState();
 
@@ -174,6 +174,8 @@ function init() {
 		}
 	});
 	
+	document.getElementById('resetStyleBtn').addEventListener('click', resetDrawingStyle);
+
 	document.getElementById('alignLeft').addEventListener('click', () => alignSelected('left'));
 	document.getElementById('alignCenter').addEventListener('click', () => alignSelected('center'));
 	document.getElementById('alignRight').addEventListener('click', () => alignSelected('right'));
@@ -194,7 +196,7 @@ function init() {
 
 	app.drawingStyle = { ...generateInitialState(), ...defaultGlobalState };
 	
-	const toolHandlers = { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool };
+	const toolHandlers = { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool, PainterTool };
 	app.toolManager = {};
 	for (const toolName in TOOL_CONFIG) {
 		const config = TOOL_CONFIG[toolName];

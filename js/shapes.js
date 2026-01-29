@@ -534,8 +534,14 @@ export const ShapeManager = {
 			
 			if (type === 'dot') {
 				ctx.arc(s.x1, s.y1, size, 0, Math.PI * 2);
-				ctx.fillStyle = s.style.stroke;
-				ctx.fill();
+				if (s.style.fillType && s.style.fillType !== 'none') {
+					ctx.fillStyle = getFillStyle(ctx, s);
+					ctx.fill();
+					ctx.stroke();
+				} else {
+					ctx.fillStyle = s.style.stroke;
+					ctx.fill();
+				}
 			} else if (type === 'circle') {
 				ctx.arc(s.x1, s.y1, size, 0, Math.PI * 2);
 				ctx.stroke();
@@ -565,7 +571,11 @@ export const ShapeManager = {
 			
 			let cmd = '';
 			if (type === 'dot') {
-				cmd = `\\fill${finalOpts} (${x},${y}) circle (${size}pt);`;
+				if (s.style.fillType && s.style.fillType !== 'none') {
+					cmd = `\\filldraw${finalOpts} (${x},${y}) circle (${size}pt);`;
+				} else {
+					cmd = `\\fill${finalOpts} (${x},${y}) circle (${size}pt);`;
+				}
 			} else if (type === 'circle') {
 				cmd = `\\draw${finalOpts} (${x},${y}) circle (${size}pt);`;
 			} else if (type === 'cross') {

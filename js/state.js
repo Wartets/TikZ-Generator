@@ -3,8 +3,9 @@ import { render } from './renderer.js';
 import { updateUIFromShape, updateUndoRedoUI, updateUIFromGlobalSettings, updateUIFromDrawingStyle, setTool, canvas } from './ui.js';
 import { generateCode } from './latexGenerator.js';
 import { ShapeManager } from './shapes.js';
-import { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool } from './tools.js';
+import { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool, PainterTool } from './tools.js';
 import { getSelectionBounds, screenToWorld } from './utils.js';
+import { setLanguage, getLanguage } from './i18n.js';
 
 export function generateInitialState() {
 	const state = {};
@@ -467,6 +468,7 @@ export function saveToLocalStorage() {
 		uiState: uiState
 	};
 	localStorage.setItem('tikz_generator_data', JSON.stringify(fullState));
+	localStorage.setItem('tikz_generator_lang', getLanguage());
 }
 
 export function loadFromLocalStorage() {
@@ -475,6 +477,10 @@ export function loadFromLocalStorage() {
 
 	try {
 		const parsed = JSON.parse(data);
+		
+		const storedLang = localStorage.getItem('tikz_generator_lang');
+		if (storedLang) setLanguage(storedLang);
+
 		app.history = parsed.history || [];
 		app.historyIndex = parsed.historyIndex !== undefined ? parsed.historyIndex : -1;
 		

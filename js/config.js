@@ -1,3 +1,5 @@
+import { translate, translateOptions } from './i18n.js';
+
 export const UI_CONSTANTS = {
 	SCALE: 40,
 	GRID_SIZE: 20,
@@ -24,84 +26,84 @@ export const UI_CONSTANTS = {
 
 export const GLOBAL_SETTINGS_CONFIG = {
 	genPreamble: {
-		label: 'Générer Préambule',
+		label: translate('genPreamble'),
 		type: 'checkbox',
 		defaultValue: false
 	},
 	obsidianMode: {
-		label: 'Mode Obsidian (TikZJax)',
+		label: translate('obsidianMode'),
 		type: 'checkbox',
 		defaultValue: false
 	},
 	docClass: {
-		label: 'Classe',
+		label: translate('docClass'),
 		type: 'select',
 		defaultValue: 'standalone',
 		options: {
-			'standalone': 'Standalone',
-			'article': 'Article',
-			'report': 'Report',
-			'beamer': 'Beamer'
+			'standalone': translate('standalone'),
+			'article': translate('article'),
+			'report': translate('report'),
+			'beamer': translate('beamer')
 		}
 	},
 	globalLineWidth: {
-		label: 'Trait Global',
+		label: translate('globalLineWidth'),
 		type: 'select',
 		defaultValue: 'semithick',
 		options: {
-			'ultra thin': 'Ultra fin',
-			'very thin': 'Très fin',
-			'thin': 'Fin',
-			'semithick': 'Demi-épais (Défaut)',
-			'thick': 'Épais',
-			'very thick': 'Très épais',
-			'ultra thick': 'Ultra épais'
+			'ultra thin': translate('ultra thin'),
+			'very thin': translate('very thin'),
+			'thin': translate('thin'),
+			'semithick': translate('semithick'),
+			'thick': translate('thick'),
+			'very thick': translate('very thick'),
+			'ultra thick': translate('ultra thick')
 		}
 	},
 	globalArrow: {
-		label: 'Flèche Globale',
+		label: translate('globalArrow'),
 		type: 'select',
 		defaultValue: 'stealth',
 		options: {
-			'stealth': 'Stealth',
-			'latex': 'LaTeX',
-			'to': 'Standard',
-			'triangle 45': 'Triangle',
-			'circle': 'Cercle',
-			'diamond': 'Losange'
+			'stealth': translate('stealth'),
+			'latex': translate('latex'),
+			'to': translate('to'),
+			'triangle 45': translate('triangle 45'),
+			'circle': translate('circle'),
+			'diamond': translate('diamond')
 		}
 	},
 	exportGrid: {
-		label: 'Exporter Grille',
+		label: translate('exportGrid'),
 		type: 'checkbox',
 		defaultValue: false
 	},
 	figLabel: {
-		label: 'Label (ex: fig:mon_schema)',
+		label: translate('figLabel'),
 		type: 'text',
 		defaultValue: ''
 	},
 	figCaption: {
-		label: 'Légende (Caption)',
+		label: translate('figCaption'),
 		type: 'text',
 		defaultValue: ''
 	},
 	figScale: {
-		label: 'Échelle TikZ',
+		label: translate('figScale'),
 		type: 'range',
 		defaultValue: 1,
 		min: 0.1, max: 3, step: 0.1,
 		unit: 'x'
 	},
 	canvasZoom: {
-		label: 'Zoom Grille (Vue)',
+		label: translate('canvasZoom'),
 		type: 'range',
 		defaultValue: 20,
 		min: 10, max: 100, step: 5,
 		unit: 'px'
 	},
 	stageColor: {
-		label: 'Couleur de fond',
+		label: translate('stageColor'),
 		type: 'color',
 		defaultValue: '#eef1f5'
 	}
@@ -109,7 +111,7 @@ export const GLOBAL_SETTINGS_CONFIG = {
 
 export const TOOL_CONFIG = {
 	select: {
-		displayName: 'Sélection',
+		displayName: translate('select'),
 		handler: 'SelectTool',
 		icon: '<i class="ti ti-pointer"></i>',
 		cursor: 'default',
@@ -117,7 +119,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'rotate', 'textAnchor', 'textAlign', 'textWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'doubleLine', 'gridStep', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle', 'starPoints', 'starRatio', 'polySides', 'waveType', 'waveAmplitude', 'waveLength', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed']
 	},
 	duplicate: {
-		displayName: 'Dupliquer',
+		displayName: translate('duplicate'),
 		handler: 'DuplicateTool',
 		icon: '<i class="ti ti-copy"></i>',
 		cursor: 'copy',
@@ -125,7 +127,7 @@ export const TOOL_CONFIG = {
 		allow: []
 	},
 	delete: {
-		displayName: 'Supprimer',
+		displayName: translate('delete'),
 		handler: 'DeleteTool',
 		icon: '<i class="ti ti-eraser"></i>',
 		cursor: 'not-allowed',
@@ -133,7 +135,7 @@ export const TOOL_CONFIG = {
 		allow: []
 	},
 	raise: {
-		displayName: 'Premier plan',
+		displayName: translate('raise'),
 		handler: 'RaiseTool',
 		icon: '<i class="ti ti-arrow-bar-to-up"></i>',
 		cursor: 'default',
@@ -141,7 +143,7 @@ export const TOOL_CONFIG = {
 		allow: []
 	},
 	lower: {
-		displayName: 'Arrière plan',
+		displayName: translate('lower'),
 		handler: 'LowerTool',
 		icon: '<i class="ti ti-arrow-bar-to-down"></i>',
 		cursor: 'default',
@@ -149,7 +151,7 @@ export const TOOL_CONFIG = {
 		allow: []
 	},
 	eyedropper: {
-		displayName: 'Pipette',
+		displayName: translate('eyedropper'),
 		handler: 'EyedropperTool',
 		icon: '<i class="ti ti-color-picker"></i>',
 		cursor: 'cell',
@@ -157,7 +159,7 @@ export const TOOL_CONFIG = {
 		allow: []
 	},
 	painter: {
-		displayName: 'Pinceau de style',
+		displayName: translate('painter'),
 		handler: 'PainterTool',
 		icon: '<i class="ti ti-brush"></i>',
 		cursor: 'crosshair',
@@ -165,7 +167,7 @@ export const TOOL_CONFIG = {
 		allow: []
 	},
 	point: {
-		displayName: 'Point',
+		displayName: translate('point'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-target"></i>',
 		cursor: 'crosshair',
@@ -173,7 +175,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 'textAnchor', 'pointSize', 'pointType', 'strokeColor', 'fillType', 'fillColor', 'opacity']
 	},
 	text: {
-		displayName: 'Texte',
+		displayName: translate('text'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-text-size">T</i>',
 		cursor: 'text',
@@ -181,7 +183,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textFont', 'textWeight', 'rotate', 'textSlant', 'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'strokeColor', 'opacity']
 	},
 	freehand: {
-		displayName: 'Crayon',
+		displayName: translate('freehand'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-pencil"></i>',
 		cursor: 'crosshair',
@@ -189,7 +191,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'freehandMode', 'smoothness', 'cornerRadius', 'simplifyTolerance', 'isClosed', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	line: {
-		displayName: 'Ligne',
+		displayName: translate('line'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-line"></i>',
 		cursor: 'crosshair',
@@ -197,7 +199,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'arrowHead', 'rotate', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	rect: {
-		displayName: 'Rectangle',
+		displayName: translate('rect'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-rectangle"></i>',
 		cursor: 'crosshair',
@@ -205,7 +207,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	circle: {
-		displayName: 'Cercle',
+		displayName: translate('circle'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-circle"></i>',
 		cursor: 'crosshair',
@@ -213,7 +215,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	ellipse: {
-		displayName: 'Ellipse',
+		displayName: translate('ellipse'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-oval"></i>',
 		cursor: 'crosshair',
@@ -221,7 +223,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	triangle: {
-		displayName: 'Triangle',
+		displayName: translate('triangle'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-triangle"></i>',
 		cursor: 'crosshair',
@@ -229,7 +231,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	diamond: {
-		displayName: 'Losange',
+		displayName: translate('diamond'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
@@ -237,7 +239,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	grid: {
-		displayName: 'Grille',
+		displayName: translate('grid'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-grid-4x4"></i>',
 		cursor: 'crosshair',
@@ -245,7 +247,7 @@ export const TOOL_CONFIG = {
 		allow: ['gridStep', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	axes: {
-		displayName: 'Axes',
+		displayName: translate('axes'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-axis-arrow"></i>',
 		cursor: 'crosshair',
@@ -253,7 +255,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	arc: {
-		displayName: 'Arc',
+		displayName: translate('arc'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-angle-acute"></i>',
 		cursor: 'crosshair',
@@ -261,7 +263,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	curve: {
-		displayName: 'Courbe',
+		displayName: translate('curve'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-vector-curve"></i>',
 		cursor: 'crosshair',
@@ -269,7 +271,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'arrowStyle', 'rotate', 'arrowHead', 'arrowScale', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	wave: {
-		displayName: 'Onde',
+		displayName: translate('wave'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-wave-sine"></i>',
 		cursor: 'crosshair',
@@ -277,7 +279,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'waveType', 'waveAmplitude', 'rotate', 'waveLength', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	polygon: {
-		displayName: 'Polygone',
+		displayName: translate('polygon'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-polygon"></i>',
 		cursor: 'crosshair',
@@ -285,7 +287,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'polySides', 'lineStyle', 'doubleLine', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	star: {
-		displayName: 'Étoile',
+		displayName: translate('star'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-star"></i>',
 		cursor: 'crosshair',
@@ -293,7 +295,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'starPoints', 'starRatio', 'rotate', 'lineStyle', 'doubleLine', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	plot: {
-		displayName: 'Graphique',
+		displayName: translate('plot'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-chart-line"></i>',
 		cursor: 'crosshair',
@@ -301,7 +303,7 @@ export const TOOL_CONFIG = {
 		allow: ['plotFunction', 'plotDomainMin', 'plotDomainMax', 'plotYMin', 'plotYMax', 'plotSamples', 'plotXLabel', 'plotYLabel', 'plotGrid', 'plotAxisLines', 'plotMark', 'plotMarkSize', 'plotLegend', 'plotLegendPos', 'lineWidth', 'strokeColor', 'opacity', 'textSize', 'textColor', 'fillType', 'fillColor', 'fillColor2', 'textWeight', 'textSlant']
 	},
 	resistor: {
-		displayName: 'Résistance',
+		displayName: translate('resistor'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-wave-square"></i>',
 		cursor: 'crosshair',
@@ -309,7 +311,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'rotate', 'opacity', 'strokeColor']
 	},
 	capacitor: {
-		displayName: 'Condensateur',
+		displayName: translate('capacitor'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-pause"></i>',
 		cursor: 'crosshair',
@@ -317,7 +319,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	inductor: {
-		displayName: 'Bobine',
+		displayName: translate('inductor'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-infinity"></i>',
 		cursor: 'crosshair',
@@ -325,7 +327,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	diode: {
-		displayName: 'Diode',
+		displayName: translate('diode'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-play" style="font-size: 0.7em;"></i>',
 		cursor: 'crosshair',
@@ -333,7 +335,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'rotate']
 	},
 	source_dc: {
-		displayName: 'Source DC',
+		displayName: translate('source_dc'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-circle-minus"></i>',
 		cursor: 'crosshair',
@@ -341,7 +343,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	source_ac: {
-		displayName: 'Source AC',
+		displayName: translate('source_ac'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-water"></i>',
 		cursor: 'crosshair',
@@ -349,7 +351,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	battery: {
-		displayName: 'Batterie',
+		displayName: translate('battery'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-car-battery"></i>',
 		cursor: 'crosshair',
@@ -357,7 +359,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	lamp: {
-		displayName: 'Lampe',
+		displayName: translate('lamp'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-regular fa-lightbulb"></i>',
 		cursor: 'crosshair',
@@ -365,7 +367,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	switch: {
-		displayName: 'Interrupteur',
+		displayName: translate('switch'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-toggle-off"></i>',
 		cursor: 'crosshair',
@@ -373,7 +375,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	ground: {
-		displayName: 'Masse',
+		displayName: translate('ground'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-arrow-down"></i>',
 		cursor: 'crosshair',
@@ -381,7 +383,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	ammeter: {
-		displayName: 'Ampèremètre',
+		displayName: translate('ammeter'),
 		handler: 'DrawingTool',
 		icon: '<span style="font-weight:bold; font-family:serif;">A</span>',
 		cursor: 'crosshair',
@@ -389,7 +391,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	voltmeter: {
-		displayName: 'Voltmètre',
+		displayName: translate('voltmeter'),
 		handler: 'DrawingTool',
 		icon: '<span style="font-weight:bold; font-family:serif;">V</span>',
 		cursor: 'crosshair',
@@ -397,7 +399,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	transistor_npn: {
-		displayName: 'Transistor NPN',
+		displayName: translate('transistor_npn'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-transit-connection-variant"></i>',
 		cursor: 'crosshair',
@@ -405,7 +407,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	potentiometer: {
-		displayName: 'Potentiomètre',
+		displayName: translate('potentiometer'),
 		handler: 'DrawingTool',
 		icon: '<i class="fa-solid fa-sliders"></i>',
 		cursor: 'crosshair',
@@ -413,7 +415,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	lens_convex: {
-		displayName: 'Lentille Convergente',
+		displayName: translate('lens_convex'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-magnify"></i>',
 		cursor: 'crosshair',
@@ -421,7 +423,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	lens_concave: {
-		displayName: 'Lentille Divergente',
+		displayName: translate('lens_concave'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-magnify-minus"></i>',
 		cursor: 'crosshair',
@@ -429,7 +431,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	mirror: {
-		displayName: 'Miroir',
+		displayName: translate('mirror'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-mirror"></i>',
 		cursor: 'crosshair',
@@ -437,7 +439,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	logic_and: {
-		displayName: 'Porte ET',
+		displayName: translate('logic_and'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-and"></i>',
 		cursor: 'crosshair',
@@ -445,7 +447,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_or: {
-		displayName: 'Porte OU',
+		displayName: translate('logic_or'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-or"></i>',
 		cursor: 'crosshair',
@@ -453,7 +455,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_not: {
-		displayName: 'Porte NON',
+		displayName: translate('logic_not'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-not"></i>',
 		cursor: 'crosshair',
@@ -461,7 +463,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_nand: {
-		displayName: 'Porte NON-ET',
+		displayName: translate('logic_nand'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-nand"></i>',
 		cursor: 'crosshair',
@@ -469,7 +471,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_nor: {
-		displayName: 'Porte NON-OU',
+		displayName: translate('logic_nor'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-nor"></i>',
 		cursor: 'crosshair',
@@ -477,7 +479,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_xor: {
-		displayName: 'Porte OU-X',
+		displayName: translate('logic_xor'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-xor"></i>',
 		cursor: 'crosshair',
@@ -485,7 +487,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	logic_xnor: {
-		displayName: 'Porte NON-OU-X',
+		displayName: translate('logic_xnor'),
 		handler: 'DrawingTool',
 		icon: '<i class="mdi mdi-gate-xnor"></i>',
 		cursor: 'crosshair',
@@ -493,7 +495,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'textAnchor', 'lineStyle', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	flow_start: {
-		displayName: 'Début/Fin',
+		displayName: translate('flow_start'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-player-record"></i>',
 		cursor: 'crosshair',
@@ -501,7 +503,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	flow_process: {
-		displayName: 'Processus',
+		displayName: translate('flow_process'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-settings"></i>',
 		cursor: 'crosshair',
@@ -509,7 +511,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	flow_decision: {
-		displayName: 'Décision',
+		displayName: translate('flow_decision'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-diamond"></i>',
 		cursor: 'crosshair',
@@ -517,7 +519,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textAnchor', 'rotate', 'textSize', 'lineStyle', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle']
 	},
 	spring: {
-		displayName: 'Ressort',
+		displayName: translate('spring'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-wave-saw-tool"></i>',
 		cursor: 'crosshair',
@@ -525,7 +527,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	mass: {
-		displayName: 'Masse',
+		displayName: translate('mass'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-square"></i>',
 		cursor: 'crosshair',
@@ -533,7 +535,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
 	},
 	pulley: {
-		displayName: 'Poulie',
+		displayName: translate('pulley'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-circle-dot"></i>',
 		cursor: 'crosshair',
@@ -541,7 +543,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
 	},
 	piston: {
-		displayName: 'Piston',
+		displayName: translate('piston'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-layers-intersect"></i>',
 		cursor: 'crosshair',
@@ -549,7 +551,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor']
 	},
 	field_mark: {
-		displayName: 'Champ B',
+		displayName: translate('field_mark'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-plus"></i>',
 		cursor: 'crosshair',
@@ -557,7 +559,7 @@ export const TOOL_CONFIG = {
 		allow: ['pointType', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
 	},
 	wedge: {
-		displayName: 'Plan Incliné',
+		displayName: translate('wedge'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-triangle"></i>',
 		cursor: 'crosshair',
@@ -565,7 +567,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'wedgeAngle']
 	},
 	support: {
-		displayName: 'Support/Mur',
+		displayName: translate('support'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-layout-bottombar"></i>',
 		cursor: 'crosshair',
@@ -573,7 +575,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'hatchAngle']
 	},
 	damper: {
-		displayName: 'Amortisseur',
+		displayName: translate('damper'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-cylinder"></i>',
 		cursor: 'crosshair',
@@ -581,7 +583,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'damperWidth']
 	},
 	pendulum: {
-		displayName: 'Pendule',
+		displayName: translate('pendulum'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-brand-pending"></i>',
 		cursor: 'crosshair',
@@ -589,7 +591,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'swingAngle', 'bobSize', 'pendulumLength']
 	},
 	repere_cartesian: {
-		displayName: 'Repère 3D',
+		displayName: translate('repere_cartesian'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-axis-x-y-z"></i>',
 		cursor: 'crosshair',
@@ -597,7 +599,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'depth3d', 'angle3d', 'axisLenX', 'axisLenY', 'axisLenZ']
 	},
 	cube: {
-		displayName: 'Pavé 3D',
+		displayName: translate('cube'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-box"></i>',
 		cursor: 'crosshair',
@@ -605,7 +607,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
 	},
 	cylinder_3d: {
-		displayName: 'Cylindre 3D',
+		displayName: translate('cylinder_3d'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-cylinder"></i>',
 		cursor: 'crosshair',
@@ -613,7 +615,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d']
 	},
 	sphere_3d: {
-		displayName: 'Sphère 3D',
+		displayName: translate('sphere_3d'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-sphere"></i>',
 		cursor: 'crosshair',
@@ -621,7 +623,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'angle3d']
 	},
 	pyramid_3d: {
-		displayName: 'Pyramide 3D',
+		displayName: translate('pyramid_3d'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-triangle-square-circle"></i>',
 		cursor: 'crosshair',
@@ -629,7 +631,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
 	},
 	cone_3d: {
-		displayName: 'Cône 3D',
+		displayName: translate('cone_3d'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-cone-2"></i>',
 		cursor: 'crosshair',
@@ -637,7 +639,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d']
 	},
 	prism_3d: {
-		displayName: 'Prisme 3D',
+		displayName: translate('prism_3d'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-box-model-2"></i>',
 		cursor: 'crosshair',
@@ -645,7 +647,7 @@ export const TOOL_CONFIG = {
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
 	},
 	plane_3d: {
-		displayName: 'Plan 3D',
+		displayName: translate('plane_3d'),
 		handler: 'DrawingTool',
 		icon: '<i class="ti ti-layers-intersect"></i>',
 		cursor: 'crosshair',
@@ -656,7 +658,7 @@ export const TOOL_CONFIG = {
 
 export const SETTINGS_CONFIG = {
 	strokeColor: {
-		label: 'Contour',
+		label: translate('strokeColor'),
 		type: 'color',
 		propName: 'stroke',
 		defaultValue: '#000000',
@@ -667,7 +669,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	opacity: {
-		label: 'Opacité',
+		label: translate('opacity'),
 		type: 'range',
 		propName: 'opacity',
 		defaultValue: 1,
@@ -678,7 +680,7 @@ export const SETTINGS_CONFIG = {
 		group: 'main-style'
 	},
 	lineWidth: {
-		label: 'Épaisseur',
+		label: translate('lineWidth'),
 		type: 'range',
 		propName: 'width',
 		defaultValue: 1,
@@ -691,21 +693,21 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	lineStyle: {
-		label: 'Style trait',
+		label: translate('lineStyle'),
 		type: 'select',
 		propName: 'dash',
 		defaultValue: 'solid',
 		options: {
-			solid: 'Plein',
-			dashed: 'Tirets',
-			dotted: 'Points',
-			'densely dashed': 'Serré',
+			solid: translate('solid'),
+			dashed: translate('dashed'),
+			dotted: translate('dotted'),
+			'densely dashed': translate('densely dashed'),
 		},
 		tikzValue: (v) => v === 'solid' ? null : v,
 		group: 'line-props'
 	},
 	rotate: {
-		label: 'Rotation Forme',
+		label: translate('rotate'),
 		type: 'range',
 		propName: 'rotate',
 		defaultValue: 0,
@@ -715,7 +717,7 @@ export const SETTINGS_CONFIG = {
 		group: 'transform'
 	},
 	doubleLine: {
-		label: 'Double',
+		label: translate('doubleLine'),
 		type: 'checkbox',
 		propName: 'double',
 		defaultValue: false,
@@ -724,7 +726,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	isClosed: {
-		label: 'Fermé',
+		label: translate('isClosed'),
 		type: 'checkbox',
 		propName: 'isClosed',
 		defaultValue: false,
@@ -732,15 +734,15 @@ export const SETTINGS_CONFIG = {
 		group: 'line-bools'
 	},
 	arrowStyle: {
-		label: 'Flèches',
+		label: translate('arrowStyle'),
 		type: 'select',
 		propName: 'arrow',
 		defaultValue: 'none',
 		options: {
-			none: 'Aucune',
-			'->': 'Fin',
-			'<-': 'Début',
-			'<->': 'Les deux',
+			none: translate('none'),
+			'->': translate('->'),
+			'<-': translate('<-'),
+			'<->': translate('<->'),
 		},
 		tikzValue: (v) => v === 'none' ? null : v,
 		excludeFrom: ['text', 'grid', 'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac', 'lamp', 'switch', 'ground', 'lens_convex', 'lens_concave', 'mirror', 'logic_and', 'logic_or', 'logic_not', 'flow_start', 'flow_process', 'flow_decision'],
@@ -748,24 +750,24 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	arrowHead: {
-		label: 'Pointe',
+		label: translate('arrowHead'),
 		type: 'select',
 		propName: 'arrowHead',
 		defaultValue: 'stealth',
 		options: {
-			'stealth': 'Stealth',
-			'latex': 'LaTeX',
-			'to': 'Standard',
-			'triangle 45': 'Triangle',
-			'circle': 'Cercle',
-			'diamond': 'Losange'
+			'stealth': translate('stealth'),
+			'latex': translate('latex'),
+			'to': translate('to'),
+			'triangle 45': translate('triangle 45'),
+			'circle': translate('circle'),
+			'diamond': translate('diamond')
 		},
 		tikzValue: (v) => null,
 		excludeFrom: ['text', 'grid'],
 		group: 'arrows-main'
 	},
 	arrowScale: {
-		label: 'Taille Pointe',
+		label: translate('arrowScale'),
 		type: 'range',
 		propName: 'arrowScale',
 		defaultValue: 1,
@@ -776,23 +778,23 @@ export const SETTINGS_CONFIG = {
 		group: 'arrows-size'
 	},
 	fillType: {
-		label: 'Remplissage',
+		label: translate('fillType'),
 		type: 'select',
 		propName: 'fillType',
 		defaultValue: 'none',
 		options: {
-			'none': 'Aucun',
-			'solid': 'Uni',
-			'linear': 'Linéaire',
-			'radial': 'Radial',
-			'ball': 'Ball'
+			'none': translate('none'),
+			'solid': translate('solid'),
+			'linear': translate('linear'),
+			'radial': translate('radial'),
+			'ball': translate('ball')
 		},
 		tikzValue: (v) => null,
 		group: 'fill-main',
 		groupOptions: { type: 'row' }
 	},
 	shadingAngle: {
-		label: 'Angle',
+		label: translate('shadingAngle'),
 		type: 'number',
 		propName: 'shadingAngle',
 		defaultValue: 0,
@@ -801,7 +803,7 @@ export const SETTINGS_CONFIG = {
 		group: 'fill-main'
 	},
 	fillColor: {
-		label: 'Couleur 1',
+		label: translate('fillColor'),
 		type: 'color',
 		propName: 'fill',
 		defaultValue: '#5e6ad2',
@@ -810,7 +812,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	fillColor2: {
-		label: 'Couleur 2',
+		label: translate('fillColor2'),
 		type: 'color',
 		propName: 'fill2',
 		defaultValue: '#ffffff',
@@ -818,7 +820,7 @@ export const SETTINGS_CONFIG = {
 		group: 'fill-colors'
 	},
 	cornerRadius: {
-		label: 'Arrondi',
+		label: translate('cornerRadius'),
 		type: 'range',
 		propName: 'cornerRadius',
 		defaultValue: 5,
@@ -829,7 +831,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	smoothness: {
-		label: 'Lissage',
+		label: translate('smoothness'),
 		type: 'range',
 		propName: 'tension',
 		defaultValue: 0.7,
@@ -840,20 +842,20 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-smooth'
 	},
 	freehandMode: {
-		label: 'Mode Traçé',
+		label: translate('freehandMode'),
 		type: 'select',
 		propName: 'freehandMode',
 		defaultValue: 'smooth',
 		options: {
-			'smooth': 'Lissé',
-			'sharp': 'Brut',
-			'rounded': 'Arrondi'
+			'smooth': translate('smooth'),
+			'sharp': translate('sharp'),
+			'rounded': translate('rounded')
 		},
 		tikzValue: (v) => null,
 		group: 'geo-mode'
 	},
 	simplifyTolerance: {
-		label: 'Simplification',
+		label: translate('simplifyTolerance'),
 		type: 'range',
 		propName: 'simplifyTolerance',
 		defaultValue: 2,
@@ -863,7 +865,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-mode'
 	},
 	polySides: {
-		label: 'Côtés',
+		label: translate('polySides'),
 		type: 'range',
 		propName: 'polySides',
 		defaultValue: 5,
@@ -874,7 +876,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	starPoints: {
-		label: 'Pointes',
+		label: translate('starPoints'),
 		type: 'range',
 		propName: 'starPoints',
 		defaultValue: 5,
@@ -884,7 +886,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-poly'
 	},
 	starRatio: {
-		label: 'Ratio Étoile',
+		label: translate('starRatio'),
 		type: 'range',
 		propName: 'starRatio',
 		defaultValue: 0.5,
@@ -895,7 +897,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	gridStep: {
-		label: 'Pas Grille',
+		label: translate('gridStep'),
 		type: 'range',
 		propName: 'gridStep',
 		defaultValue: 0.5,
@@ -905,22 +907,22 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-ratio'
 	},
 	waveType: {
-		label: 'Type Onde',
+		label: translate('waveType'),
 		type: 'select',
 		propName: 'waveType',
 		defaultValue: 'sine',
 		options: {
-			'sine': 'Sinus',
-			'triangle': 'Triangle',
-			'square': 'Carré',
-			'sawtooth': 'Scie'
+			'sine': translate('sine'),
+			'triangle': translate('triangle'),
+			'square': translate('square'),
+			'sawtooth': translate('sawtooth')
 		},
 		tikzValue: (v) => null,
 		group: 'geo-wave',
 		groupOptions: { type: 'row' }
 	},
 	waveAmplitude: {
-		label: 'Amplitude',
+		label: translate('waveAmplitude'),
 		type: 'range',
 		propName: 'waveAmplitude',
 		defaultValue: 0.5,
@@ -931,7 +933,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	waveLength: {
-		label: 'Longueur',
+		label: translate('waveLength'),
 		type: 'range',
 		propName: 'waveLength',
 		defaultValue: 1,
@@ -941,7 +943,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-wave-props'
 	},
 	pointSize: {
-		label: 'Taille Point',
+		label: translate('pointSize'),
 		type: 'range',
 		propName: 'pointSize',
 		defaultValue: 3,
@@ -952,21 +954,21 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	pointType: {
-		label: 'Style Point',
+		label: translate('pointType'),
 		type: 'select',
 		propName: 'pointType',
 		defaultValue: 'dot',
 		options: {
-			'dot': 'Plein',
-			'circle': 'Vide',
-			'cross': 'Croix',
-			'plus': 'Plus'
+			'dot': translate('dot'),
+			'circle': translate('circle'),
+			'cross': translate('cross'),
+			'plus': translate('plus')
 		},
 		tikzValue: (v) => null,
 		group: 'geo-point'
 	},
 	textString: {
-		label: 'Contenu Texte',
+		label: translate('textString'),
 		type: 'textarea',
 		propName: 'text',
 		defaultValue: '',
@@ -974,80 +976,80 @@ export const SETTINGS_CONFIG = {
 		group: 'text-content'
 	},
 	textFont: {
-		label: 'Police',
+		label: translate('textFont'),
 		type: 'select',
 		propName: 'textFont',
 		defaultValue: 'sans',
 		options: {
-			'serif': 'Serif',
-			'sans': 'Sans',
-			'mono': 'Mono'
+			'serif': translate('serif'),
+			'sans': translate('sans'),
+			'mono': translate('mono')
 		},
 		tikzValue: (v) => null,
 		group: 'text-font',
 		groupOptions: { type: 'row' }
 	},
 	textSize: {
-		label: 'Taille',
+		label: translate('textSize'),
 		type: 'select',
 		propName: 'textSize',
 		defaultValue: 'normalsize',
 		options: {
-			'tiny': 'Tiny',
-			'scriptsize': 'Script',
-			'footnotesize': 'Foot',
-			'small': 'Small',
-			'normalsize': 'Normal',
-			'large': 'Large',
-			'Large': 'Large+',
-			'LARGE': 'LARGE',
-			'huge': 'Huge',
-			'Huge': 'Huge+'
+			'tiny': translate('tiny'),
+			'scriptsize': translate('scriptsize'),
+			'footnotesize': translate('footnotesize'),
+			'small': translate('small'),
+			'normalsize': translate('normalsize'),
+			'large': translate('large'),
+			'Large': translate('Large'),
+			'LARGE': translate('LARGE'),
+			'huge': translate('huge'),
+			'Huge': translate('Huge')
 		},
 		tikzKey: 'font',
 		tikzValue: (v) => v === 'normalsize' ? null : `\\${v}`,
 		group: 'text-font'
 	},
 	textWeight: {
-		label: 'Graisse',
+		label: translate('textWeight'),
 		type: 'select',
 		propName: 'textWeight',
 		defaultValue: 'none',
 		options: {
-			'none': 'Normal',
-			'bfseries': 'Gras'
+			'none': translate('none'),
+			'bfseries': translate('bfseries')
 		},
 		tikzValue: (v) => null,
 		group: 'text-style',
 		groupOptions: { type: 'row' }
 	},
 	textSlant: {
-		label: 'Style',
+		label: translate('textSlant'),
 		type: 'select',
 		propName: 'textSlant',
 		defaultValue: 'none',
 		options: {
-			'none': 'Normal',
-			'itshape': 'Italique'
+			'none': translate('none'),
+			'itshape': translate('itshape')
 		},
 		tikzValue: (v) => null,
 		group: 'text-style'
 	},
 	textAnchor: {
-		label: 'Ancrage',
+		label: translate('textAnchor'),
 		type: 'select',
 		propName: 'textAnchor',
 		defaultValue: 'center',
 		options: {
-			'center': 'Centre',
-			'north': 'Nord',
-			'south': 'Sud',
-			'east': 'Est',
-			'west': 'Ouest',
-			'north east': 'NE',
-			'north west': 'NO',
-			'south east': 'SE',
-			'south west': 'SO'
+			'center': translate('center'),
+			'north': translate('north'),
+			'south': translate('south'),
+			'east': translate('east'),
+			'west': translate('west'),
+			'north east': translate('north east'),
+			'north west': translate('north west'),
+			'south east': translate('south east'),
+			'south west': translate('south west')
 		},
 		tikzKey: 'anchor',
 		tikzValue: (v) => v === 'center' ? null : v,
@@ -1055,22 +1057,22 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	textAlign: {
-		label: 'Alignement',
+		label: translate('textAlign'),
 		type: 'select',
 		propName: 'textAlign',
 		defaultValue: 'center',
 		options: {
-			'left': 'Gauche',
-			'center': 'Centre',
-			'right': 'Droite',
-			'justify': 'Justifié'
+			'left': translate('left'),
+			'center': translate('center'),
+			'right': translate('right'),
+			'justify': translate('justify')
 		},
 		tikzKey: 'align',
 		tikzValue: (v) => v === 'none' ? null : v,
 		group: 'text-align'
 	},
 	textWidth: {
-		label: 'Largeur (cm)',
+		label: translate('textWidth'),
 		type: 'range',
 		propName: 'textWidth',
 		defaultValue: 0,
@@ -1083,7 +1085,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	textRotate: {
-		label: 'Rotation Txt',
+		label: translate('textRotate'),
 		type: 'number',
 		propName: 'textRotate',
 		defaultValue: 0,
@@ -1091,7 +1093,7 @@ export const SETTINGS_CONFIG = {
 		group: 'text-pos'
 	},
 	plotFunction: {
-		label: 'Fonction f(x)',
+		label: translate('plotFunction'),
 		type: 'text',
 		propName: 'plotFunction',
 		defaultValue: 'sin(x)',
@@ -1099,7 +1101,7 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-func'
 	},
 	plotDomainMin: {
-		label: 'Min X',
+		label: translate('plotDomainMin'),
 		type: 'number',
 		propName: 'plotDomainMin',
 		defaultValue: -5,
@@ -1109,7 +1111,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	plotDomainMax: {
-		label: 'Max X',
+		label: translate('plotDomainMax'),
 		type: 'number',
 		propName: 'plotDomainMax',
 		defaultValue: 5,
@@ -1118,7 +1120,7 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-domain'
 	},
 	plotYMin: {
-		label: 'Min Y',
+		label: translate('plotYMin'),
 		type: 'text',
 		propName: 'plotYMin',
 		defaultValue: '',
@@ -1127,7 +1129,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	plotYMax: {
-		label: 'Max Y',
+		label: translate('plotYMax'),
 		type: 'text',
 		propName: 'plotYMax',
 		defaultValue: '',
@@ -1135,7 +1137,7 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-range'
 	},
 	plotSamples: {
-		label: 'Échantillons',
+		label: translate('plotSamples'),
 		type: 'range',
 		propName: 'plotSamples',
 		defaultValue: 100,
@@ -1145,36 +1147,36 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-detail'
 	},
 	plotGrid: {
-		label: 'Grille',
+		label: translate('plotGrid'),
 		type: 'select',
 		propName: 'plotGrid',
 		defaultValue: 'major',
 		options: {
-			'none': 'Aucune',
-			'major': 'Principale',
-			'both': 'Complète'
+			'none': translate('none'),
+			'major': translate('major'),
+			'both': translate('both')
 		},
 		tikzValue: (v) => null,
 		group: 'plot-style',
 		groupOptions: { type: 'row' }
 	},
 	plotAxisLines: {
-		label: 'Axes',
+		label: translate('plotAxisLines'),
 		type: 'select',
 		propName: 'plotAxisLines',
 		defaultValue: 'box',
 		options: {
-			'box': 'Boîte',
-			'left': 'Gauche/Bas',
-			'middle': 'Croix',
-			'center': 'Centré',
-			'none': 'Aucun'
+			'box': translate('box'),
+			'left': translate('left'),
+			'middle': translate('middle'),
+			'center': translate('center'),
+			'none': translate('none')
 		},
 		tikzValue: (v) => null,
 		group: 'plot-style'
 	},
 	plotXLabel: {
-		label: 'Label X',
+		label: translate('plotXLabel'),
 		type: 'text',
 		propName: 'plotXLabel',
 		defaultValue: 'x',
@@ -1183,7 +1185,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	plotYLabel: {
-		label: 'Label Y',
+		label: translate('plotYLabel'),
 		type: 'text',
 		propName: 'plotYLabel',
 		defaultValue: 'f(x)',
@@ -1191,25 +1193,25 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-labels'
 	},
 	plotMark: {
-		label: 'Marqueur',
+		label: translate('plotMark'),
 		type: 'select',
 		propName: 'plotMark',
 		defaultValue: 'none',
 		options: {
-			'none': 'Aucun',
-			'*': 'Point',
-			'x': 'Croix',
-			'+': 'Plus',
-			'o': 'Cercle',
-			'square': 'Carré',
-			'triangle': 'Triangle'
+			'none': translate('none'),
+			'*': translate('point'),
+			'x': translate('cross'),
+			'+': translate('plus'),
+			'o': translate('circle'),
+			'square': translate('rect'),
+			'triangle': translate('triangle')
 		},
 		tikzValue: (v) => null,
 		group: 'plot-marks',
 		groupOptions: { type: 'row' }
 	},
 	plotMarkSize: {
-		label: 'Taille Marq.',
+		label: translate('plotMarkSize'),
 		type: 'range',
 		propName: 'plotMarkSize',
 		defaultValue: 2,
@@ -1219,7 +1221,7 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-marks'
 	},
 	plotLegend: {
-		label: 'Légende',
+		label: translate('plotLegend'),
 		type: 'text',
 		propName: 'plotLegend',
 		defaultValue: '',
@@ -1227,22 +1229,22 @@ export const SETTINGS_CONFIG = {
 		group: 'plot-legend'
 	},
 	plotLegendPos: {
-		label: 'Pos. Légende',
+		label: translate('plotLegendPos'),
 		type: 'select',
 		propName: 'plotLegendPos',
 		defaultValue: 'north east',
 		options: {
-			'north east': 'Nord-Est',
-			'north west': 'Nord-Ouest',
-			'south east': 'Sud-Est',
-			'south west': 'Sud-Ouest',
-			'outer north east': 'Ext. NE'
+			'north east': translate('north east'),
+			'north west': translate('north west'),
+			'south east': translate('south east'),
+			'south west': translate('south west'),
+			'outer north east': translate('outer north east')
 		},
 		tikzValue: (v) => null,
 		group: 'plot-legend'
 	},
 	depth3d: {
-		label: 'Profondeur',
+		label: translate('depth3d'),
 		type: 'range',
 		propName: 'depth3d',
 		defaultValue: 20,
@@ -1253,7 +1255,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	angle3d: {
-		label: 'Angle 3D',
+		label: translate('angle3d'),
 		type: 'range',
 		propName: 'angle3d',
 		defaultValue: 45,
@@ -1263,7 +1265,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-3d'
 	},
 	axisLenX: {
-		label: 'Longueur X',
+		label: translate('axisLenX'),
 		type: 'range',
 		propName: 'axisLenX',
 		defaultValue: 80,
@@ -1274,7 +1276,7 @@ export const SETTINGS_CONFIG = {
 		groupOptions: { type: 'row' }
 	},
 	axisLenY: {
-		label: 'Longueur Y',
+		label: translate('axisLenY'),
 		type: 'range',
 		propName: 'axisLenY',
 		defaultValue: 60,
@@ -1284,7 +1286,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-3d-axes'
 	},
 	axisLenZ: {
-		label: 'Longueur Z',
+		label: translate('axisLenZ'),
 		type: 'range',
 		propName: 'axisLenZ',
 		defaultValue: 80,
@@ -1294,7 +1296,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-3d-axes'
 	},
 	wedgeAngle: {
-		label: 'Angle Pente',
+		label: translate('wedgeAngle'),
 		type: 'range',
 		propName: 'wedgeAngle',
 		defaultValue: 30,
@@ -1304,7 +1306,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-poly'
 	},
 	hatchAngle: {
-		label: 'Angle Hachures',
+		label: translate('hatchAngle'),
 		type: 'range',
 		propName: 'hatchAngle',
 		defaultValue: 45,
@@ -1314,7 +1316,7 @@ export const SETTINGS_CONFIG = {
 		group: 'fill-main'
 	},
 	damperWidth: {
-		label: 'Largeur Amort.',
+		label: translate('damperWidth'),
 		type: 'range',
 		propName: 'damperWidth',
 		defaultValue: 10,
@@ -1324,7 +1326,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-ratio'
 	},
 	swingAngle: {
-		label: 'Angle Pendule',
+		label: translate('swingAngle'),
 		type: 'range',
 		propName: 'swingAngle',
 		defaultValue: -30,
@@ -1334,7 +1336,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-poly'
 	},
 	pendulumLength: {
-		label: 'Longueur Fil',
+		label: translate('pendulumLength'),
 		type: 'range',
 		propName: 'pendulumLength',
 		defaultValue: 100,
@@ -1344,7 +1346,7 @@ export const SETTINGS_CONFIG = {
 		group: 'geo-poly'
 	},
 	bobSize: {
-		label: 'Taille Masse',
+		label: translate('bobSize'),
 		type: 'range',
 		propName: 'bobSize',
 		defaultValue: 10,

@@ -1,5 +1,5 @@
 import { app, initTools, loadFromLocalStorage, pushState, undo, redo, clearAll, copySelection, cutSelection, pasteSelection, activeGuides, setActiveGuides, deserializeState } from './state.js';
-import { createToolsUI, createGlobalSettingsUI, createSettingsUI, setupCollapsibles, setupTabs, setupTextEditing, setupOutputInteraction, resizeCanvas, setTool, updateSetting, updateUIFromShape, updateUIFromGlobalSettings, updateUndoRedoUI, canvas, output, coordsDisplay, copyToClipboard } from './ui.js';
+import { createToolsUI, createGlobalSettingsUI, createSettingsUI, setupCollapsibles, setupTabs, setupTextEditing, setupOutputInteraction, resizeCanvas, setTool, updateSetting, updateUIFromShape, updateUIFromGlobalSettings, updateUndoRedoUI, canvas, output, coordsDisplay, copyToClipboard, setupLanguageSelector } from './ui.js';
 import { render } from './renderer.js';
 import { generateCode } from './latexGenerator.js';
 import { getPos, getSelectionBounds, toTikZ } from './utils.js';
@@ -7,6 +7,7 @@ import { ShapeManager, getShapeAtPos } from './shapes.js';
 import { GLOBAL_SETTINGS_CONFIG, UI_CONSTANTS, TOOL_CONFIG, SETTINGS_CONFIG } from './config.js';
 import { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool, PainterTool } from './tools.js';
 import { alignSelected, distributeSelected, matchSize, rotateSelected, generateInitialState, resetDrawingStyle } from './state.js';
+import { setLanguage, getLanguage } from './i18n.js';
 
 const initialState = generateInitialState();
 
@@ -154,6 +155,8 @@ function setupKeyboardShortcuts() {
 
 // Fonction d'initialisation principale
 function init() {
+	setLanguage('fr');
+
 	createToolsUI();
 	createGlobalSettingsUI();
 	createSettingsUI();
@@ -161,6 +164,7 @@ function init() {
 	setupTabs();
 	setupTextEditing();
 	setupOutputInteraction();
+	setupLanguageSelector();
 	
 	document.getElementById('global-settings-container').addEventListener('input', (e) => {
 		if (e.target.dataset.global) {
@@ -271,6 +275,11 @@ function init() {
 	}, { passive: false });
 	
 	resizeCanvas();
+	
+	const storedLang = localStorage.getItem('tikz_generator_lang');
+	if (storedLang) {
+		setLanguage(storedLang);
+	}
 
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('data')) {

@@ -6,6 +6,7 @@ import { toTikZ, tikzToPx, worldToScreen, getPos } from './utils.js';
 import { ShapeManager, getShapeAtPos } from './shapes.js';
 import { alignSelected, distributeSelected, matchSize, rotateSelected } from './state.js';
 import { EyedropperTool } from './tools.js';
+import { translate, LANGUAGES, setLanguage, getLanguage } from './i18n.js';
 
 // Références DOM exportées
 export const canvas = document.getElementById('canvas');
@@ -33,7 +34,7 @@ export function createToolsUI() {
 		button.className = 'tool-btn';
 		button.dataset.tool = toolId;
 		button.innerHTML = config.icon;
-		button.title = config.displayName;
+		button.title = translate(toolId);
 		
 		button.addEventListener('click', () => setTool(toolId));
 		
@@ -53,7 +54,7 @@ export function createSettingsUI() {
 	resetBtnContainer.style.marginBottom = '15px';
 	resetBtnContainer.innerHTML = `
 		<button id="resetStyleBtn" class="btn btn-secondary btn-full">
-			<i class="ti ti-refresh"></i> Réinitialiser Style
+			<i class="ti ti-refresh"></i> ${translate('resetStyle')}
 		</button>
 	`;
 	container.appendChild(resetBtnContainer);
@@ -89,29 +90,30 @@ export function createSettingsUI() {
 			controlWrapper.id = `wrapper-${key}`;
 			
 			let controlHtml = '';
+			const labelText = translate(key);
 
 			switch (config.type) {
 				case 'textarea':
 					controlHtml = `
-						<label>${config.label}</label>
+						<label>${labelText}</label>
 						<textarea id="${key}" data-setting="${key}" class="settings-input" rows="2"></textarea>`;
 					break;
 				case 'text':
 					controlHtml = `
-						<label>${config.label}</label>
+						<label>${labelText}</label>
 						<input type="text" id="${key}" data-setting="${key}" class="settings-input">`;
 					break;
 				case 'number':
 					controlHtml = `
-						<label>${config.label}</label>
+						<label>${labelText}</label>
 						<input type="number" id="${key}" data-setting="${key}" class="settings-input" step="${config.step || 'any'}">`;
 					break;
 				case 'select':
 					controlHtml = `
-						<label>${config.label}</label>
+						<label>${labelText}</label>
 						<div class="select-wrapper">
 							<select id="${key}" data-setting="${key}">
-								${Object.entries(config.options).map(([val, text]) => `<option value="${val}">${text}</option>`).join('')}
+								${Object.entries(config.options).map(([val, text]) => `<option value="${val}">${translate(text)}</option>`).join('')}
 							</select>
 						</div>`;
 					break;
@@ -121,7 +123,7 @@ export function createSettingsUI() {
 					const displayValue = isPercent ? `${Math.round(val * 100)}${config.unit}` : `${val}${config.unit}`;
 					controlHtml = `
 						<div class="slider-row">
-							<label>${config.label}</label>
+							<label>${labelText}</label>
 							<span id="${key}Value" class="value-badge">${displayValue}</span>
 						</div>
 						<input type="range" id="${key}" data-setting="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${val}">`;
@@ -129,13 +131,13 @@ export function createSettingsUI() {
 				case 'checkbox':
 					controlHtml = `
 						<div style="display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px;">
-							<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${config.label}</label>
+							<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${labelText}</label>
 							<input type="checkbox" id="${key}" data-setting="${key}">
 						</div>`;
 					break;
 				case 'color':
 					controlHtml = `
-						<label>${config.label}</label>
+						<label>${labelText}</label>
 						<input type="color" id="${key}" data-setting="${key}" style="height:32px; width:100%; border-radius:4px;">`;
 					break;
 			}
@@ -156,29 +158,32 @@ export function createGlobalSettingsUI() {
 		wrapper.className = 'control-group';
 		
 		let html = '';
+		
+		const labelText = translate(key);
+		
 		if (config.type === 'text') {
-			html = `<label>${config.label}</label><input type="text" id="${key}" data-global="${key}" value="${config.defaultValue}">`;
+			html = `<label>${labelText}</label><input type="text" id="${key}" data-global="${key}" value="${config.defaultValue}">`;
 		} else if (config.type === 'range') {
 			html = `
 				<div class="slider-row">
-					<label>${config.label}</label>
+					<label>${labelText}</label>
 					<span id="${key}Value" class="value-badge">${config.defaultValue}${config.unit}</span>
 				</div>
 				<input type="range" id="${key}" data-global="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.defaultValue}">`;
 		} else if (config.type === 'color') {
-			html = `<label>${config.label}</label><input type="color" id="${key}" data-global="${key}" value="${config.defaultValue}" style="height:32px; width:100%; border-radius:4px;">`;
+			html = `<label>${labelText}</label><input type="color" id="${key}" data-global="${key}" value="${config.defaultValue}" style="height:32px; width:100%; border-radius:4px;">`;
 		} else if (config.type === 'select') {
 			html = `
-				<label>${config.label}</label>
+				<label>${labelText}</label>
 				<div class="select-wrapper">
 					<select id="${key}" data-global="${key}">
-						${Object.entries(config.options).map(([val, text]) => `<option value="${val}" ${val === config.defaultValue ? 'selected' : ''}>${text}</option>`).join('')}
+						${Object.entries(config.options).map(([val, text]) => `<option value="${val}" ${val === config.defaultValue ? 'selected' : ''}>${translate(text)}</option>`).join('')}
 					</select>
 				</div>`;
 		} else if (config.type === 'checkbox') {
 			html = `
 				<div style="display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px;">
-					<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${config.label}</label>
+					<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${labelText}</label>
 					<input type="checkbox" id="${key}" data-global="${key}" ${config.defaultValue ? 'checked' : ''}>
 				</div>`;
 		}
@@ -536,7 +541,7 @@ export function copyToClipboard() {
 
 	const showFeedback = (success) => {
 		if (success) {
-			copyBtn.innerHTML = '<i class="ti ti-check"></i> Copié !';
+			copyBtn.innerHTML = `<i class="ti ti-check"></i> ${translate('copied')}`;
 			copyBtn.classList.add('btn-copied');
 			
 			setTimeout(() => {
@@ -546,7 +551,7 @@ export function copyToClipboard() {
 			}, 2000);
 
 		} else {
-			copyBtn.innerHTML = '<i class="ti ti-x"></i> Erreur';
+			copyBtn.innerHTML = `<i class="ti ti-x"></i> ${translate('error')}`;
 			copyBtn.classList.remove('btn-primary', 'btn-copied');
 			copyBtn.classList.add('btn-danger');
 
@@ -831,4 +836,76 @@ export function setupTextEditing() {
 export function updateUndoRedoUI() {
 	document.getElementById('undoBtn').disabled = app.historyIndex <= 0;
 	document.getElementById('redoBtn').disabled = app.historyIndex >= app.history.length - 1;
+}
+
+export function setupLanguageSelector() {
+	const langSelect = document.createElement('select');
+	langSelect.id = 'language-selector';
+	
+	for (const langCode in LANGUAGES) {
+		const option = document.createElement('option');
+		option.value = langCode;
+		option.textContent = langCode.toUpperCase();
+		langSelect.appendChild(option);
+	}
+
+	langSelect.value = getLanguage();
+	
+	const container = document.getElementById('lang-container');
+	if (container) {
+		container.innerHTML = '';
+		
+		const icon = document.createElement('i');
+		icon.className = 'ti ti-language';
+		icon.style.marginRight = '6px';
+		icon.style.fontSize = '14px';
+		icon.style.color = 'var(--text-muted)';
+		
+		container.appendChild(icon);
+		container.appendChild(langSelect);
+	}
+	
+	langSelect.addEventListener('change', (e) => {
+		const newLang = e.target.value;
+		if (setLanguage(newLang)) {
+			localStorage.setItem('tikz_generator_lang', newLang);
+			updateUIAfterLanguageChange();
+		}
+	});
+
+	document.addEventListener('languageChange', updateUIAfterLanguageChange);
+}
+
+function updateUIAfterLanguageChange() {
+	createToolsUI();
+	createGlobalSettingsUI();
+	createSettingsUI();
+
+	document.querySelectorAll('[data-i18n]').forEach(el => {
+		el.textContent = translate(el.dataset.i18n);
+	});
+	
+	document.querySelectorAll('[data-i18n-title]').forEach(el => {
+		el.title = translate(el.dataset.i18nTitle);
+	});
+
+	document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
+		el.placeholder = translate(el.dataset.i18nPlaceholder);
+	});
+
+	const headerTitle = document.getElementById('header-title');
+	if (headerTitle) {
+		headerTitle.textContent = translate('headerTitle');
+	}
+
+	updateUIFromGlobalSettings();
+	updateUIFromDrawingStyle();
+	
+	generateCode();
+
+	if (app.selectedShape) {
+		updateUIFromShape(app.selectedShape);
+	} else if (app.activeTool) {
+		updateSettingsVisibility(app.activeTool.shapeType || 'select', null);
+	}
 }

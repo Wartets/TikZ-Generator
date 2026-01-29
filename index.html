@@ -42,14 +42,14 @@
 <body>
 	<div class="sidebar">
 		<div class="header">
-			<h1>TikZ Generator (beta - retours appréciés)</h1>
+			<h1 id="header-title">TikZ Generator (beta - retours appréciés)</h1>
 			<div id="tools-general" class="control-bar"></div>
 		</div>
 		
 		<div class="scroll-content">
 			<div class="panel-group">
 				<div class="panel-header collapsed">
-					<span>Configuration globale</span>
+					<span data-i18n="globalConfig">Configuration globale</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
 				<div id="global-settings-container" class="panel-body property-list" style="display: none;"></div>
@@ -57,7 +57,7 @@
 			
 			<div class="panel-group">
 				<div class="panel-header">
-					<span>Propriétés</span>
+					<span data-i18n="properties">Propriétés</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
 				<div id="geometry-section" class="panel-body">
@@ -68,43 +68,43 @@
 			<div class="panel-body" style="display: none;">
 				<div class="control-group" style="margin-bottom: 10px;">
 					<div class="fill-toggle">
-						<label style="margin:0; font-size: 0.75rem; flex:1; cursor:pointer;" for="alignRelative">Aligner sur la page</label>
+						<label style="margin:0; font-size: 0.75rem; flex:1; cursor:pointer;" for="alignRelative" data-i18n="alignPage">Aligner sur la page</label>
 						<input type="checkbox" id="alignRelative">
 					</div>
 				</div>
 
-				<div class="section-title" style="margin-top: 5px; margin-bottom: 5px;">Alignement</div>
+				<div class="section-title" style="margin-top: 5px; margin-bottom: 5px;" data-i18n="alignment">Alignement</div>
 				<div class="tools-grid small-icons">
-					<button class="tool-btn" id="alignLeft" title="Aligner à gauche"><i class="ti ti-layout-align-left"></i></button>
-					<button class="tool-btn" id="alignCenter" title="Centrer horizontalement"><i class="ti ti-layout-align-center"></i></button>
-					<button class="tool-btn" id="alignRight" title="Aligner à droite"><i class="ti ti-layout-align-right"></i></button>
-					<button class="tool-btn" id="alignTop" title="Aligner en haut"><i class="ti ti-layout-align-top"></i></button>
-					<button class="tool-btn" id="alignMiddle" title="Centrer verticalement"><i class="ti ti-layout-align-middle"></i></button>
-					<button class="tool-btn" id="alignBottom" title="Aligner en bas"><i class="ti ti-layout-align-bottom"></i></button>
+					<button class="tool-btn" id="alignLeft" data-i18n-title="alignLeft" title="Aligner à gauche"><i class="ti ti-layout-align-left"></i></button>
+					<button class="tool-btn" id="alignCenter" data-i18n-title="alignCenter" title="Centrer horizontalement"><i class="ti ti-layout-align-center"></i></button>
+					<button class="tool-btn" id="alignRight" data-i18n-title="alignRight" title="Aligner à droite"><i class="ti ti-layout-align-right"></i></button>
+					<button class="tool-btn" id="alignTop" data-i18n-title="alignTop" title="Aligner en haut"><i class="ti ti-layout-align-top"></i></button>
+					<button class="tool-btn" id="alignMiddle" data-i18n-title="alignMiddle" title="Centrer verticalement"><i class="ti ti-layout-align-middle"></i></button>
+					<button class="tool-btn" id="alignBottom" data-i18n-title="alignBottom" title="Aligner en bas"><i class="ti ti-layout-align-bottom"></i></button>
 				</div>
 
-				<div class="section-title" style="margin-top: 10px; margin-bottom: 5px;">Distribution</div>
+				<div class="section-title" style="margin-top: 10px; margin-bottom: 5px;" data-i18n="distribution">Distribution</div>
 				<div class="control-row" style="margin-bottom: 5px;">
-					<input type="number" id="distSpacing" placeholder="Auto" class="geo-input" style="width: 60px;" title="Espacement en cm (vide = auto)">
+					<input type="number" id="distSpacing" placeholder="Auto" data-i18n-placeholder="distSpacingPlaceholder" class="geo-input" style="width: 60px;" data-i18n-title="distSpacingTitle" title="Espacement en cm (vide = auto)">
 					<span style="font-size: 0.7rem; align-self: center; color: var(--text-muted);">cm</span>
 				</div>
 				<div class="tools-grid small-icons" style="grid-template-columns: repeat(2, 1fr);">
-					<button class="tool-btn" id="distH" title="Distribuer horizontalement"><i class="ti ti-arrows-horizontal"></i></button>
-					<button class="tool-btn" id="distV" title="Distribuer verticalement"><i class="ti ti-arrows-vertical"></i></button>
+					<button class="tool-btn" id="distH" data-i18n-title="distH" title="Distribuer horizontalement"><i class="ti ti-arrows-horizontal"></i></button>
+					<button class="tool-btn" id="distV" data-i18n-title="distV" title="Distribuer verticalement"><i class="ti ti-arrows-vertical"></i></button>
 				</div>
 
-				<div class="section-title" style="margin-top: 10px; margin-bottom: 5px;">Taille & Rotation</div>
+				<div class="section-title" style="margin-top: 10px; margin-bottom: 5px;" data-i18n="sizeRotation">Taille & Rotation</div>
 				<div class="tools-grid small-icons">
-					<button class="tool-btn" id="matchWidth" title="Même largeur"><i class="ti ti-arrow-autofit-width"></i></button>
-					<button class="tool-btn" id="matchHeight" title="Même hauteur"><i class="ti ti-arrow-autofit-height"></i></button>
-					<button class="tool-btn" id="rotateCCW" title="Rotation -90°"><i class="ti ti-rotate-2"></i></button>
-					<button class="tool-btn" id="rotateCW" title="Rotation +90°"><i class="ti ti-rotate-clockwise-2"></i></button>
+					<button class="tool-btn" id="matchWidth" data-i18n-title="matchWidth" title="Même largeur"><i class="ti ti-arrow-autofit-width"></i></button>
+					<button class="tool-btn" id="matchHeight" data-i18n-title="matchHeight" title="Même hauteur"><i class="ti ti-arrow-autofit-height"></i></button>
+					<button class="tool-btn" id="rotateCCW" data-i18n-title="rotateCCW" title="Rotation -90°"><i class="ti ti-rotate-2"></i></button>
+					<button class="tool-btn" id="rotateCW" data-i18n-title="rotateCW" title="Rotation +90°"><i class="ti ti-rotate-clockwise-2"></i></button>
 				</div>
 			</div>
 
 			<div class="panel-group">
 				<div class="panel-header">
-					<span>Outils de dessin</span>
+					<span data-i18n="drawingTools">Outils de dessin</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
 				<div class="panel-body">
@@ -114,17 +114,17 @@
 			
 			<div class="panel-group">
 				<div class="panel-header collapsed">
-					<span>Bibliothèques</span>
+					<span data-i18n="libraries">Bibliothèques</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
 				<div class="panel-body" style="display: none;">
 					<div class="tabs-nav compact text-tabs">
-						<button class="tab-btn active" data-tab="circuits">Circuits</button>
-						<button class="tab-btn" data-tab="optics">Optique</button>
-						<button class="tab-btn" data-tab="logic">Logique</button>
-						<button class="tab-btn" data-tab="flowchart">Flowchart</button>
-						<button class="tab-btn" data-tab="physics">Physique</button>
-						<button class="tab-btn" data-tab="pseudo3d">3D</button>
+						<button class="tab-btn active" data-tab="circuits" data-i18n="tabCircuits">Circuits</button>
+						<button class="tab-btn" data-tab="optics" data-i18n="tabOptics">Optique</button>
+						<button class="tab-btn" data-tab="logic" data-i18n="tabLogic">Logique</button>
+						<button class="tab-btn" data-tab="flowchart" data-i18n="tabFlowchart">Flowchart</button>
+						<button class="tab-btn" data-tab="physics" data-i18n="tabPhysics">Physique</button>
+						<button class="tab-btn" data-tab="pseudo3d" data-i18n="tab3d">3D</button>
 					</div>
 					
 					<div id="tab-circuits" class="tab-content active">
@@ -150,21 +150,21 @@
 
 			<div id="settings-wrapper" class="panel-group">
 				<div class="panel-header">
-					<span>Apparence</span>
+					<span data-i18n="appearance">Apparence</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
 				<div id="settings-container" class="panel-body property-list"></div>
 			</div>
 			
 			<button class="btn-danger" id="clearBtn">
-				<i class="ti ti-trash"></i> Tout effacer
+				<i class="ti ti-trash"></i> <span data-i18n="clearAll">Tout effacer</span>
 			</button>
 		</div>
 
 		<div class="output-area">
 			<div class="output-header">
-				<span>Code LaTeX</span>
-				<button class="btn-xs btn-primary" id="copyBtn"><i class="ti ti-copy"></i> Copier</button>
+				<span data-i18n="latexCode">Code LaTeX</span>
+				<button class="btn-xs btn-primary" id="copyBtn"><i class="ti ti-copy"></i> <span data-i18n="copy">Copier</span></button>
 			</div>
 			<div class="code-editor-container">
 				<pre class="line-numbers"><code id="output" class="language-latex"></code></pre>
@@ -176,11 +176,12 @@
 		<div class="canvas-container">
 			<textarea id="text-editor" style="display: none;"></textarea>
 			<canvas id="canvas"></canvas>
+			<div id="lang-container" class="language-overlay"></div>
 			<div class="canvas-actions">
-				<button class="floating-btn" id="undoBtn" title="Annuler">
+				<button class="floating-btn" id="undoBtn" data-i18n-title="undo" title="Annuler">
 					<i class="ti ti-arrow-back-up"></i>
 				</button>
-				<button class="floating-btn" id="redoBtn" title="Rétablir">
+				<button class="floating-btn" id="redoBtn" data-i18n-title="redo" title="Rétablir">
 					<i class="ti ti-arrow-forward-up"></i>
 				</button>
 			</div>
@@ -191,13 +192,13 @@
 
 		<footer class="site-footer">
 			<div class="footer-content">
-				<p class="copyright">&copy; 2026. Tous droits réservés, projet sous licence <a href="https://github.com/Wartets/TikZ-Generator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-link">MIT <i class="fa-solid fa-arrow-up-right-from-square"></i></a></p>
+				<p class="copyright"><span data-i18n="footerCopyright">Tous droits réservés, projet sous licence</span> <a href="https://github.com/Wartets/TikZ-Generator/blob/main/LICENSE" target="_blank" rel="noopener noreferrer" class="footer-link"><span data-i18n="footerMIT">MIT</span> <i class="fa-solid fa-arrow-up-right-from-square"></i></a></p>
 				<nav class="footer-nav">
-					<span>Conçu par <a href="../Wartets/" target="_blank" rel="noopener noreferrer" class="footer-link">Wartets <i class="fa-solid fa-arrow-up-right-from-square"></i></a></span>
+					<span><span data-i18n="footerDesignedBy">Conçu par</span> <a href="../Wartets/" target="_blank" rel="noopener noreferrer" class="footer-link">Wartets <i class="fa-solid fa-arrow-up-right-from-square"></i></a></span>
 					<span class="divider"></span>
-					<span>Découvrez d’autres projets sur <a href="https://github.com/wartets" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub <i class="fa-brands fa-github"></i></a></span>
+					<span><span data-i18n="footerDiscoverGitHub">Découvrez d’autres projets sur</span> <a href="https://github.com/wartets" target="_blank" rel="noopener noreferrer" class="footer-link">GitHub <i class="fa-brands fa-github"></i></a></span>
 					<span class="divider"></span>
-					<a href="../Wartets/window/index.html" target="_blank" id="xp-portfolio-link" title="Découvrir la version Windows XP">
+					<a href="../Wartets/window/index.html" target="_blank" id="xp-portfolio-link" data-i18n-title="footerDiscoverXP" title="Découvrir la version Windows XP">
 						<img src="https://wartets.github.io/Wartets/img/xp-computer-icon.webp" alt="Icône du portfolio Windows XP">
 					</a>
 				</nav>

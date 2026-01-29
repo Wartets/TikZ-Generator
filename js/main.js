@@ -1,4 +1,4 @@
-import { app, initTools, loadFromLocalStorage, pushState, undo, redo, clearAll, copySelection, cutSelection, pasteSelection, activeGuides, setActiveGuides } from './state.js';
+import { app, initTools, loadFromLocalStorage, pushState, undo, redo, clearAll, copySelection, cutSelection, pasteSelection, activeGuides, setActiveGuides, deserializeState } from './state.js';
 import { createToolsUI, createGlobalSettingsUI, createSettingsUI, setupCollapsibles, setupTabs, setupTextEditing, setupOutputInteraction, resizeCanvas, setTool, updateSetting, updateUIFromShape, updateUIFromGlobalSettings, updateUndoRedoUI, canvas, output, coordsDisplay, copyToClipboard } from './ui.js';
 import { render } from './renderer.js';
 import { generateCode } from './latexGenerator.js';
@@ -272,14 +272,32 @@ function init() {
 	
 	resizeCanvas();
 
-	const loaded = loadFromLocalStorage();
-	if (!loaded) {
-		setTool('select');
-		if (app.history.length === 0) pushState();
+	const urlParams = new URLSearchParams(window.location.search);
+	if (urlParams.has('data')) {
+		const loaded = deserializeState(urlParams.get('data'));
+		if (loaded) {
+			updateUIFromGlobalSettings();
+			pushState();
+			window.history.replaceState({}, document.title, window.location.pathname);
+		} else {
+			loadFromLocalStorage();
+		}
+	} else {
+		const loaded = loadFromLocalStorage();
+		if (!loaded) {
+			setTool('select');
+			if (app.history.length === 0) pushState();
+		} else {
+			updateUIFromGlobalSettings();
+		}
+	}
+
+	if (app.shapes.length === 0) {
 		render();
 		generateCode();
 	} else {
-		updateUIFromGlobalSettings();
+		render();
+		generateCode();
 	}
 	
 	setupKeyboardShortcuts();

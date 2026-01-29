@@ -1,11 +1,10 @@
 import { SETTINGS_CONFIG, GLOBAL_SETTINGS_CONFIG, TOOL_CONFIG, UI_CONSTANTS } from './config.js';
 import { render } from './renderer.js';
-import { updateUIFromShape, updateUndoRedoUI, updateUIFromGlobalSettings, updateUIFromDrawingStyle, setTool } from './ui.js';
+import { updateUIFromShape, updateUndoRedoUI, updateUIFromGlobalSettings, updateUIFromDrawingStyle, setTool, canvas } from './ui.js';
 import { generateCode } from './latexGenerator.js';
 import { ShapeManager } from './shapes.js';
 import { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool } from './tools.js';
 import { getSelectionBounds, screenToWorld } from './utils.js';
-import { canvas } from './ui.js';
 
 export function generateInitialState() {
 	const state = {};
@@ -552,6 +551,270 @@ export function loadFromLocalStorage() {
 		return true;
 	} catch (e) {
 		console.error(e);
+		return false;
+	}
+}
+
+const STYLE_MAP = {
+	stroke: 's', width: 'w', fill: 'f', fillType: 'ft', fill2: 'f2', opacity: 'o', dash: 'd',
+	rotate: 'r', arrow: 'a', arrowHead: 'ah', arrowScale: 'as', double: 'db',
+	text: 'tx', textSize: 'ts', textFont: 'tf', textWeight: 'tw', textSlant: 'tl',
+	textAnchor: 'ta', textAlign: 'tn', textWidth: 'td', textRotate: 'tr',
+	gridStep: 'gs', polySides: 'ps', starPoints: 'sp', starRatio: 'sr',
+	simplifyTolerance: 'st', freehandMode: 'fm', cornerRadius: 'cr', isClosed: 'ic',
+	tension: 'tn', pointSize: 'pz', pointType: 'pt',
+	waveType: 'wt', waveAmplitude: 'wa', waveLength: 'wl',
+	plotFunction: 'pf', plotDomainMin: 'pmn', plotDomainMax: 'pmx', plotSamples: 'psm',
+	plotYMin: 'pym', plotYMax: 'pyx', plotXLabel: 'pxl', plotYLabel: 'pyl',
+	plotGrid: 'pg', plotAxisLines: 'pal', plotMark: 'pm', plotMarkSize: 'pms',
+	plotLegend: 'pl', plotLegendPos: 'plp',
+	depth3d: 'd3', angle3d: 'a3', axisLenX: 'ax', axisLenY: 'ay', axisLenZ: 'az',
+	wedgeAngle: 'wga', hatchAngle: 'ha', damperWidth: 'dw', swingAngle: 'sa', pendulumLength: 'pln', bobSize: 'bs'
+};
+
+const SETTING_KEYS_LIST = Object.keys(SETTINGS_CONFIG).sort();
+const EXTRA_PROPS_LIST = [
+	'x3', 'y3', 'cp1x', 'cp1y', 'cp2x', 'cp2y', 'radius', 
+	'startAngle', 'endAngle', 'points'
+];
+
+const SHAPE_TYPES = [
+	'line', 'rect', 'circle', 'ellipse', 'triangle', 'diamond', 'polygon', 'star',
+	'text', 'grid', 'axes', 'arc', 'curve', 'wave', 'freehand', 'plot',
+	'resistor', 'capacitor', 'inductor', 'diode', 'source_dc', 'source_ac',
+	'battery', 'lamp', 'switch', 'ground', 'ammeter', 'voltmeter',
+	'transistor_npn', 'potentiometer', 'lens_convex', 'lens_concave', 'mirror',
+	'logic_and', 'logic_or', 'logic_not', 'logic_nand', 'logic_nor', 'logic_xor', 'logic_xnor',
+	'flow_start', 'flow_process', 'flow_decision',
+	'spring', 'mass', 'pulley', 'piston', 'field_mark', 'wedge', 'support', 'damper', 'pendulum',
+	'repere_cartesian', 'cube', 'cylinder_3d', 'sphere_3d', 'pyramid_3d', 'cone_3d', 'prism_3d', 'plane_3d',
+	'point'
+];
+
+export function serializeState() {
+	if (!app.shapes || app.shapes.length === 0) return null;
+
+	let minX = Infinity, minY = Infinity;
+	app.shapes.forEach(s => {
+		minX = Math.min(minX, s.x1, s.x2);
+		minY = Math.min(minY, s.y1, s.y2);
+		if (s.points) {
+			s.points.forEach(p => {
+				minX = Math.min(minX, p.x);
+				minY = Math.min(minY, p.y);
+			});
+		}
+	});
+
+	minX = Math.floor(minX);
+	minY = Math.floor(minY);
+
+	const round = (n) => Math.round(n * 100) / 100;
+
+	const data = {
+		v: 1,
+		o: [minX, minY],
+		s: app.shapes.map(s => {
+			const typeIdx = SHAPE_TYPES.indexOf(s.type);
+			if (typeIdx === -1) return null;
+
+			const base = [
+				typeIdx,
+				round(s.x1 - minX),
+				round(s.y1 - minY),
+				round(s.x2 - minX),
+				round(s.y2 - minY)
+			];
+
+			const styleDiffs = {};
+			let hasStyle = false;
+
+			SETTING_KEYS_LIST.forEach((key, idx) => {
+				const config = SETTINGS_CONFIG[key];
+				const prop = config.propName || key;
+				const val = s.style[prop];
+				const def = config.defaultValue;
+
+				if (val !== def && val !== undefined && val !== null) {
+					styleDiffs[idx] = val;
+					hasStyle = true;
+				}
+			});
+
+			const extras = {};
+			let hasExtras = false;
+
+			EXTRA_PROPS_LIST.forEach((key, idx) => {
+				if (key === 'points' && s.points && s.points.length > 0) {
+					let prevX = 0;
+					let prevY = 0;
+					const deltas = [];
+					s.points.forEach((p, i) => {
+						const rx = round(p.x - minX);
+						const ry = round(p.y - minY);
+						if (i === 0) {
+							deltas.push(rx, ry);
+							prevX = rx;
+							prevY = ry;
+						} else {
+							deltas.push(round(rx - prevX), round(ry - prevY));
+							prevX = rx;
+							prevY = ry;
+						}
+					});
+					extras[idx] = deltas;
+					hasExtras = true;
+				} else if (s[key] !== undefined) {
+					let val = s[key];
+					if (typeof val === 'number') {
+						if (key.toLowerCase().includes('x')) val -= minX;
+						else if (key.toLowerCase().includes('y')) val -= minY;
+						val = round(val);
+					}
+					extras[idx] = val;
+					hasExtras = true;
+				}
+			});
+
+			const shapeData = [base];
+			if (hasStyle || hasExtras) shapeData.push(hasStyle ? styleDiffs : 0);
+			if (hasExtras) shapeData.push(extras);
+
+			return shapeData;
+		}).filter(x => x !== null)
+	};
+
+	try {
+		return btoa(JSON.stringify(data));
+	} catch (e) {
+		console.error(e);
+		return null;
+	}
+}
+
+export function deserializeState(encoded) {
+	try {
+		if (!encoded) return false;
+		
+		let parsed;
+		try {
+			parsed = JSON.parse(atob(encoded));
+		} catch (e) {
+			return false;
+		}
+
+		if (Array.isArray(parsed)) {
+			return false;
+		}
+
+		const data = parsed;
+		const offsetX = data.o ? data.o[0] : 0;
+		const offsetY = data.o ? data.o[1] : 0;
+
+		const baseStyle = generateInitialState();
+
+		const loadedShapes = data.s.map(d => {
+			const base = d[0];
+			const type = SHAPE_TYPES[base[0]] || 'line';
+			
+			const shape = {
+				id: app.nextShapeId++,
+				type: type,
+				x1: base[1] + offsetX,
+				y1: base[2] + offsetY,
+				x2: base[3] + offsetX,
+				y2: base[4] + offsetY,
+				style: {}
+			};
+
+			const shapeDef = ShapeManager[type];
+			if (shapeDef && shapeDef.onDown) {
+				const defaultShape = shapeDef.onDown(0, 0, baseStyle);
+				shape.style = { ...defaultShape.style };
+				Object.keys(defaultShape).forEach(k => {
+					if (k !== 'id' && k !== 'type' && k !== 'style' && shape[k] === undefined) {
+						shape[k] = defaultShape[k];
+					}
+				});
+			}
+
+			const styleDiffs = d[1] && typeof d[1] === 'object' ? d[1] : {};
+			for (const idx in styleDiffs) {
+				const key = SETTING_KEYS_LIST[idx];
+				if (key) {
+					const config = SETTINGS_CONFIG[key];
+					const prop = config.propName || key;
+					shape.style[prop] = styleDiffs[idx];
+				}
+			}
+
+			if (d[2]) {
+				const extras = d[2];
+				for (const idx in extras) {
+					const key = EXTRA_PROPS_LIST[idx];
+					if (key === 'points') {
+						const deltas = extras[idx];
+						const points = [];
+						let prevX = 0;
+						let prevY = 0;
+						for (let i = 0; i < deltas.length; i += 2) {
+							if (i === 0) {
+								prevX = deltas[i];
+								prevY = deltas[i+1];
+							} else {
+								prevX += deltas[i];
+								prevY += deltas[i+1];
+							}
+							points.push({ x: prevX + offsetX, y: prevY + offsetY });
+						}
+						shape.points = points;
+					} else if (key) {
+						let val = extras[idx];
+						if (typeof val === 'number') {
+							if (key.toLowerCase().includes('x')) val += offsetX;
+							else if (key.toLowerCase().includes('y')) val += offsetY;
+						}
+						shape[key] = val;
+					}
+				}
+			}
+
+			return shape;
+		});
+
+		if (loadedShapes.length > 0) {
+			let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
+			loadedShapes.forEach(s => {
+				const box = ShapeManager[s.type].getBoundingBox(s);
+				minX = Math.min(minX, box.minX);
+				minY = Math.min(minY, box.minY);
+				maxX = Math.max(maxX, box.maxX);
+				maxY = Math.max(maxY, box.maxY);
+			});
+
+			const shapeW = maxX - minX;
+			const shapeH = maxY - minY;
+			const visibleW = canvas.width / app.view.scale;
+			const visibleH = canvas.height / app.view.scale;
+			
+			const centerX = -app.view.x / app.view.scale + visibleW / 2;
+			const centerY = -app.view.y / app.view.scale + visibleH / 2;
+
+			const dx = centerX - (minX + shapeW / 2);
+			const dy = centerY - (minY + shapeH / 2);
+
+			loadedShapes.forEach(s => ShapeManager[s.type].move(s, dx, dy));
+		}
+
+		app.shapes = loadedShapes;
+		app.selectedShapes = [];
+		app.selectedShape = null;
+		app.history = [];
+		app.historyIndex = -1;
+		
+		return true;
+	} catch (e) {
+		console.error("Erreur chargement:", e);
 		return false;
 	}
 }

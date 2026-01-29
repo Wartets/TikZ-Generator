@@ -1163,6 +1163,7 @@ input[type="range"] {
 	border: 1px solid rgba(255, 255, 255, 0.1);
 	box-shadow: 0 2px 10px rgba(0,0,0,0.2);
 	z-index: 20;
+	max-width: 100px;
 	display: flex;
 	align-items: center;
 }
@@ -1179,6 +1180,7 @@ input[type="range"] {
 	margin: 0;
 	text-transform: uppercase;
 	width: auto;
+	max-width: 90px;
 	box-shadow: none;
 	appearance: none;
 	-webkit-appearance: none;
@@ -1192,4 +1194,103 @@ input[type="range"] {
 #language-selector option {
 	background-color: var(--bg-body);
 	color: var(--text-main);
+}
+
+.custom-select {
+	position: relative;
+	width: 100%;
+	user-select: none;
+}
+
+.select-trigger {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	padding: 8px 12px;
+	background: var(--input-bg);
+	border: 1px solid var(--input-border);
+	border-radius: var(--radius-sm);
+	color: var(--text-main);
+	font-size: 0.85rem;
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.select-trigger:hover {
+	border-color: rgba(255, 255, 255, 0.2);
+	background: rgba(255, 255, 255, 0.05);
+}
+
+.select-trigger.active {
+	border-color: var(--accent);
+	box-shadow: 0 0 0 2px rgba(94, 106, 210, 0.2);
+}
+
+.select-trigger i {
+	font-size: 14px;
+	color: var(--text-muted);
+	transition: transform 0.2s;
+}
+
+.select-trigger.active i {
+	transform: rotate(180deg);
+}
+
+.select-options {
+	position: absolute;
+	top: calc(100% + 4px);
+	left: 0;
+	right: 0;
+	background: #1e2028;
+	border: 1px solid var(--glass-border);
+	border-radius: var(--radius-sm);
+	box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
+	z-index: 1000;
+	max-height: 250px;
+	overflow-y: auto;
+	display: none;
+	backdrop-filter: blur(20px);
+}
+
+.select-options.open {
+	display: block;
+	animation: fadeIn 0.15s ease-out;
+}
+
+.select-option {
+	padding: 8px 12px;
+	font-size: 0.85rem;
+	color: var(--text-muted);
+	cursor: pointer;
+	transition: all 0.2s;
+}
+
+.select-option:hover {
+	background: rgba(255, 255, 255, 0.05);
+	color: var(--text-main);
+}
+
+.select-option.selected {
+	color: var(--accent);
+	background: rgba(94, 106, 210, 0.1);
+	font-weight: 600;
+}
+
+#lang-container .custom-select {
+	width: 110px;
+}
+
+#lang-container .select-trigger {
+	padding: 2px 8px;
+	border: none;
+	background: transparent;
+	font-family: 'SF Mono', monospace;
+	font-size: 0.75rem;
+	text-transform: uppercase;
+}
+
+#lang-container .select-options {
+	width: 120px;
+	right: 0;
+	left: auto;
 }

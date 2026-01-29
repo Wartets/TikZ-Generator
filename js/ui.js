@@ -76,7 +76,6 @@ export function createSettingsUI() {
 
 	settingsGroups.forEach((groupInfo) => {
 		const groupContainer = document.createElement('div');
-		
 		if (groupInfo.options.type === 'row') {
 			groupContainer.className = 'control-row';
 		} else {
@@ -89,59 +88,82 @@ export function createSettingsUI() {
 			controlWrapper.className = 'control-group';
 			controlWrapper.id = `wrapper-${key}`;
 			
-			let controlHtml = '';
-			const labelText = translate(key);
+			const label = document.createElement('label');
+			label.textContent = translate(key);
+			controlWrapper.appendChild(label);
 
-			switch (config.type) {
-				case 'textarea':
-					controlHtml = `
-						<label>${labelText}</label>
-						<textarea id="${key}" data-setting="${key}" class="settings-input" rows="2"></textarea>`;
-					break;
-				case 'text':
-					controlHtml = `
-						<label>${labelText}</label>
-						<input type="text" id="${key}" data-setting="${key}" class="settings-input">`;
-					break;
-				case 'number':
-					controlHtml = `
-						<label>${labelText}</label>
-						<input type="number" id="${key}" data-setting="${key}" class="settings-input" step="${config.step || 'any'}">`;
-					break;
-				case 'select':
-					controlHtml = `
-						<label>${labelText}</label>
-						<div class="select-wrapper">
-							<select id="${key}" data-setting="${key}">
-								${Object.entries(config.options).map(([val, text]) => `<option value="${val}">${translate(text)}</option>`).join('')}
-							</select>
-						</div>`;
-					break;
-				case 'range':
-					const isPercent = config.unit === '%';
-					const val = config.defaultValue;
-					const displayValue = isPercent ? `${Math.round(val * 100)}${config.unit}` : `${val}${config.unit}`;
-					controlHtml = `
-						<div class="slider-row">
-							<label>${labelText}</label>
-							<span id="${key}Value" class="value-badge">${displayValue}</span>
-						</div>
-						<input type="range" id="${key}" data-setting="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${val}">`;
-					break;
-				case 'checkbox':
-					controlHtml = `
-						<div style="display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px;">
-							<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${labelText}</label>
-							<input type="checkbox" id="${key}" data-setting="${key}">
-						</div>`;
-					break;
-				case 'color':
-					controlHtml = `
-						<label>${labelText}</label>
-						<input type="color" id="${key}" data-setting="${key}" style="height:32px; width:100%; border-radius:4px;">`;
-					break;
+			if (config.type === 'select') {
+				const select = createCustomSelect(key, config.options, config.defaultValue, updateSetting, false);
+				controlWrapper.appendChild(select);
+			} else if (config.type === 'textarea') {
+				const el = document.createElement('textarea');
+				el.id = key;
+				el.dataset.setting = key;
+				el.className = 'settings-input';
+				el.rows = 2;
+				controlWrapper.appendChild(el);
+			} else if (config.type === 'text' || config.type === 'number') {
+				const el = document.createElement('input');
+				el.type = config.type;
+				el.id = key;
+				el.dataset.setting = key;
+				el.className = 'settings-input';
+				if (config.step) el.step = config.step;
+				controlWrapper.appendChild(el);
+			} else if (config.type === 'range') {
+				const row = document.createElement('div');
+				row.className = 'slider-row';
+				const badge = document.createElement('span');
+				badge.id = `${key}Value`;
+				badge.className = 'value-badge';
+				row.appendChild(label);
+				row.appendChild(badge);
+				controlWrapper.innerHTML = '';
+				controlWrapper.appendChild(row);
+
+				const el = document.createElement('input');
+				el.type = 'range';
+				el.id = key;
+				el.dataset.setting = key;
+				el.min = config.min;
+				el.max = config.max;
+				el.step = config.step;
+				el.value = config.defaultValue;
+				controlWrapper.appendChild(el);
+			} else if (config.type === 'checkbox') {
+				controlWrapper.innerHTML = '';
+				const div = document.createElement('div');
+				div.style.display = 'flex';
+				div.style.alignItems = 'center';
+				div.style.justifyContent = 'space-between';
+				div.style.height = '32px';
+				div.style.gap = '8px';
+				
+				const lbl = document.createElement('label');
+				lbl.style.margin = '0';
+				lbl.style.cursor = 'pointer';
+				lbl.htmlFor = key;
+				lbl.textContent = translate(key);
+				
+				const el = document.createElement('input');
+				el.type = 'checkbox';
+				el.id = key;
+				el.dataset.setting = key;
+				
+				div.appendChild(lbl);
+				div.appendChild(el);
+				controlWrapper.appendChild(div);
+			} else if (config.type === 'color') {
+				const el = document.createElement('input');
+				el.type = 'color';
+				el.id = key;
+				el.dataset.setting = key;
+				el.style.height = '32px';
+				el.style.width = '100%';
+				el.style.borderRadius = '4px';
+				controlWrapper.appendChild(el);
 			}
-			controlWrapper.innerHTML = controlHtml;
+
 			groupContainer.appendChild(controlWrapper);
 		});
 		container.appendChild(groupContainer);
@@ -157,38 +179,71 @@ export function createGlobalSettingsUI() {
 		const wrapper = document.createElement('div');
 		wrapper.className = 'control-group';
 		
-		let html = '';
+		const label = document.createElement('label');
+		label.textContent = translate(key);
 		
-		const labelText = translate(key);
-		
-		if (config.type === 'text') {
-			html = `<label>${labelText}</label><input type="text" id="${key}" data-global="${key}" value="${config.defaultValue}">`;
-		} else if (config.type === 'range') {
-			html = `
-				<div class="slider-row">
-					<label>${labelText}</label>
-					<span id="${key}Value" class="value-badge">${config.defaultValue}${config.unit}</span>
-				</div>
-				<input type="range" id="${key}" data-global="${key}" min="${config.min}" max="${config.max}" step="${config.step}" value="${config.defaultValue}">`;
-		} else if (config.type === 'color') {
-			html = `<label>${labelText}</label><input type="color" id="${key}" data-global="${key}" value="${config.defaultValue}" style="height:32px; width:100%; border-radius:4px;">`;
-		} else if (config.type === 'select') {
-			html = `
-				<label>${labelText}</label>
-				<div class="select-wrapper">
-					<select id="${key}" data-global="${key}">
-						${Object.entries(config.options).map(([val, text]) => `<option value="${val}" ${val === config.defaultValue ? 'selected' : ''}>${translate(text)}</option>`).join('')}
-					</select>
-				</div>`;
+		if (config.type === 'select') {
+			wrapper.appendChild(label);
+			const select = createCustomSelect(key, config.options, config.defaultValue, updateSetting, true);
+			wrapper.appendChild(select);
 		} else if (config.type === 'checkbox') {
-			html = `
-				<div style="display: flex; align-items: center; justify-content: space-between; height: 32px; gap: 8px;">
-					<label style="margin: 0; cursor: pointer; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;" for="${key}">${labelText}</label>
-					<input type="checkbox" id="${key}" data-global="${key}" ${config.defaultValue ? 'checked' : ''}>
-				</div>`;
+			const div = document.createElement('div');
+			div.style.display = 'flex';
+			div.style.alignItems = 'center';
+			div.style.justifyContent = 'space-between';
+			div.style.height = '32px';
+			div.style.gap = '8px';
+			
+			const lbl = document.createElement('label');
+			lbl.style.margin = '0';
+			lbl.style.cursor = 'pointer';
+			lbl.htmlFor = key;
+			lbl.textContent = translate(key);
+			
+			const el = document.createElement('input');
+			el.type = 'checkbox';
+			el.id = key;
+			el.dataset.global = key;
+			el.checked = config.defaultValue;
+			
+			div.appendChild(lbl);
+			div.appendChild(el);
+			wrapper.appendChild(div);
+		} else if (config.type === 'range') {
+			const row = document.createElement('div');
+			row.className = 'slider-row';
+			const badge = document.createElement('span');
+			badge.id = `${key}Value`;
+			badge.className = 'value-badge';
+			badge.textContent = `${config.defaultValue}${config.unit || ''}`;
+			row.appendChild(label);
+			row.appendChild(badge);
+			wrapper.appendChild(row);
+
+			const el = document.createElement('input');
+			el.type = 'range';
+			el.id = key;
+			el.dataset.global = key;
+			el.min = config.min;
+			el.max = config.max;
+			el.step = config.step;
+			el.value = config.defaultValue;
+			wrapper.appendChild(el);
+		} else {
+			wrapper.appendChild(label);
+			const el = document.createElement('input');
+			el.type = config.type;
+			el.id = key;
+			el.dataset.global = key;
+			el.value = config.defaultValue;
+			if (config.type === 'color') {
+				el.style.height = '32px';
+				el.style.width = '100%';
+				el.style.borderRadius = '4px';
+			}
+			wrapper.appendChild(el);
 		}
 		
-		wrapper.innerHTML = html;
 		container.appendChild(wrapper);
 	}
 }
@@ -292,6 +347,8 @@ export function updateSetting(element) {
 	let value;
 	if (element.type === 'checkbox') {
 		value = element.checked;
+	} else if (element.type === 'custom-select') {
+		value = element.value;
 	} else if (config.type === 'range' || element.type === 'number') {
 		value = parseFloat(element.value);
 	} else {
@@ -434,45 +491,43 @@ export function updateUIFromShape(s) {
 	createGeometryUI(s);
 
 	const style = s.style;
-	const fields = [
-		'strokeColor', 'lineWidth', 'lineStyle', 'arrowStyle', 'arrowHead', 'arrowScale',
-		'opacity', 'textString', 'textSize', 'textFont', 'textWeight', 'textSlant', 
-		'textRotate', 'textAnchor', 'textAlign', 'textWidth', 'gridStep',
-		'polySides', 'starPoints', 'starRatio', 'simplifyTolerance', 'freehandMode', 'cornerRadius',
-		'pointSize', 'pointType', 'fillType', 'fillColor', 'fillColor2', 'shadingAngle',
-		'plotFunction', 'plotDomainMin', 'plotDomainMax', 'plotYMin', 'plotYMax', 'plotSamples', 
-		'plotXLabel', 'plotYLabel', 'plotGrid', 'plotAxisLines', 'plotMark', 'plotMarkSize', 
-		'plotLegend', 'plotLegendPos'
-	];
+	const fields = Object.keys(SETTINGS_CONFIG);
 	
 	fields.forEach(id => {
-		const el = document.getElementById(id);
-		if (el) {
-			const config = SETTINGS_CONFIG[id];
-			const prop = config ? (config.propName || id) : id;
-			if (style[prop] !== undefined) {
-				el.value = style[prop];
-				if (config && config.type === 'range') {
-					const valueSpan = document.getElementById(`${id}Value`);
-					if (valueSpan) {
-						const unit = config.unit || '';
-						if (id === 'textWidth' && style[prop] === 0) {
-							valueSpan.textContent = 'Auto';
-						} else {
-							valueSpan.textContent = id === 'opacity' ? `${Math.round(style[prop] * 100)}%` : `${style[prop]}${unit}`;
+		const config = SETTINGS_CONFIG[id];
+		const prop = config.propName || id;
+		const value = style[prop];
+
+		if (value !== undefined) {
+			if (config.type === 'select') {
+				const container = document.getElementById(`select-container-${id}`);
+				if (container) {
+					const trigger = container.querySelector('.trigger-text');
+					if (trigger) trigger.textContent = translate(config.options[value] || value);
+					const items = container.querySelectorAll('.select-option');
+					items.forEach(i => i.classList.toggle('selected', i.dataset.value === String(value)));
+				}
+			} else {
+				const el = document.getElementById(id);
+				if (el) {
+					if (el.type === 'checkbox') {
+						el.checked = !!value;
+					} else {
+						el.value = value;
+						if (config.type === 'range') {
+							const valueSpan = document.getElementById(`${id}Value`);
+							if (valueSpan) {
+								const unit = config.unit || '';
+								if (id === 'textWidth' && value === 0) {
+									valueSpan.textContent = 'Auto';
+								} else {
+									valueSpan.textContent = id === 'opacity' ? `${Math.round(value * 100)}%` : `${value}${unit}`;
+								}
+							}
 						}
 					}
 				}
 			}
-		}
-	});
-
-	const checkboxes = ['doubleLine', 'isClosed'];
-	checkboxes.forEach(id => {
-		const el = document.getElementById(id);
-		if (el) {
-			if (id === 'doubleLine') el.checked = !!style.double;
-			else if (id === 'isClosed') el.checked = !!style.isClosed;
 		}
 	});
 
@@ -839,17 +894,8 @@ export function updateUndoRedoUI() {
 }
 
 export function setupLanguageSelector() {
-	const langSelect = document.createElement('select');
-	langSelect.id = 'language-selector';
-	
-	for (const langCode in LANGUAGES) {
-		const option = document.createElement('option');
-		option.value = langCode;
-		option.textContent = langCode.toUpperCase();
-		langSelect.appendChild(option);
-	}
-
-	langSelect.value = getLanguage();
+	const currentLang = getLanguage();
+	const options = LANGUAGES;
 	
 	const container = document.getElementById('lang-container');
 	if (container) {
@@ -860,26 +906,27 @@ export function setupLanguageSelector() {
 		icon.style.marginRight = '6px';
 		icon.style.fontSize = '14px';
 		icon.style.color = 'var(--text-muted)';
-		
 		container.appendChild(icon);
+
+		const langSelect = createCustomSelect('language-selector', options, currentLang, (target) => {
+			setLanguage(target.value);
+		}, false);
+		
 		container.appendChild(langSelect);
 	}
-	
-	langSelect.addEventListener('change', (e) => {
-		const newLang = e.target.value;
-		if (setLanguage(newLang)) {
-			localStorage.setItem('tikz_generator_lang', newLang);
-			updateUIAfterLanguageChange();
-		}
-	});
 
-	document.addEventListener('languageChange', updateUIAfterLanguageChange);
+	document.addEventListener('languageChange', () => {
+		updateUIAfterLanguageChange();
+	});
 }
 
-function updateUIAfterLanguageChange() {
+export function updateUIAfterLanguageChange() {
 	createToolsUI();
 	createGlobalSettingsUI();
 	createSettingsUI();
+	setupLanguageSelector();
+	setupCollapsibles();
+	setupTabs();
 
 	document.querySelectorAll('[data-i18n]').forEach(el => {
 		el.textContent = translate(el.dataset.i18n);
@@ -906,6 +953,69 @@ function updateUIAfterLanguageChange() {
 	if (app.selectedShape) {
 		updateUIFromShape(app.selectedShape);
 	} else if (app.activeTool) {
-		updateSettingsVisibility(app.activeTool.shapeType || 'select', null);
+		const toolType = app.activeTool.shapeType || 'select';
+		updateSettingsVisibility(toolType, null);
 	}
+}
+
+export function createCustomSelect(id, options, defaultValue, onChange, isGlobal = false) {
+	const container = document.createElement('div');
+	container.className = 'custom-select';
+	container.id = `select-container-${id}`;
+
+	const trigger = document.createElement('div');
+	trigger.className = 'select-trigger';
+	
+	const currentText = translate(options[defaultValue] || defaultValue);
+	trigger.innerHTML = `<span class="trigger-text">${currentText}</span><i class="ti ti-chevron-down"></i>`;
+	
+	const list = document.createElement('div');
+	list.className = 'select-options';
+
+	Object.entries(options).forEach(([val, label]) => {
+		const item = document.createElement('div');
+		item.className = 'select-option';
+		if (val === defaultValue) item.classList.add('selected');
+		item.textContent = translate(label);
+		item.dataset.value = val;
+		
+		item.addEventListener('click', (e) => {
+			e.stopPropagation();
+			list.classList.remove('open');
+			trigger.classList.remove('active');
+			
+			const triggerText = trigger.querySelector('.trigger-text');
+			if (triggerText) triggerText.textContent = translate(label);
+			
+			const pseudoElement = {
+				id: id,
+				value: val,
+				dataset: isGlobal ? { global: id } : { setting: id },
+				type: 'custom-select'
+			};
+			onChange(pseudoElement);
+		});
+		list.appendChild(item);
+	});
+
+	trigger.addEventListener('click', (e) => {
+		e.stopPropagation();
+		const isOpen = list.classList.contains('open');
+		document.querySelectorAll('.select-options.open').forEach(el => el.classList.remove('open'));
+		document.querySelectorAll('.select-trigger.active').forEach(el => el.classList.remove('active'));
+		
+		if (!isOpen) {
+			list.classList.add('open');
+			trigger.classList.add('active');
+		}
+	});
+
+	document.addEventListener('click', () => {
+		list.classList.remove('open');
+		trigger.classList.remove('active');
+	});
+
+	container.appendChild(trigger);
+	container.appendChild(list);
+	return container;
 }

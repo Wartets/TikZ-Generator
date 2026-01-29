@@ -1,5 +1,5 @@
 import { app, initTools, loadFromLocalStorage, pushState, undo, redo, clearAll, copySelection, cutSelection, pasteSelection, activeGuides, setActiveGuides, deserializeState } from './state.js';
-import { createToolsUI, createGlobalSettingsUI, createSettingsUI, setupCollapsibles, setupTabs, setupTextEditing, setupOutputInteraction, resizeCanvas, setTool, updateSetting, updateUIFromShape, updateUIFromGlobalSettings, updateUndoRedoUI, canvas, output, coordsDisplay, copyToClipboard, setupLanguageSelector } from './ui.js';
+import { createToolsUI, createGlobalSettingsUI, createSettingsUI, setupCollapsibles, setupTabs, setupTextEditing, setupOutputInteraction, resizeCanvas, setTool, updateSetting, updateUIFromShape, updateUIFromGlobalSettings, updateUndoRedoUI, canvas, output, coordsDisplay, copyToClipboard, setupLanguageSelector, updateUIAfterLanguageChange } from './ui.js';
 import { render } from './renderer.js';
 import { generateCode } from './latexGenerator.js';
 import { getPos, getSelectionBounds, toTikZ } from './utils.js';
@@ -155,8 +155,6 @@ function setupKeyboardShortcuts() {
 
 // Fonction d'initialisation principale
 function init() {
-	setLanguage('fr');
-
 	createToolsUI();
 	createGlobalSettingsUI();
 	createSettingsUI();
@@ -276,10 +274,9 @@ function init() {
 	
 	resizeCanvas();
 	
-	const storedLang = localStorage.getItem('tikz_generator_lang');
-	if (storedLang) {
-		setLanguage(storedLang);
-	}
+	const storedLang = localStorage.getItem('tikz_generator_lang') || 'fr';
+	setLanguage(storedLang);
+	updateUIAfterLanguageChange();
 
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('data')) {
@@ -301,16 +298,9 @@ function init() {
 		}
 	}
 
-	if (app.shapes.length === 0) {
-		render();
-		generateCode();
-	} else {
-		render();
-		generateCode();
-	}
-	
+	render();
+	generateCode();
 	setupKeyboardShortcuts();
-	
 	updateUIFromShape(app.selectedShape);
 }
 

@@ -130,7 +130,7 @@ export class DrawingTool extends BaseTool {
 				return;
 			}
 		} else {
-			if (this.shapeType !== 'freehand' && Math.abs(this.startX - app.currentShape.x2) < 2 && Math.abs(this.startY - app.currentShape.y2) < 2) {
+			if (this.shapeType !== 'point' && this.shapeType !== 'text' && this.shapeType !== 'freehand' && Math.abs(this.startX - app.currentShape.x2) < 2 && Math.abs(this.startY - app.currentShape.y2) < 2) {
 				app.currentShape = null;
 				render();
 				return;

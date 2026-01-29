@@ -216,8 +216,13 @@ export function renderShape(s, ctx) {
 			 startX = s.x1 + r * Math.cos(startAngle);
 			 startY = s.y1 + r * Math.sin(startAngle);
 
-			 angEnd = Math.atan2(Math.cos(endAngle), -Math.sin(endAngle)); 
-			 angStart = Math.atan2(-Math.cos(startAngle), Math.sin(startAngle)); 
+			 let diff = endAngle - startAngle;
+			 while (diff <= -Math.PI) diff += 2*Math.PI;
+			 while (diff > Math.PI) diff -= 2*Math.PI;
+			 const isCounterClockwise = diff < 0;
+
+			 angEnd = endAngle + (isCounterClockwise ? -Math.PI / 2 : Math.PI / 2);
+			 angStart = startAngle + (isCounterClockwise ? Math.PI / 2 : -Math.PI / 2);
 		} else { 
 			angEnd = Math.atan2(s.y2 - s.y1, s.x2 - s.x1);
 			angStart = angEnd + Math.PI;
@@ -229,11 +234,9 @@ export function renderShape(s, ctx) {
 		const scale = s.style.arrowScale || 1;
 
 		if (s.style.arrow === '->' || s.style.arrow === '<->' || s.style.arrow === '-stealth' || s.style.arrow === '-latex') {
-			 if (s.type === 'arc') angEnd = s.endAngle + Math.PI / 2;
 			 drawArrow(ctx, endX, endY, angEnd, head, scale, s.style.width);
 		}
 		if (s.style.arrow === '<-' || s.style.arrow === '<->') {
-			 if (s.type === 'arc') angStart = s.startAngle - Math.PI / 2;
 			 drawArrow(ctx, startX, startY, angStart, head, scale, s.style.width);
 		}
 	}

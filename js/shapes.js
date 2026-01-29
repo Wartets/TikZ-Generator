@@ -1384,26 +1384,75 @@ export const ShapeManager = {
 			endAngle: 0, 
 			style: { ...style } 
 		}),
-		onDrag: (s, x, y) => {
-			s.x2 = x; s.y2 = y;
+		onDrag: (s, x, y, step) => {
 			const dx = x - s.x1;
 			const dy = y - s.y1;
-			s.radius = Math.sqrt(dx*dx + dy*dy);
-			s.endAngle = Math.atan2(dy, dx);
+			const currentAngle = Math.atan2(dy, dx);
+
+			if (step === 0) {
+				s.radius = Math.sqrt(dx*dx + dy*dy);
+				s.startAngle = currentAngle;
+				s.endAngle = currentAngle;
+				s.x2 = s.x1 + s.radius * Math.cos(s.endAngle);
+				s.y2 = s.y1 + s.radius * Math.sin(s.endAngle);
+			} else if (step === 1) {
+				s.endAngle = currentAngle;
+				s.x2 = s.x1 + s.radius * Math.cos(s.endAngle);
+				s.y2 = s.y1 + s.radius * Math.sin(s.endAngle);
+			}
 		},
+		onNextStep: (s, step) => step >= 1,
 		render: (s, ctx) => {
-			ctx.arc(s.x1, s.y1, s.radius, s.startAngle, s.endAngle, false);
+			const isCircle = Math.abs(s.endAngle - s.startAngle) >= Math.PI * 2;
+			
+			ctx.beginPath();
+			if (s.style.fillType && s.style.fillType !== 'none' && !isCircle) {
+				ctx.moveTo(s.x1, s.y1);
+				ctx.arc(s.x1, s.y1, s.radius, s.startAngle, s.endAngle, false);
+				ctx.closePath();
+			} else {
+				ctx.arc(s.x1, s.y1, s.radius, s.startAngle, s.endAngle, false);
+			}
+			
+			if (s.style.fillType && s.style.fillType !== 'none') ctx.fill();
 			ctx.stroke();
+
+			if (window.app && window.app.activeTool && window.app.activeTool.mode !== 'idle' && (window.app.currentShape === s || window.app.selectedShapes.includes(s))) {
+				ctx.beginPath();
+				ctx.moveTo(s.x1, s.y1);
+				ctx.lineTo(s.x1 + s.radius * Math.cos(s.startAngle), s.y1 + s.radius * Math.sin(s.startAngle));
+				ctx.moveTo(s.x1, s.y1);
+				ctx.lineTo(s.x1 + s.radius * Math.cos(s.endAngle), s.y1 + s.radius * Math.sin(s.endAngle));
+				ctx.strokeStyle = UI_CONSTANTS.CONTROL_LINE_COLOR;
+				ctx.setLineDash([2, 2]);
+				ctx.stroke();
+				ctx.setLineDash([]);
+			}
+
 			const midAngle = (s.startAngle + s.endAngle) / 2;
 			renderShapeLabel(s, ctx, s.x1 + s.radius * Math.cos(midAngle), s.y1 + s.radius * Math.sin(midAngle));
 		},
-		toTikZ: (s) => {
-			const startDeg = Math.round(s.startAngle * 180 / Math.PI);
-			const endDeg = Math.round(s.endAngle * 180 / Math.PI);
+		toTikZ: (s, opts) => {
+			let startDeg = -(s.startAngle * 180 / Math.PI);
+			let endDeg = -(s.endAngle * 180 / Math.PI);
+			
+			const diff = s.endAngle - s.startAngle;
+			if (Math.abs(diff) < 1e-5) return '';
+
+			if (diff >= 0) {
+				while (endDeg > startDeg) endDeg -= 360;
+			} else {
+				while (endDeg < startDeg) endDeg += 360;
+			}
+
 			const r = toTikZ(s.radius, false, s.id, 'radius');
+			
 			const startX = s.x1 + s.radius * Math.cos(s.startAngle);
 			const startY = s.y1 + s.radius * Math.sin(s.startAngle);
-			return `(${toTikZ(startX, false, s.id, 'startX')},${toTikZ(startY, true, s.id, 'startY')}) arc (${startDeg}:${-endDeg}:${r})${getTikZLabelNode(s)};`;
+			const tikzStartX = toTikZ(startX, false, s.id, 'startX');
+			const tikzStartY = toTikZ(startY, true, s.id, 'startY');
+			
+			return `\\draw${opts} (${tikzStartX},${tikzStartY}) arc (${startDeg.toFixed(1)}:${endDeg.toFixed(1)}:${r})${getTikZLabelNode(s)};`;
 		},
 		move: (s, dx, dy) => {
 			s.x1 += dx; s.y1 += dy;
@@ -1412,15 +1461,21 @@ export const ShapeManager = {
 		resize: (s, mx, my, handle) => {
 			if (handle === 'center') {
 				s.x1 = mx; s.y1 = my;
+				s.x2 = s.x1 + s.radius * Math.cos(s.endAngle);
+				s.y2 = s.y1 + s.radius * Math.sin(s.endAngle);
 			} else {
 				const dx = mx - s.x1;
 				const dy = my - s.y1;
 				const newAngle = Math.atan2(dy, dx);
-				const newRadius = Math.sqrt(dx*dx + dy*dy);
 				
-				s.radius = newRadius;
-				if (handle === 'start') s.startAngle = newAngle;
-				else if (handle === 'end') s.endAngle = newAngle;
+				if (handle === 'start') {
+					s.radius = Math.sqrt(dx*dx + dy*dy);
+					s.startAngle = newAngle;
+				} else if (handle === 'end') {
+					s.endAngle = newAngle;
+				}
+				s.x2 = s.x1 + s.radius * Math.cos(s.endAngle);
+				s.y2 = s.y1 + s.radius * Math.sin(s.endAngle);
 			}
 		},
 		getHandles: (s) => {
@@ -1434,17 +1489,6 @@ export const ShapeManager = {
 				{ x: ex, y: ey, pos: 'end', cursor: 'crosshair' }
 			];
 		},
-		drawHandles: (s, ctx) => {
-			ctx.beginPath();
-			ctx.moveTo(s.x1, s.y1);
-			ctx.lineTo(s.x1 + s.radius * Math.cos(s.startAngle), s.y1 + s.radius * Math.sin(s.startAngle));
-			ctx.moveTo(s.x1, s.y1);
-			ctx.lineTo(s.x1 + s.radius * Math.cos(s.endAngle), s.y1 + s.radius * Math.sin(s.endAngle));
-			ctx.strokeStyle = UI_CONSTANTS.CONTROL_LINE_COLOR;
-			ctx.setLineDash([2, 2]);
-			ctx.stroke();
-			ctx.setLineDash([]);
-		},
 		hitTest: (s, x, y) => {
 			const dx = x - s.x1;
 			const dy = y - s.y1;
@@ -1452,19 +1496,28 @@ export const ShapeManager = {
 			const scale = (window.app && window.app.view) ? window.app.view.scale : 1;
 			const t = (UI_CONSTANTS.HIT_TOLERANCE / scale) + (s.style.width || 1);
 			
-			if (Math.abs(dist - s.radius) > t) return false;
+			const hasFill = s.style.fillType && s.style.fillType !== 'none';
+
+			if (hasFill) {
+				if (dist > s.radius) return false;
+			} else {
+				if (Math.abs(dist - s.radius) > t) return false;
+			}
 			
 			let angle = Math.atan2(dy, dx);
 			let start = s.startAngle;
 			let end = s.endAngle;
 			
-			const normalize = (a) => (a % (Math.PI * 2) + Math.PI * 2) % (Math.PI * 2);
+			const normalize = (a) => a - Math.floor(a / (2 * Math.PI)) * 2 * Math.PI;
 			angle = normalize(angle);
 			start = normalize(start);
 			end = normalize(end);
 			
-			if (start < end) return angle >= start - 0.1 && angle <= end + 0.1;
-			return angle >= start - 0.1 || angle <= end + 0.1;
+			if (start > end) {
+				return angle >= start || angle <= end;
+			} else {
+				return angle >= start && angle <= end;
+			}
 		}
 	}),
 	curve: createShapeDef('curve', {

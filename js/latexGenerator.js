@@ -28,7 +28,11 @@ export function buildTikzOptions(s) {
 			if (processedVal !== null) {
 				if (config.isColor) {
 					const colorName = app.colors.get(processedVal);
-					opts.push(`${config.tikzKey}=${colorName || processedVal}`);
+					let finalKey = config.tikzKey;
+					if (s.type === 'text' && key === 'strokeColor') {
+						finalKey = 'text';
+					}
+					opts.push(`${finalKey}=${colorName || processedVal}`);
 				} else if (config.tikzKey) {
 					const suffix = config.tikzSuffix || '';
 					opts.push(`${config.tikzKey}=${processedVal}${suffix}`);

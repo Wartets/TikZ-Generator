@@ -69,8 +69,9 @@ export function generateCode() {
 	let out = "";
 	const style = app.drawingStyle;
 	const usePreamble = style.genPreamble;
+	const isObsidian = style.obsidianMode;
 	const docClass = style.docClass || 'standalone';
-	const useFigure = (style.figCaption || style.figLabel) && docClass !== 'standalone';
+	const useFigure = (style.figCaption || style.figLabel) && docClass !== 'standalone' && !isObsidian;
 	
 	const packages = new Set(['tikz']);
 	const libraries = new Set();
@@ -119,7 +120,11 @@ export function generateCode() {
 
 	if (app.shapes.some(s => s.style.freehandMode === 'rounded')) libraries.add('calc');
 
-	if (usePreamble) {
+	if (isObsidian) {
+		out += "```tikz\n";
+	}
+
+	if (usePreamble && !isObsidian) {
 		let classOpts = '';
 		if (docClass === 'standalone') classOpts = '[tikz, border=10pt]';
 		out += `\\documentclass${classOpts}{${docClass}}\n`;
@@ -142,6 +147,18 @@ export function generateCode() {
 			out += `\\usetikzlibrary{${Array.from(libraries).join(', ')}}\n`;
 		}
 		out += "\n\\begin{document}\n\n";
+	} else if (isObsidian) {
+		packages.forEach(p => {
+			if (p === 'tikz') return; 
+			out += `\\usepackage{${p}}\n`;
+		});
+		if (hasPlots) {
+			out += "\\pgfplotsset{compat=1.18}\n";
+		}
+		if (libraries.size > 0) {
+			out += `\\usetikzlibrary{${Array.from(libraries).join(', ')}}\n`;
+		}
+		out += "\\begin{document}\n";
 	} else {
 		out += `% Required packages:\n`;
 		packages.forEach(p => out += `\\usepackage{${p}}\n`);
@@ -195,24 +212,30 @@ export function generateCode() {
 	if (colorDefs) out += colorDefs + "\n";
 
 	const tikzGlobalOpts = [];
-	if (style.globalLineWidth && style.globalLineWidth !== 'thin') {
-		tikzGlobalOpts.push(style.globalLineWidth);
-	}
 	
-	if (style.globalArrow) {
-		const head = style.globalArrow.charAt(0).toUpperCase() + style.globalArrow.slice(1);
-		let headStr = head === 'Triangle 45' ? 'Triangle[angle=45:1pt]' : (head === 'To' ? 'To' : head);
-		tikzGlobalOpts.push(`>={${headStr}}`);
+	if (!isObsidian) {
+		if (style.globalLineWidth && style.globalLineWidth !== 'thin') {
+			tikzGlobalOpts.push(style.globalLineWidth);
+		}
+		
+		if (style.globalArrow) {
+			const head = style.globalArrow.charAt(0).toUpperCase() + style.globalArrow.slice(1);
+			let headStr = head === 'Triangle 45' ? 'Triangle[angle=45:1pt]' : (head === 'To' ? 'To' : head);
+			tikzGlobalOpts.push(`>={${headStr}}`);
+		}
+
+		if (style.figScale && style.figScale !== 1) {
+			tikzGlobalOpts.push(`scale=${style.figScale}`);
+			if (style.figScale !== 1) tikzGlobalOpts.push(`transform shape`);
+		}
 	}
 
-	if (style.figScale && style.figScale !== 1) {
-		tikzGlobalOpts.push(`scale=${style.figScale}`);
-		if (style.figScale !== 1) tikzGlobalOpts.push(`transform shape`);
+	out += "\\begin{tikzpicture}";
+	if (tikzGlobalOpts.length > 0) {
+		out += `[${tikzGlobalOpts.join(', ')}]`;
+	} else if (isObsidian) {
 	}
-
-	out += "\\begin{tikzpicture}[";
-	if (tikzGlobalOpts.length > 0) out += tikzGlobalOpts.join(', ');
-	out += "]\n";
+	out += "\n";
 
 	if (style.exportGrid && app.shapes.length > 0) {
 		let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
@@ -257,8 +280,12 @@ export function generateCode() {
 		out += "\n\\end{figure}";
 	}
 
-	if (usePreamble) {
-		out += "\n\n\\end{document}";
+	if (usePreamble || isObsidian) {
+		out += "\n\\end{document}";
+	}
+
+	if (isObsidian) {
+		out += "\n```";
 	}
 	
 	output.innerHTML = out;

@@ -168,6 +168,24 @@ function init() {
 		}
 	});
 
+	const obsModeCheckbox = document.getElementById('obsidianMode');
+	const genPreambleCheckbox = document.getElementById('genPreamble');
+
+	if (obsModeCheckbox && genPreambleCheckbox) {
+		obsModeCheckbox.addEventListener('change', (e) => {
+			if (e.target.checked) {
+				genPreambleCheckbox.checked = false;
+				updateSetting(genPreambleCheckbox);
+			}
+		});
+		genPreambleCheckbox.addEventListener('change', (e) => {
+			if (e.target.checked) {
+				obsModeCheckbox.checked = false;
+				updateSetting(obsModeCheckbox);
+			}
+		});
+	}
+
 	document.getElementById('settings-container').addEventListener('input', (e) => {
 		if (e.target.dataset.setting) {
 			updateSetting(e.target);

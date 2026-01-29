@@ -28,6 +28,11 @@ export const GLOBAL_SETTINGS_CONFIG = {
 		type: 'checkbox',
 		defaultValue: false
 	},
+	obsidianMode: {
+		label: 'Mode Obsidian (TikZJax)',
+		type: 'checkbox',
+		defaultValue: false
+	},
 	docClass: {
 		label: 'Classe',
 		type: 'select',

@@ -32,7 +32,7 @@
 	
 	--radius-sm: 8px;
 	--radius-md: 12px;
-	--radius-lg: 18px;
+	--radius-lg: 16px;
 }
 
 * {
@@ -132,13 +132,6 @@ body {
 
 .section-content.tools-grid {
 	display: grid;
-}
-
-.tools-grid {
-	display: grid;
-	grid-template-columns: repeat(3, 1fr);
-	gap: 10px;
-	margin-bottom: 8px;
 }
 
 .tool-btn {
@@ -445,8 +438,8 @@ button.btn-primary:active {
 
 .canvas-actions {
 	position: absolute;
-	bottom: 16px;
-	left: 16px;
+	bottom: 8px;
+	left: 8px;
 	display: flex;
 	gap: 8px;
 	z-index: 5;
@@ -902,12 +895,12 @@ canvas {
 
 .tools-grid {
 	display: grid;
-	grid-template-columns: repeat(4, 1fr);
+	grid-template-columns: repeat(6, 1fr);
 	gap: 8px;
 }
 
 .tools-grid.small-icons {
-	grid-template-columns: repeat(5, 1fr);
+	grid-template-columns: repeat(7, 1fr);
 	gap: 6px;
 }
 

@@ -339,7 +339,7 @@ export function render() {
 
 	ctx.beginPath();
 	ctx.strokeStyle = UI_CONSTANTS.AXES_RENDER_COLOR;
-	ctx.lineWidth = 2 / app.view.scale;
+	ctx.lineWidth = 0.5 / app.view.scale;
 	ctx.moveTo(visibleLeft, canvas.height);
 	ctx.lineTo(visibleRight, canvas.height);
 	ctx.moveTo(0, visibleTop);

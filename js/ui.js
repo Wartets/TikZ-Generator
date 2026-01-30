@@ -643,40 +643,36 @@ export function copyToClipboard() {
 }
 
 export function setupCollapsibles() {
-	document.querySelectorAll('.panel-header').forEach(header => {
-		header.addEventListener('click', () => {
-			const icon = header.querySelector('.toggle-icon');
-			const body = header.nextElementSibling;
-			if (body) {
-				const isCollapsed = body.style.display === 'none';
-				body.style.display = isCollapsed ? 'block' : 'none';
-				header.classList.toggle('collapsed', !isCollapsed);
-				if (icon) {
-					icon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(-90deg)';
-				}
+	document.addEventListener('click', (e) => {
+		const header = e.target.closest('.panel-header');
+		if (!header) return;
+		const icon = header.querySelector('.toggle-icon');
+		const body = header.nextElementSibling;
+		if (body) {
+			const isCollapsed = body.style.display === 'none';
+			body.style.display = isCollapsed ? 'block' : 'none';
+			header.classList.toggle('collapsed', !isCollapsed);
+			if (icon) {
+				icon.style.transform = isCollapsed ? 'rotate(0deg)' : 'rotate(-90deg)';
 			}
-		});
+		}
 	});
 }
 
 export function setupTabs() {
-	const tabBtns = document.querySelectorAll('.tab-btn');
-	
-	tabBtns.forEach(btn => {
-		btn.addEventListener('click', () => {
-			const parent = btn.closest('.panel-body');
-			if (!parent) return;
-
-			parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
-			parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
-			
-			btn.classList.add('active');
-			const tabId = `tab-${btn.dataset.tab}`;
-			const target = document.getElementById(tabId);
-			if (target) {
-				target.classList.add('active');
-			}
-		});
+	document.addEventListener('click', (e) => {
+		const btn = e.target.closest('.tab-btn');
+		if (!btn) return;
+		const parent = btn.closest('.panel-body');
+		if (!parent) return;
+		parent.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+		parent.querySelectorAll('.tab-content').forEach(c => c.classList.remove('active'));
+		btn.classList.add('active');
+		const tabId = `tab-${btn.dataset.tab}`;
+		const target = document.getElementById(tabId);
+		if (target) {
+			target.classList.add('active');
+		}
 	});
 }
 
@@ -896,28 +892,20 @@ export function updateUndoRedoUI() {
 export function setupLanguageSelector() {
 	const currentLang = getLanguage();
 	const options = LANGUAGES;
-	
 	const container = document.getElementById('lang-container');
 	if (container) {
 		container.innerHTML = '';
-		
 		const icon = document.createElement('i');
 		icon.className = 'ti ti-language';
 		icon.style.marginRight = '6px';
 		icon.style.fontSize = '14px';
 		icon.style.color = 'var(--text-muted)';
 		container.appendChild(icon);
-
 		const langSelect = createCustomSelect('language-selector', options, currentLang, (target) => {
 			setLanguage(target.value);
 		}, false);
-		
 		container.appendChild(langSelect);
 	}
-
-	document.addEventListener('languageChange', () => {
-		updateUIAfterLanguageChange();
-	});
 }
 
 export function updateUIAfterLanguageChange() {
@@ -925,31 +913,22 @@ export function updateUIAfterLanguageChange() {
 	createGlobalSettingsUI();
 	createSettingsUI();
 	setupLanguageSelector();
-	setupCollapsibles();
-	setupTabs();
-
 	document.querySelectorAll('[data-i18n]').forEach(el => {
 		el.textContent = translate(el.dataset.i18n);
 	});
-	
 	document.querySelectorAll('[data-i18n-title]').forEach(el => {
 		el.title = translate(el.dataset.i18nTitle);
 	});
-
 	document.querySelectorAll('[data-i18n-placeholder]').forEach(el => {
 		el.placeholder = translate(el.dataset.i18nPlaceholder);
 	});
-
 	const headerTitle = document.getElementById('header-title');
 	if (headerTitle) {
 		headerTitle.textContent = translate('headerTitle');
 	}
-
 	updateUIFromGlobalSettings();
 	updateUIFromDrawingStyle();
-	
 	generateCode();
-
 	if (app.selectedShape) {
 		updateUIFromShape(app.selectedShape);
 	} else if (app.activeTool) {

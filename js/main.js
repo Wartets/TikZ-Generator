@@ -163,16 +163,16 @@ function init() {
 	setupTextEditing();
 	setupOutputInteraction();
 	setupLanguageSelector();
-	
+	document.addEventListener('languageChange', () => {
+		updateUIAfterLanguageChange();
+	});
 	document.getElementById('global-settings-container').addEventListener('input', (e) => {
 		if (e.target.dataset.global) {
 			updateSetting(e.target);
 		}
 	});
-
 	const obsModeCheckbox = document.getElementById('obsidianMode');
 	const genPreambleCheckbox = document.getElementById('genPreamble');
-
 	if (obsModeCheckbox && genPreambleCheckbox) {
 		obsModeCheckbox.addEventListener('change', (e) => {
 			if (e.target.checked) {
@@ -187,15 +187,12 @@ function init() {
 			}
 		});
 	}
-
 	document.getElementById('settings-container').addEventListener('input', (e) => {
 		if (e.target.dataset.setting) {
 			updateSetting(e.target);
 		}
 	});
-	
 	document.getElementById('resetStyleBtn').addEventListener('click', resetDrawingStyle);
-
 	document.getElementById('alignLeft').addEventListener('click', () => alignSelected('left'));
 	document.getElementById('alignCenter').addEventListener('click', () => alignSelected('center'));
 	document.getElementById('alignRight').addEventListener('click', () => alignSelected('right'));
@@ -208,14 +205,11 @@ function init() {
 	document.getElementById('rotateCW').addEventListener('click', () => rotateSelected(90));
 	document.getElementById('distH').addEventListener('click', () => distributeSelected('h'));
 	document.getElementById('distV').addEventListener('click', () => distributeSelected('v'));
-
 	const defaultGlobalState = {};
 	for (const key in GLOBAL_SETTINGS_CONFIG) {
 		defaultGlobalState[key] = GLOBAL_SETTINGS_CONFIG[key].defaultValue;
 	}
-
 	app.drawingStyle = { ...generateInitialState(), ...defaultGlobalState };
-	
 	const toolHandlers = { DrawingTool, SelectTool, DuplicateTool, DeleteTool, RaiseTool, LowerTool, EyedropperTool, PainterTool };
 	app.toolManager = {};
 	for (const toolName in TOOL_CONFIG) {
@@ -229,55 +223,42 @@ function init() {
 			}
 		}
 	}
-
 	document.getElementById('undoBtn').addEventListener('click', undo);
 	document.getElementById('redoBtn').addEventListener('click', redo);
 	document.getElementById('clearBtn').addEventListener('click', clearAll);
 	document.getElementById('copyBtn').addEventListener('click', copyToClipboard);
-
 	canvas.addEventListener('mousedown', onMouseDown);
 	canvas.addEventListener('mousemove', onMouseMove);
 	canvas.addEventListener('mouseup', onMouseUp);
 	canvas.addEventListener('mouseleave', onMouseUp);
 	canvas.addEventListener('contextmenu', e => e.preventDefault());
 	window.addEventListener('resize', resizeCanvas);
-	
 	canvas.addEventListener('wheel', (e) => {
 		e.preventDefault();
 		const zoomSensitivity = 0.001;
 		const delta = -e.deltaY * zoomSensitivity;
 		const oldScale = app.view.scale;
 		let newScale = oldScale + delta * oldScale;
-		
 		newScale = Math.max(UI_CONSTANTS.MIN_ZOOM, Math.min(UI_CONSTANTS.MAX_ZOOM, newScale));
-		
 		const rect = canvas.getBoundingClientRect();
 		const mouseX = e.clientX - rect.left;
 		const mouseY = e.clientY - rect.top;
-		
 		const worldX = (mouseX - app.view.x) / oldScale;
 		const worldY = (mouseY - app.view.y) / oldScale;
-		
 		app.view.x = mouseX - worldX * newScale;
 		app.view.y = mouseY - worldY * newScale;
 		app.view.scale = newScale;
-		
 		const zoomSlider = document.getElementById('canvasZoom');
 		if(zoomSlider) {
 			zoomSlider.value = newScale * 100;
 			const valSpan = document.getElementById('canvasZoomValue');
 			if(valSpan) valSpan.textContent = `${Math.round(newScale * 100)}%`;
 		}
-		
 		render();
 	}, { passive: false });
-	
 	resizeCanvas();
-	
 	const storedLang = localStorage.getItem('tikz_generator_lang') || 'fr';
 	setLanguage(storedLang);
-	updateUIAfterLanguageChange();
-
 	const urlParams = new URLSearchParams(window.location.search);
 	if (urlParams.has('data')) {
 		const loaded = deserializeState(urlParams.get('data'));
@@ -297,7 +278,6 @@ function init() {
 			updateUIFromGlobalSettings();
 		}
 	}
-
 	render();
 	generateCode();
 	setupKeyboardShortcuts();

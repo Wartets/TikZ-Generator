@@ -99,7 +99,80 @@ export function distToSegment(x, y, x1, y1, x2, y2) {
 }
 
 export function snap(val) {
-	return Math.round(val / UI_CONSTANTS.GRID_SIZE) * UI_CONSTANTS.GRID_SIZE;
+	const step = getAdaptiveSnapStep(UI_CONSTANTS.GRID_SIZE, app.view.scale);
+	return getGridAlignmentSnap(val, step);
+}
+
+export function snapCartesian(x, y, angle = null) {
+	const step = getAdaptiveSnapStep(UI_CONSTANTS.GRID_SIZE, app.view.scale);
+	const snappedX = getGridAlignmentSnap(x, step);
+	const snappedY = getGridAlignmentSnap(y, step);
+	return { x: snappedX, y: snappedY };
+}
+
+export function snapIsometric(x, y, magnetAngle = 15) {
+	const step = getAdaptiveSnapStep(UI_CONSTANTS.GRID_SIZE, app.view.scale);
+	const sqrt3 = Math.sqrt(3);
+	const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / app.view.scale) * 2;
+	
+	const u = x + y / sqrt3;
+	const v = y * 2 / sqrt3;
+	
+	const u_snapped = getGridAlignmentSnap(u, step);
+	const v_snapped = getGridAlignmentSnap(v, step);
+	
+	const px = u_snapped - v_snapped / 2;
+	const py = v_snapped * sqrt3 / 2;
+	
+	const dx = x - px;
+	const dy = y - py;
+	if (Math.sqrt(dx * dx + dy * dy) < tolerance) {
+		return { x: px, y: py };
+	}
+	
+	return { x, y };
+}
+
+export function snapPolar(x, y, centerX = 0, centerY = 0, magnetAngle = 15) {
+	const dx = x - centerX;
+	const dy = y - centerY;
+	const dist = Math.sqrt(dx * dx + dy * dy);
+	const angle = Math.atan2(dy, dx) * 180 / Math.PI;
+	
+	const snappedAngle = Math.round(angle / magnetAngle) * magnetAngle;
+	const radians = snappedAngle * Math.PI / 180;
+	
+	const step = getAdaptiveSnapStep(UI_CONSTANTS.GRID_SIZE, app.view.scale);
+	const snappedDist = getGridAlignmentSnap(dist, step);
+	
+	return {
+		x: centerX + snappedDist * Math.cos(radians),
+		y: centerY + snappedDist * Math.sin(radians)
+	};
+}
+
+export function snapToGrid(x, y, gridMode = 'cartesian', magnetAngle = 15, polarCenter = null) {
+	switch (gridMode) {
+		case 'isometric':
+			return snapIsometric(x, y, magnetAngle);
+		case 'polar':
+			const center = polarCenter || { x: 0, y: 0 };
+			return snapPolar(x, y, center.x, center.y, magnetAngle);
+		case 'cartesian':
+		default:
+			return snapCartesian(x, y);
+	}
+}
+
+function getAdaptiveSnapStep(baseUnit, scale) {
+	let step = baseUnit;
+	while (step * scale < 15) step *= 2;
+	while (step * scale > 80) step /= 2;
+	return step;
+}
+
+function getGridAlignmentSnap(val, step) {
+	return Math.round(val / step) * step;
 }
 
 export function getPos(e, refPoint = null) {
@@ -186,23 +259,43 @@ export function getPos(e, refPoint = null) {
 		activeGuides.push({ type: 'h', y: bestY, x: worldPos.x });
 	}
 
-	if (!snappedX) {
-		let adaptiveStep = UI_CONSTANTS.GRID_SIZE;
-		while (adaptiveStep * app.view.scale < 15) adaptiveStep *= 2;
-		while (adaptiveStep * app.view.scale > 80) adaptiveStep /= 2;
-		const gridX = Math.round(bestX / adaptiveStep) * adaptiveStep;
-		if (Math.abs(bestX - gridX) < UI_CONSTANTS.HIT_TOLERANCE / app.view.scale) {
-			bestX = gridX;
-		}
-	}
+	if (!snappedX || !snappedY) {
+		// Appliquer le snapping selon le mode de grille
+		const gridMode = app.drawingStyle.gridMode || 'cartesian';
+		const magnetAngle = app.drawingStyle.gridMagnetAngle || 15;
+		
+		if (gridMode === 'polar') {
+			// Pour polaire, utiliser l'origine comme centre
+			const snappedCoords = snapPolar(bestX, bestY, 0, 0, magnetAngle);
+			bestX = snappedCoords.x;
+			bestY = snappedCoords.y;
+		} else if (gridMode === 'isometric') {
+			if (!snappedX || !snappedY) {
+				const snappedCoords = snapIsometric(bestX, bestY, magnetAngle);
+				bestX = snappedCoords.x;
+				bestY = snappedCoords.y;
+			}
+		} else {
+			// Mode cartésien (par défaut)
+			if (!snappedX) {
+				let adaptiveStep = UI_CONSTANTS.GRID_SIZE;
+				while (adaptiveStep * app.view.scale < 15) adaptiveStep *= 2;
+				while (adaptiveStep * app.view.scale > 80) adaptiveStep /= 2;
+				const gridX = Math.round(bestX / adaptiveStep) * adaptiveStep;
+				if (Math.abs(bestX - gridX) < UI_CONSTANTS.HIT_TOLERANCE / app.view.scale) {
+					bestX = gridX;
+				}
+			}
 
-	if (!snappedY) {
-		let adaptiveStep = UI_CONSTANTS.GRID_SIZE;
-		while (adaptiveStep * app.view.scale < 15) adaptiveStep *= 2;
-		while (adaptiveStep * app.view.scale > 80) adaptiveStep /= 2;
-		const gridY = Math.round(bestY / adaptiveStep) * adaptiveStep;
-		if (Math.abs(bestY - gridY) < UI_CONSTANTS.HIT_TOLERANCE / app.view.scale) {
-			bestY = gridY;
+			if (!snappedY) {
+				let adaptiveStep = UI_CONSTANTS.GRID_SIZE;
+				while (adaptiveStep * app.view.scale < 15) adaptiveStep *= 2;
+				while (adaptiveStep * app.view.scale > 80) adaptiveStep /= 2;
+				const gridY = Math.round(bestY / adaptiveStep) * adaptiveStep;
+				if (Math.abs(bestY - gridY) < UI_CONSTANTS.HIT_TOLERANCE / app.view.scale) {
+					bestY = gridY;
+				}
+			}
 		}
 	}
 

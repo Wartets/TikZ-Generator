@@ -4,6 +4,171 @@ import { UI_CONSTANTS } from './config.js';
 import { ShapeManager, getShapeCenter } from './shapes.js';
 import { getSelectionBounds } from './utils.js';
 
+function getAdaptiveStep(baseUnit, scale) {
+	let step = baseUnit;
+	while (step * scale < 15) step *= 2;
+	while (step * scale > 80) step /= 2;
+	return step;
+}
+
+function getGridAlignment(val, step) {
+	return Math.floor(val / step) * step;
+}
+
+function renderCartesianGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit) {
+	const step = getAdaptiveStep(baseUnit, app.view.scale);
+	const majorStep = step * 5;
+
+	const startX = getGridAlignment(visibleLeft, step);
+	const startY = getGridAlignment(visibleTop, step);
+
+	ctx.beginPath();
+	ctx.strokeStyle = 'rgba(94, 106, 94, 0.15)';
+	ctx.lineWidth = 1 / app.view.scale;
+
+	for (let x = startX; x <= visibleRight; x += step) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x, visibleBottom);
+	}
+	for (let y = startY; y <= visibleBottom; y += step) {
+		ctx.moveTo(visibleLeft, y);
+		ctx.lineTo(visibleRight, y);
+	}
+	ctx.stroke();
+
+	const majorStartX = getGridAlignment(visibleLeft, majorStep);
+	const majorStartY = getGridAlignment(visibleTop, majorStep);
+
+	ctx.beginPath();
+	ctx.strokeStyle = 'rgba(94, 106, 94, 0.3)';
+	ctx.lineWidth = 1.5 / app.view.scale;
+	for (let x = majorStartX; x <= visibleRight; x += majorStep) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x, visibleBottom);
+	}
+	for (let y = majorStartY; y <= visibleBottom; y += majorStep) {
+		ctx.moveTo(visibleLeft, y);
+		ctx.lineTo(visibleRight, y);
+	}
+	ctx.stroke();
+}
+
+function renderIsometricGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit) {
+	const step = getAdaptiveStep(baseUnit, app.view.scale);
+	const majorStep = step * 5;
+	const sqrt3 = Math.sqrt(3);
+
+	const startHY = getGridAlignment(visibleTop, step * sqrt3 / 2);
+	const startDX1 = getGridAlignment(visibleLeft, step);
+	const startDX2 = getGridAlignment(visibleLeft, step);
+
+	ctx.beginPath();
+	ctx.strokeStyle = 'rgba(94, 106, 94, 0.15)';
+	ctx.lineWidth = 1 / app.view.scale;
+
+	for (let y = startHY; y <= visibleBottom; y += step * sqrt3 / 2) {
+		ctx.moveTo(visibleLeft, y);
+		ctx.lineTo(visibleRight, y);
+	}
+	ctx.stroke();
+
+	ctx.beginPath();
+	for (let x = startDX1; x <= visibleRight + visibleBottom * 2; x += step) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x + (visibleBottom - visibleTop) / sqrt3, visibleBottom);
+	}
+	ctx.stroke();
+
+	ctx.beginPath();
+	for (let x = startDX2; x <= visibleRight + visibleBottom * 2; x += step) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x - (visibleBottom - visibleTop) / sqrt3, visibleBottom);
+	}
+	ctx.stroke();
+
+	const majorStartHY = getGridAlignment(visibleTop, majorStep * sqrt3 / 2);
+	const majorStartDX1 = getGridAlignment(visibleLeft, majorStep);
+	const majorStartDX2 = getGridAlignment(visibleLeft, majorStep);
+
+	ctx.strokeStyle = 'rgba(94, 106, 94, 0.3)';
+	ctx.lineWidth = 1.5 / app.view.scale;
+	
+	ctx.beginPath();
+	for (let y = majorStartHY; y <= visibleBottom; y += majorStep * sqrt3 / 2) {
+		ctx.moveTo(visibleLeft, y);
+		ctx.lineTo(visibleRight, y);
+	}
+	ctx.stroke();
+
+	ctx.beginPath();
+	for (let x = majorStartDX1; x <= visibleRight + visibleBottom * 2; x += majorStep) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x + (visibleBottom - visibleTop) / sqrt3, visibleBottom);
+	}
+	ctx.stroke();
+
+	ctx.beginPath();
+	for (let x = majorStartDX2; x <= visibleRight + visibleBottom * 2; x += majorStep) {
+		ctx.moveTo(x, visibleTop);
+		ctx.lineTo(x - (visibleBottom - visibleTop) / sqrt3, visibleBottom);
+	}
+	ctx.stroke();
+}
+
+function renderPolarGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit, magnetAngle = 15) {
+	const step = getAdaptiveStep(baseUnit, app.view.scale);
+	const majorStep = step * 5;
+
+	const centerX = 0;
+	const centerY = 0;
+	const maxDist = Math.sqrt(
+		Math.pow(visibleRight - centerX, 2) + Math.pow(visibleBottom - centerY, 2)
+	) + step;
+
+	ctx.beginPath();
+	ctx.strokeStyle = 'rgba(94, 106, 94, 0.15)';
+	ctx.lineWidth = 1 / app.view.scale;
+
+	const startRadius = Math.ceil(Math.max(0, centerX - visibleRight, centerY - visibleBottom) / step) * step;
+	for (let r = startRadius; r <= maxDist; r += step) {
+		ctx.beginPath();
+		ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+		ctx.stroke();
+	}
+
+	ctx.beginPath();
+	const angleStep = magnetAngle;
+	for (let angle = 0; angle < 360; angle += angleStep) {
+		const rad = angle * Math.PI / 180;
+		const x1 = centerX + maxDist * Math.cos(rad);
+		const y1 = centerY + maxDist * Math.sin(rad);
+		ctx.moveTo(centerX, centerY);
+		ctx.lineTo(x1, y1);
+	}
+	ctx.stroke();
+
+	ctx.strokeStyle = 'rgba(94, 106, 94, 0.3)';
+	ctx.lineWidth = 1.5 / app.view.scale;
+
+	const startMajorRadius = Math.ceil(Math.max(0, centerX - visibleRight, centerY - visibleBottom) / majorStep) * majorStep;
+	for (let r = startMajorRadius; r <= maxDist; r += majorStep) {
+		ctx.beginPath();
+		ctx.arc(centerX, centerY, r, 0, Math.PI * 2);
+		ctx.stroke();
+	}
+
+	ctx.beginPath();
+	const majorAngleStep = angleStep * 5;
+	for (let angle = 0; angle < 360; angle += majorAngleStep) {
+		const rad = angle * Math.PI / 180;
+		const x1 = centerX + maxDist * Math.cos(rad);
+		const y1 = centerY + maxDist * Math.sin(rad);
+		ctx.moveTo(centerX, centerY);
+		ctx.lineTo(x1, y1);
+	}
+	ctx.stroke();
+}
+
 export function drawArrow(ctx, x, y, angle, headType, scale, lineWidth) {
 	if (!headType) headType = 'stealth';
 	scale = scale || 1;
@@ -296,52 +461,25 @@ export function render() {
 	const visibleBottom = visibleTop + canvas.height / app.view.scale;
 	
 	const baseUnit = UI_CONSTANTS.SCALE;
-	let step = baseUnit;
-	
-	if (app.view.scale > 2.5) step = baseUnit / 4;
-	else if (app.view.scale > 1.2) step = baseUnit / 2;
-	else if (app.view.scale < 0.2) step = baseUnit * 5;
-	else if (app.view.scale < 0.5) step = baseUnit * 2;
+	const gridMode = app.drawingStyle.gridMode || 'cartesian';
+	const magnetAngle = app.drawingStyle.gridMagnetAngle || 15;
 
-	const startX = Math.floor(visibleLeft / step) * step;
-	const startY = Math.floor((visibleTop - canvas.height) / step) * step + canvas.height;
-
-	ctx.beginPath();
-	ctx.strokeStyle = 'rgba(94, 106, 94, 0.15)';
-	ctx.lineWidth = 1 / app.view.scale;
-
-	for (let x = startX; x <= visibleRight; x += step) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x, visibleBottom);
+	// Rendu de la grille selon le mode
+	if (gridMode === 'isometric') {
+		renderIsometricGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit);
+	} else if (gridMode === 'polar') {
+		renderPolarGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit, magnetAngle);
+	} else {
+		// Mode cartésien par défaut
+		renderCartesianGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit);
 	}
-	for (let y = startY; y <= visibleBottom; y += step) {
-		ctx.moveTo(visibleLeft, y);
-		ctx.lineTo(visibleRight, y);
-	}
-	ctx.stroke();
 
-	const majorStep = baseUnit * 5;
-	const majorStartX = Math.floor(visibleLeft / majorStep) * majorStep;
-	const majorStartY = Math.floor((visibleTop - canvas.height) / majorStep) * majorStep + canvas.height;
-
-	ctx.beginPath();
-	ctx.strokeStyle = 'rgba(94, 106, 94, 0.3)';
-	ctx.lineWidth = 1.5 / app.view.scale;
-	for (let x = majorStartX; x <= visibleRight; x += majorStep) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x, visibleBottom);
-	}
-	for (let y = majorStartY; y <= visibleBottom; y += majorStep) {
-		ctx.moveTo(visibleLeft, y);
-		ctx.lineTo(visibleRight, y);
-	}
-	ctx.stroke();
-
+	// Axes centraux
 	ctx.beginPath();
 	ctx.strokeStyle = UI_CONSTANTS.AXES_RENDER_COLOR;
 	ctx.lineWidth = 0.5 / app.view.scale;
-	ctx.moveTo(visibleLeft, canvas.height);
-	ctx.lineTo(visibleRight, canvas.height);
+	ctx.moveTo(visibleLeft, 0);
+	ctx.lineTo(visibleRight, 0);
 	ctx.moveTo(0, visibleTop);
 	ctx.lineTo(0, visibleBottom);
 	ctx.stroke();

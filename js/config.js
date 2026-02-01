@@ -106,6 +106,23 @@ export const GLOBAL_SETTINGS_CONFIG = {
 		label: translate('stageColor'),
 		type: 'color',
 		defaultValue: '#eef1f5'
+	},
+	gridMode: {
+		label: translate('gridMode'),
+		type: 'select',
+		defaultValue: 'cartesian',
+		options: {
+			'cartesian': translate('cartesian'),
+			'isometric': translate('isometric'),
+			'polar': translate('polar')
+		}
+	},
+	gridMagnetAngle: {
+		label: translate('gridMagnetAngle'),
+		type: 'range',
+		defaultValue: 15,
+		min: 1, max: 90, step: 1,
+		unit: '°'
 	}
 };
 

@@ -103,23 +103,14 @@
 			</div>
 
 			<div class="panel-group">
-				<div class="panel-header">
-					<span data-i18n="drawingTools">Outils de dessin</span>
-					<i class="ti ti-chevron-down toggle-icon"></i>
-				</div>
-				<div class="panel-body">
-					<div id="tools-drawing" class="tools-grid"></div>
-				</div>
-			</div>
-			
-			<div class="panel-group">
 				<div class="panel-header collapsed">
-					<span data-i18n="libraries">Bibliothèques</span>
+					<span data-i18n="shapes">Formes & Outils</span>
 					<i class="ti ti-chevron-down toggle-icon"></i>
 				</div>
 				<div class="panel-body" style="display: none;">
 					<div class="tabs-nav compact text-tabs">
-						<button class="tab-btn active" data-tab="circuits" data-i18n="tabCircuits">Circuits</button>
+						<button class="tab-btn active" data-tab="drawing" data-i18n="drawingTools">Outils de dessin</button>
+						<button class="tab-btn" data-tab="circuits" data-i18n="tabCircuits">Circuits</button>
 						<button class="tab-btn" data-tab="optics" data-i18n="tabOptics">Optique</button>
 						<button class="tab-btn" data-tab="logic" data-i18n="tabLogic">Logique</button>
 						<button class="tab-btn" data-tab="flowchart" data-i18n="tabFlowchart">Flowchart</button>
@@ -127,7 +118,10 @@
 						<button class="tab-btn" data-tab="pseudo3d" data-i18n="tab3d">3D</button>
 					</div>
 					
-					<div id="tab-circuits" class="tab-content active">
+					<div id="tab-drawing" class="tab-content active">
+						<div id="tools-drawing" class="tools-grid small-icons"></div>
+					</div>
+					<div id="tab-circuits" class="tab-content">
 						<div id="tools-circuits" class="tools-grid small-icons"></div>
 					</div>
 					<div id="tab-optics" class="tab-content">

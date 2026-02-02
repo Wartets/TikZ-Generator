@@ -28,21 +28,112 @@ export function createToolsUI() {
 
 	Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
 
+	const toolDescriptions = {
+		select: 'Sélectionner et modifier',
+		duplicate: 'Dupliquer des formes',
+		delete: 'Supprimer des formes',
+		raise: 'Élever vers l\'avant',
+		lower: 'Abaisser vers l\'arrière',
+		eyedropper: 'Prélever couleur',
+		painter: 'Peindre styles',
+		point: 'Point unique',
+		text: 'Texte et formules',
+		freehand: 'Tracé libre',
+		line: 'Ligne droite',
+		rect: 'Rectangle',
+		circle: 'Cercle',
+		ellipse: 'Ellipse',
+		triangle: 'Triangle',
+		diamond: 'Losange',
+		grid: 'Grille régulière',
+		axes: 'Axes cartésiens',
+		arc: 'Arc de cercle',
+		curve: 'Courbe Bézier',
+		wave: 'Onde sinusoïdale',
+		polygon: 'Polygone',
+		star: 'Étoile',
+		plot: 'Fonction graphique',
+		resistor: 'Résistance',
+		capacitor: 'Condensateur',
+		inductor: 'Inductance',
+		diode: 'Diode',
+		source_dc: 'Source CC',
+		source_ac: 'Source CA',
+		battery: 'Batterie',
+		lamp: 'Ampoule',
+		switch: 'Interrupteur',
+		ground: 'Masse',
+		ammeter: 'Ampèremètre',
+		voltmeter: 'Voltmètre',
+		transistor_npn: 'Transistor NPN',
+		potentiometer: 'Potentiomètre',
+		lens_convex: 'Lentille convergente',
+		lens_concave: 'Lentille divergente',
+		mirror: 'Miroir plan',
+		logic_and: 'Porte ET',
+		logic_or: 'Porte OU',
+		logic_not: 'Porte NON',
+		logic_nand: 'Porte NAND',
+		logic_nor: 'Porte NOR',
+		logic_xor: 'Porte XOR',
+		logic_xnor: 'Porte XNOR',
+		flow_start: 'Début/Fin',
+		flow_process: 'Processus',
+		flow_decision: 'Décision',
+		spring: 'Ressort',
+		mass: 'Masse',
+		pulley: 'Poulie',
+		piston: 'Piston',
+		field_mark: 'Marque de champ',
+		wedge: 'Coin',
+		support: 'Support',
+		damper: 'Amortisseur',
+		pendulum: 'Pendule',
+		repere_cartesian: 'Repère 3D',
+		cube: 'Cube',
+		cylinder_3d: 'Cylindre',
+		sphere_3d: 'Sphère',
+		pyramid_3d: 'Pyramide',
+		cone_3d: 'Cône',
+		prism_3d: 'Prisme',
+		plane_3d: 'Plan'
+	};
+
 	for (const toolId in TOOL_CONFIG) {
 		const config = TOOL_CONFIG[toolId];
+		const wrapper = document.createElement('div');
+		wrapper.className = 'tool-item-wrapper';
+		wrapper.dataset.tool = toolId;
+
 		const button = document.createElement('button');
 		button.className = 'tool-btn';
 		button.dataset.tool = toolId;
-		button.innerHTML = config.icon;
 		button.title = translate(toolId);
 		
+		button.innerHTML = `${config.icon}`;
+
+		const label = document.createElement('span');
+		label.className = 'tool-btn-label';
+		label.textContent = translate(toolId);
+
+		button.appendChild(label);
+
+		const description = document.createElement('div');
+		description.className = 'tool-btn-description';
+		description.textContent = toolDescriptions[toolId] || translate(toolId);
+
 		button.addEventListener('click', () => setTool(toolId));
-		
+
+		wrapper.appendChild(button);
+		wrapper.appendChild(description);
+
 		const targetContainer = containers[config.group] || containers.drawing;
 		if (targetContainer) {
-			targetContainer.appendChild(button);
+			targetContainer.appendChild(wrapper);
 		}
 	}
+
+	setupShapesSearch();
 }
 
 export function createSettingsUI() {
@@ -328,6 +419,30 @@ export function setTool(toolName) {
 	}
 	saveToLocalStorage();
 	
+	try {
+		const searchInput = document.getElementById('shapes-search');
+		if (searchInput && searchInput.value && searchInput.value.trim() !== '') {
+			// Ne rien faire, la recherche gérera la restauration
+		} else {
+			// Navigation vers le bon onglet même si la recherche n'était pas active
+			const group = (TOOL_CONFIG[toolName] && TOOL_CONFIG[toolName].group) ? TOOL_CONFIG[toolName].group : 'drawing';
+			const tabBtn = document.querySelector(`.tabs-nav .tab-btn[data-tab="${group}"]`);
+			if (tabBtn && !tabBtn.classList.contains('active')) {
+				// Marquer le tab comme actif
+				document.querySelectorAll('.tabs-nav .tab-btn').forEach(btn => {
+					btn.classList.toggle('active', btn === tabBtn);
+				});
+				const tabContent = document.getElementById(`tab-${group}`);
+				if (tabContent) {
+					document.querySelectorAll('.tab-content').forEach(tc => {
+						tc.classList.remove('active');
+					});
+					tabContent.classList.add('active');
+				}
+			}
+		}
+	} catch (e) {}
+
 	if (app.activeTool && app.activeTool.constructor.name === 'EyedropperTool') {
 		canvas.style.cursor = 'none';
 	} else if(app.activeTool && app.activeTool.config) {
@@ -906,6 +1021,188 @@ export function setupLanguageSelector() {
 		}, false);
 		container.appendChild(langSelect);
 	}
+}
+
+function setupShapesSearch() {
+	const searchInput = document.getElementById('shapes-search');
+	if (!searchInput) return;
+
+	// ============ ÉTAT GLOBAL DE LA RECHERCHE ============
+	const searchState = {
+		isSearching: false,
+		originalHTML: new Map(),      // Sauvegarde HTML original
+		toolsData: null,               // Données JSON des outils originaux
+		activeSearchListener: null     // Référence à l'event listener
+	};
+
+	// ============ ÉTAPE 1: INITIALISATION ============
+	const initializeSearchState = () => {
+		// Sauvegarder HTML original de chaque conteneur
+		document.querySelectorAll('.tools-container').forEach(container => {
+			searchState.originalHTML.set(container.id, container.innerHTML);
+		});
+
+		// Créer une copie JSON des données des outils (pour éviter les doublons)
+		const toolsList = [];
+		document.querySelectorAll('.tool-item-wrapper').forEach(wrapper => {
+			const parentContainer = wrapper.closest('.tools-container');
+			if (!parentContainer || parentContainer.id === 'tools-general') return;
+			
+			toolsList.push({
+				toolId: wrapper.dataset.tool || '',
+				html: wrapper.outerHTML,
+				name: translate(wrapper.dataset.tool || '').toLowerCase(),
+				description: wrapper.querySelector('.tool-btn-description')?.textContent.toLowerCase() || '',
+				parentContainerId: parentContainer.id
+			});
+		});
+		searchState.toolsData = toolsList;
+	};
+
+	// ============ ÉTAPE 2: RÉATTACHER LES EVENT LISTENERS NORMAUX ============
+	const reattachNormalListeners = () => {
+		// Réattacher les listeners sur tous les boutons outils
+		document.querySelectorAll('.tool-btn').forEach(btn => {
+			const toolId = btn.dataset.tool;
+			if (toolId) {
+				// Retirer les anciens listeners
+				btn.removeEventListener('click', handleSearchResultClick);
+				// Ajouter le listener normal
+				btn.addEventListener('click', () => setTool(toolId));
+			}
+		});
+	};
+
+	// ============ ÉTAPE 3: MODE NORMAL - RESTAURATION ============
+	const restoreNormalView = () => {
+		// Restaurer HTML original
+		searchState.originalHTML.forEach((html, containerId) => {
+			const container = document.getElementById(containerId);
+			if (container) {
+				container.innerHTML = html;
+			}
+		});
+
+		// Afficher tabs et réinitialiser styles
+		const tabsNav = document.querySelector('.tabs-nav');
+		if (tabsNav) tabsNav.style.display = '';
+
+		const shapesSearchContainers = document.querySelectorAll('.shapes-search-container');
+		shapesSearchContainers.forEach(el => {
+			el.style.borderRadius = '';
+			el.style.marginBottom = '';
+		});
+
+		searchState.isSearching = false;
+
+		// Réattacher les event listeners normaux
+		reattachNormalListeners();
+
+		// Retirer le listener de recherche temporaire
+		if (searchState.activeSearchListener) {
+			document.removeEventListener('click', searchState.activeSearchListener);
+			searchState.activeSearchListener = null;
+		}
+	};
+
+	// ============ ÉTAPE 4: MODE RECHERCHE - FILTRAGE ============
+	const performSearch = (query) => {
+		if (!query) {
+			restoreNormalView();
+			return;
+		}
+
+		searchState.isSearching = true;
+
+		// Filtrer les outils
+		const matching = searchState.toolsData.filter(tool => {
+			return (
+				tool.toolId.toLowerCase().includes(query) ||
+				tool.name.includes(query) ||
+				tool.description.includes(query)
+			);
+		});
+
+		// Afficher les résultats
+		displaySearchResults(matching);
+	};
+
+	// ============ ÉTAPE 5: AFFICHAGE DES RÉSULTATS ============
+	const displaySearchResults = (matchingTools) => {
+		// Cacher les tabs
+		const tabsNav = document.querySelector('.tabs-nav');
+		if (tabsNav) tabsNav.style.display = 'none';
+
+		// Modifier le style du conteneur de recherche
+		const shapesSearchContainers = document.querySelectorAll('.shapes-search-container');
+		shapesSearchContainers.forEach(el => {
+			el.style.borderRadius = '10px';
+			el.style.marginBottom = '6px';
+		});
+
+		// Obtenir le conteneur actif
+		const activeTabBtn = document.querySelector('.tabs-nav .tab-btn.active');
+		const activeGroup = activeTabBtn ? activeTabBtn.dataset.tab : 'drawing';
+		const activeContainer = document.getElementById(`tools-${activeGroup}`);
+
+		if (!activeContainer) return;
+
+		// Créer le HTML des résultats
+		const resultHTML = matchingTools
+			.map(tool => tool.html)
+			.join('');
+
+		// Afficher les résultats
+		activeContainer.innerHTML = resultHTML;
+
+		// Ajouter les event listeners pour les résultats
+		setupSearchResultsListeners();
+	};
+
+	// ============ ÉTAPE 6: EVENT LISTENERS POUR RÉSULTATS ============
+	const setupSearchResultsListeners = () => {
+		const activeTabBtn = document.querySelector('.tabs-nav .tab-btn.active');
+		const activeGroup = activeTabBtn ? activeTabBtn.dataset.tab : 'drawing';
+		const activeContainer = document.getElementById(`tools-${activeGroup}`);
+
+		if (!activeContainer) return;
+
+		// Ajouter un listener sur tous les boutons du conteneur actif
+		activeContainer.querySelectorAll('.tool-btn').forEach(btn => {
+			btn.addEventListener('click', handleSearchResultClick);
+		});
+	};
+
+	// ============ ÉTAPE 7: GESTION DU CLIC SUR RÉSULTAT ============
+	const handleSearchResultClick = (e) => {
+		e.stopPropagation();
+		const toolId = e.currentTarget.dataset.tool;
+
+		if (toolId && searchState.isSearching) {
+			// Restaurer la vue normale
+			searchInput.value = '';
+			restoreNormalView();
+
+			// Sélectionner l'outil
+			setTool(toolId);
+		}
+	};
+
+	// ============ ÉTAPE 8: INITIALISATION AU CHARGEMENT ============
+	initializeSearchState();
+
+	// ============ ÉTAPE 9: EVENT LISTENERS PRINCIPAUX ============
+	searchInput.addEventListener('input', (e) => {
+		const query = e.target.value.toLowerCase().trim();
+		performSearch(query);
+	});
+
+	searchInput.addEventListener('keydown', (e) => {
+		if (e.key === 'Escape') {
+			searchInput.value = '';
+			restoreNormalView();
+		}
+	});
 }
 
 export function updateUIAfterLanguageChange() {

@@ -263,7 +263,8 @@ const translations = {
 		'damperWidth': 'Largeur Amort.',
 		'swingAngle': 'Angle Pendule',
 		'pendulumLength': 'Longueur Fil',
-		'bobSize': 'Taille Masse'
+		'bobSize': 'Taille Masse',
+		'searchShapesPlaceholder': 'Rechercher une forme...'
 	},
 	en: {
 		'globalConfig': 'Global Configuration',
@@ -522,7 +523,8 @@ const translations = {
 		'damperWidth': 'Damper Width',
 		'swingAngle': 'Pendulum Angle',
 		'pendulumLength': 'Wire Length',
-		'bobSize': 'Mass Size'
+		'bobSize': 'Mass Size',
+		'searchShapesPlaceholder': 'Search for a shape...'
 	},
 	es: {
 		'globalConfig': 'Configuración Global',
@@ -781,7 +783,8 @@ const translations = {
 		'damperWidth': 'Ancho Amort.',
 		'swingAngle': 'Ángulo Péndulo',
 		'pendulumLength': 'Longitud Hilo',
-		'bobSize': 'Tamaño Masa'
+		'bobSize': 'Tamaño Masa',
+		'searchShapesPlaceholder': 'Buscar una forma...'
 	},
 	de: {
 		'globalConfig': 'Globale Konfiguration',
@@ -1040,7 +1043,8 @@ const translations = {
 		'damperWidth': 'Dämpferbreite',
 		'swingAngle': 'Pendelwinkel',
 		'pendulumLength': 'Drahtlänge',
-		'bobSize': 'Massequadergröße'
+		'bobSize': 'Massequadergröße',
+		'searchShapesPlaceholder': 'Nach einer Form suchen...'
 	}
 };
 

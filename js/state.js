@@ -594,6 +594,7 @@ const SHAPE_TYPES = [
 	'flow_start', 'flow_process', 'flow_decision',
 	'spring', 'mass', 'pulley', 'piston', 'field_mark', 'wedge', 'support', 'damper', 'pendulum',
 	'repere_cartesian', 'cube', 'cylinder_3d', 'sphere_3d', 'pyramid_3d', 'cone_3d', 'prism_3d', 'plane_3d',
+	'chem_molecule', 'chem_benzene', 'chem_cycle',
 	'point'
 ];
 

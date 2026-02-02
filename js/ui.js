@@ -23,7 +23,8 @@ export function createToolsUI() {
 		logic: document.getElementById('tools-logic'),
 		flowchart: document.getElementById('tools-flowchart'),
 		pseudo3d: document.getElementById('tools-pseudo3d'),
-		physics: document.getElementById('tools-physics')
+		physics: document.getElementById('tools-physics'),
+		chemistry: document.getElementById('tools-chemistry')
 	};
 
 	Object.values(containers).forEach(c => { if(c) c.innerHTML = ''; });
@@ -96,7 +97,10 @@ export function createToolsUI() {
 		pyramid_3d: 'Pyramide',
 		cone_3d: 'Cône',
 		prism_3d: 'Prisme',
-		plane_3d: 'Plan'
+		plane_3d: 'Plan',
+		chem_molecule: 'Molécule ChemFig générique',
+		chem_benzene: 'Cycle benzénique',
+		chem_cycle: 'Cycle régulier (chemfig)'
 	};
 
 	for (const toolId in TOOL_CONFIG) {

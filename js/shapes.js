@@ -4022,4 +4022,274 @@ export const ShapeManager = {
 		},
 		isStandaloneCommand: true
 	}),
+	chem_molecule: createShapeDef('chem_molecule', {
+		onDown: (x, y, style) => ({
+			type: 'chem_molecule',
+			x1: x, y1: y,
+			x2: x, y2: y,
+			style: { 
+				...style, 
+				text: style.text || 'A-B',
+				textAnchor: 'center',
+				chemScale: 1
+			}
+		}),
+		render: (s, ctx) => {
+			const text = s.style.text || 'A-B';
+			const fontSize = 16 * (s.style.chemScale || 1);
+			ctx.font = `${fontSize}px sans-serif`;
+			const metrics = ctx.measureText(text);
+			const w = metrics.width + 20;
+			const h = fontSize + 20;
+			const cx = s.x1;
+			const cy = s.y1;
+			
+			ctx.save();
+			ctx.translate(cx, cy);
+			if (s.style.rotate) ctx.rotate(s.style.rotate * Math.PI / 180);
+			
+			ctx.fillStyle = 'rgba(255, 255, 255, 0.01)';
+			ctx.fillRect(-w/2, -h/2, w, h);
+			
+			ctx.strokeStyle = UI_CONSTANTS.CONTROL_LINE_COLOR;
+			ctx.lineWidth = 1;
+			ctx.setLineDash([2, 2]);
+			ctx.strokeRect(-w/2, -h/2, w, h);
+			
+			ctx.fillStyle = s.style.stroke || '#000';
+			ctx.textAlign = 'center';
+			ctx.textBaseline = 'middle';
+			ctx.fillText(text, 0, 0);
+			
+			ctx.restore();
+		},
+		toTikZ: (s, opts) => {
+			const cx = toTikZ(s.x1, false, s.id, 'x1');
+			const cy = toTikZ(s.y1, true, s.id, 'y1');
+			const code = s.style.text || '';
+			const rot = s.style.rotate || 0;
+			const scale = s.style.chemScale || 1;
+			return `\\node[rotate=${rot}, inner sep=0pt, outer sep=0pt, scale=${scale}] at (${cx},${cy}) {\\chemfig{${code}}};`;
+		},
+		getBoundingBox: (s) => {
+			const text = s.style.text || 'A-B';
+			const fontSize = 16 * (s.style.chemScale || 1);
+			const ctx = document.createElement('canvas').getContext('2d');
+			ctx.font = `${fontSize}px sans-serif`;
+			const metrics = ctx.measureText(text);
+			const w = metrics.width + 20;
+			const h = fontSize + 20;
+			return {
+				minX: s.x1 - w/2, minY: s.y1 - h/2,
+				maxX: s.x1 + w/2, maxY: s.y1 + h/2
+			};
+		},
+		getHandles: (s) => [{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' }],
+		resize: (s, mx, my) => { s.x1 = mx; s.y1 = my; },
+		isStandaloneCommand: true
+	}),
+	chem_benzene: createShapeDef('chem_benzene', {
+		onDown: (x, y, style) => ({
+			type: 'chem_benzene',
+			x1: x, y1: y,
+			x2: x + 40, y2: y,
+			style: { 
+				...style,
+				chemBondType: 'aromatic',
+				chemScale: 1
+			}
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const r = Math.abs(s.x2 - s.x1) * (s.style.chemScale || 1);
+			const cx = s.x1;
+			const cy = s.y1;
+			
+			ctx.save();
+			ctx.translate(cx, cy);
+			if (s.style.rotate) ctx.rotate(s.style.rotate * Math.PI / 180);
+			
+			const points = [];
+			for (let i = 0; i < 6; i++) {
+				const ang = (i * 60 - 30) * Math.PI / 180;
+				points.push({ x: r * Math.cos(ang), y: r * Math.sin(ang) });
+			}
+
+			ctx.beginPath();
+			points.forEach((p, i) => {
+				if (i === 0) ctx.moveTo(p.x, p.y);
+				else ctx.lineTo(p.x, p.y);
+			});
+			ctx.closePath();
+			ctx.lineWidth = s.style.width || 1;
+			ctx.strokeStyle = s.style.stroke;
+			ctx.stroke();
+			
+			if (s.style.chemBondType === 'aromatic') {
+				ctx.beginPath();
+				ctx.arc(0, 0, r * 0.6, 0, Math.PI * 2);
+				ctx.stroke();
+			} else {
+				const innerR = r * 0.8;
+				[0, 2, 4].forEach(i => {
+					const p1 = points[i];
+					const p2 = points[(i+1)%6];
+					
+					const midX = (p1.x + p2.x) / 2;
+					const midY = (p1.y + p2.y) / 2;
+					
+					const factor = 0.8; 
+					
+					ctx.beginPath();
+					ctx.moveTo(p1.x + (midX-p1.x)*(1-factor), p1.y + (midY-p1.y)*(1-factor));
+					ctx.lineTo(p2.x + (midX-p2.x)*(1-factor), p2.y + (midY-p2.y)*(1-factor));
+					
+					ctx.stroke();
+				});
+			}
+			
+			ctx.restore();
+			renderShapeLabel(s, ctx, cx, cy);
+		},
+		toTikZ: (s, opts) => {
+			const cx = toTikZ(s.x1, false, s.id, 'x1');
+			const cy = toTikZ(s.y1, true, s.id, 'y1');
+			const r = Math.abs(s.x2 - s.x1);
+			const baseScale = 25; 
+			const userScale = s.style.chemScale || 1;
+			const finalScale = (r / baseScale * userScale).toFixed(2);
+			const rot = s.style.rotate || 0;
+			
+			const type = s.style.chemBondType === 'alternating' ? '=-=-=-' : '**6(------)';
+			
+			return `\\node[rotate=${rot}, scale=${finalScale}, inner sep=0pt, outer sep=0pt] at (${cx},${cy}) {\\chemfig{${type}}}; ${getTikZLabelNode(s)}`;
+		},
+		getBoundingBox: (s) => {
+			const r = Math.abs(s.x2 - s.x1) * (s.style.chemScale || 1);
+			return { minX: s.x1 - r, minY: s.y1 - r, maxX: s.x1 + r, maxY: s.y1 + r };
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' },
+			{ x: s.x2, y: s.y1, pos: 'radius', cursor: 'ew-resize' }
+		],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'center') {
+				const r = Math.abs(s.x2 - s.x1);
+				s.x1 = mx; s.y1 = my;
+				s.x2 = mx + r; s.y2 = my;
+			} else {
+				s.x2 = mx; s.y2 = my;
+			}
+		},
+		isStandaloneCommand: true
+	}),
+	chem_cycle: createShapeDef('chem_cycle', {
+		onDown: (x, y, style) => ({
+			type: 'chem_cycle',
+			x1: x, y1: y,
+			x2: x + 40, y2: y,
+			style: { 
+				...style, 
+				polySides: 5,
+				chemDoubleBonds: '',
+				chemScale: 1,
+				chemOffset: 0
+			}
+		}),
+		onDrag: (s, x, y) => { s.x2 = x; s.y2 = y; },
+		render: (s, ctx) => {
+			const sides = s.style.polySides || 5;
+			const r = Math.abs(s.x2 - s.x1) * (s.style.chemScale || 1);
+			const cx = s.x1;
+			const cy = s.y1;
+			const offset = (s.style.chemOffset || 0);
+			
+			ctx.save();
+			ctx.translate(cx, cy);
+			const totalRot = (s.style.rotate || 0) + offset;
+			if (totalRot) ctx.rotate(totalRot * Math.PI / 180);
+			
+			const points = [];
+			const startAng = -90 - 180/sides;
+			for (let i = 0; i < sides; i++) {
+				const ang = (startAng + i * 360/sides) * Math.PI / 180;
+				points.push({ x: r * Math.cos(ang), y: r * Math.sin(ang) });
+			}
+
+			ctx.beginPath();
+			points.forEach((p, i) => {
+				if (i === 0) ctx.moveTo(p.x, p.y);
+				else ctx.lineTo(p.x, p.y);
+			});
+			ctx.closePath();
+			ctx.lineWidth = s.style.width || 1;
+			ctx.strokeStyle = s.style.stroke;
+			ctx.stroke();
+			
+			const doubles = (s.style.chemDoubleBonds || '').split(',').map(n => parseInt(n.trim())).filter(n => !isNaN(n));
+			
+			if (doubles.length > 0) {
+				ctx.beginPath();
+				doubles.forEach(idx => {
+					const safeIdx = (idx - 1) % sides; 
+					if (safeIdx < 0) return;
+					
+					const start = points[safeIdx];
+					const end = points[(safeIdx+1)%sides];
+					
+					const mx = (start.x + end.x) / 2;
+					const my = (start.y + end.y) / 2;
+					
+					const innerStart = { x: start.x * 0.8 + end.x * 0.2, y: start.y * 0.8 + end.y * 0.2 };
+					const innerEnd = { x: end.x * 0.8 + start.x * 0.2, y: end.y * 0.8 + start.y * 0.2 };
+					
+					const ox = mx * 0.2; 
+					const oy = my * 0.2;
+					
+					ctx.moveTo(innerStart.x - ox, innerStart.y - oy);
+					ctx.lineTo(innerEnd.x - ox, innerEnd.y - oy);
+				});
+				ctx.stroke();
+			}
+			
+			ctx.restore();
+			renderShapeLabel(s, ctx, cx, cy);
+		},
+		toTikZ: (s, opts) => {
+			const cx = toTikZ(s.x1, false, s.id, 'x1');
+			const cy = toTikZ(s.y1, true, s.id, 'y1');
+			const r = Math.abs(s.x2 - s.x1);
+			const baseScale = 25;
+			const userScale = s.style.chemScale || 1;
+			const finalScale = (r / baseScale * userScale).toFixed(2);
+			const sides = s.style.polySides || 5;
+			const rot = (s.style.rotate || 0) + (s.style.chemOffset || 0);
+			
+			const doubles = (s.style.chemDoubleBonds || '').split(',').map(n => parseInt(n.trim()));
+			let bonds = "";
+			for(let i=1; i<=sides; i++) {
+				bonds += doubles.includes(i) ? "=" : "-";
+			}
+			
+			return `\\node[rotate=${rot}, scale=${finalScale}, inner sep=0pt, outer sep=0pt] at (${cx},${cy}) {\\chemfig{*${sides}(${bonds})}}; ${getTikZLabelNode(s)}`;
+		},
+		getBoundingBox: (s) => {
+			const r = Math.abs(s.x2 - s.x1) * (s.style.chemScale || 1);
+			return { minX: s.x1 - r, minY: s.y1 - r, maxX: s.x1 + r, maxY: s.y1 + r };
+		},
+		getHandles: (s) => [
+			{ x: s.x1, y: s.y1, pos: 'center', cursor: 'move' },
+			{ x: s.x2, y: s.y1, pos: 'radius', cursor: 'ew-resize' }
+		],
+		resize: (s, mx, my, handle) => {
+			if (handle === 'center') {
+				const r = Math.abs(s.x2 - s.x1);
+				s.x1 = mx; s.y1 = my;
+				s.x2 = mx + r; s.y2 = my;
+			} else {
+				s.x2 = mx; s.y2 = my;
+			}
+		},
+		isStandaloneCommand: true
+	}),
 };

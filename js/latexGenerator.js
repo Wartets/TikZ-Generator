@@ -115,6 +115,11 @@ export function generateCode() {
 		libraries.add('angles');
 		libraries.add('calc');
 	}
+	
+	const hasChem = app.shapes.some(s => ['chem_molecule', 'chem_benzene', 'chem_cycle'].includes(s.type));
+	if (hasChem) {
+		packages.add('chemfig');
+	}
 
 	const hasSpring = app.shapes.some(s => s.type === 'spring' || s.type === 'damper');
 	if (hasSpring) {

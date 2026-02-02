@@ -671,6 +671,54 @@ export const TOOL_CONFIG = {
 		group: 'pseudo3d',
 		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'fillType', 'fillColor', 'depth3d', 'angle3d']
 	},
+	chem_molecule: {
+		displayName: translate('chem_molecule'),
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-hexagon"></i>',
+		cursor: 'text',
+		group: 'chemistry',
+		allow: ['textString', 'textSize', 'rotate', 'textAnchor', 'opacity', 'strokeColor']
+	},
+	chem_benzene: {
+		displayName: translate('chem_benzene'),
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-hexagon-letter-o"></i>',
+		cursor: 'crosshair',
+		group: 'chemistry',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	chem_cycle: {
+		displayName: translate('chem_cycle'),
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-polygon"></i>',
+		cursor: 'crosshair',
+		group: 'chemistry',
+		allow: ['textString', 'textSize', 'rotate', 'polySides', 'lineWidth', 'opacity', 'strokeColor']
+	},
+	chem_molecule: {
+		displayName: translate('chem_molecule'),
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-hexagon"></i>',
+		cursor: 'text',
+		group: 'chemistry',
+		allow: ['textString', 'textSize', 'rotate', 'textAnchor', 'opacity', 'strokeColor', 'chemScale']
+	},
+	chem_benzene: {
+		displayName: translate('chem_benzene'),
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-hexagon-letter-o"></i>',
+		cursor: 'crosshair',
+		group: 'chemistry',
+		allow: ['textString', 'textSize', 'rotate', 'lineWidth', 'opacity', 'strokeColor', 'chemBondType', 'chemScale']
+	},
+	chem_cycle: {
+		displayName: translate('chem_cycle'),
+		handler: 'DrawingTool',
+		icon: '<i class="ti ti-polygon"></i>',
+		cursor: 'crosshair',
+		group: 'chemistry',
+		allow: ['textString', 'textSize', 'rotate', 'polySides', 'lineWidth', 'opacity', 'strokeColor', 'chemDoubleBonds', 'chemScale', 'chemOffset']
+	},
 };
 
 export const SETTINGS_CONFIG = {
@@ -1371,5 +1419,47 @@ export const SETTINGS_CONFIG = {
 		unit: 'px',
 		tikzValue: (v) => null,
 		group: 'geo-poly'
+	},
+	chemBondType: {
+		label: translate('chemBondType'),
+		type: 'select',
+		propName: 'chemBondType',
+		defaultValue: 'aromatic',
+		options: {
+			'aromatic': translate('aromatic'),
+			'alternating': translate('alternating')
+		},
+		tikzValue: (v) => null,
+		group: 'geo-poly',
+		groupOptions: { type: 'row' }
+	},
+	chemDoubleBonds: {
+		label: translate('chemDoubleBonds'),
+		type: 'text',
+		propName: 'chemDoubleBonds',
+		defaultValue: '',
+		tikzValue: (v) => null,
+		group: 'geo-poly'
+	},
+	chemScale: {
+		label: translate('chemScale'),
+		type: 'range',
+		propName: 'chemScale',
+		defaultValue: 1,
+		min: 0.5, max: 3, step: 0.1,
+		unit: 'x',
+		tikzValue: (v) => null,
+		group: 'geo-ratio',
+		groupOptions: { type: 'row' }
+	},
+	chemOffset: {
+		label: translate('chemOffset'),
+		type: 'range',
+		propName: 'chemOffset',
+		defaultValue: 0,
+		min: -180, max: 180, step: 15,
+		unit: '°',
+		tikzValue: (v) => null,
+		group: 'geo-ratio'
 	},
 };

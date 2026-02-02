@@ -54,65 +54,70 @@ function renderCartesianGrid(ctx, visibleLeft, visibleTop, visibleRight, visible
 }
 
 function renderIsometricGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit) {
-	const step = getAdaptiveStep(baseUnit, app.view.scale);
-	const majorStep = step * 5;
+	const minorStep = baseUnit;
+	const majorStep = baseUnit * 5;
+
+	const minorScreenDist = minorStep * app.view.scale;
+	const majorScreenDist = majorStep * app.view.scale;
+
+	const minorVisible = minorScreenDist >= 8;
+	const majorVisible = majorScreenDist >= 15;
+
+	if (!majorVisible) {
+		return;
+	}
+
 	const sqrt3 = Math.sqrt(3);
+	const sqrt3_2 = sqrt3 / 2;
 
-	const startHY = getGridAlignment(visibleTop, step * sqrt3 / 2);
-	const startDX1 = getGridAlignment(visibleLeft, step);
-	const startDX2 = getGridAlignment(visibleLeft, step);
+	function drawIsometricLineSet(step, isMinor) {
+		const alpha = isMinor ? 0.15 : 0.3;
+		const lineWidth = isMinor ? 1 : 1.5;
+		ctx.strokeStyle = `rgba(94, 106, 94, ${alpha})`;
+		ctx.lineWidth = lineWidth / app.view.scale;
 
-	ctx.beginPath();
-	ctx.strokeStyle = 'rgba(94, 106, 94, 0.15)';
-	ctx.lineWidth = 1 / app.view.scale;
+		const extendBuffer = (Math.abs(visibleRight - visibleLeft) + Math.abs(visibleBottom - visibleTop)) * 0.5;
 
-	for (let y = startHY; y <= visibleBottom; y += step * sqrt3 / 2) {
-		ctx.moveTo(visibleLeft, y);
-		ctx.lineTo(visibleRight, y);
+		const horizStart = Math.floor(visibleTop / (step * sqrt3_2)) * (step * sqrt3_2);
+		for (let hy = horizStart; hy <= visibleBottom; hy += step * sqrt3_2) {
+			ctx.beginPath();
+			ctx.moveTo(visibleLeft - extendBuffer, hy);
+			ctx.lineTo(visibleRight + extendBuffer, hy);
+			ctx.stroke();
+		}
+
+		const xStart = Math.floor((visibleLeft - extendBuffer) / step) * step;
+		const xEnd = Math.ceil((visibleRight + extendBuffer) / step) * step;
+
+		for (let x = xStart; x <= xEnd; x += step) {
+			const y1 = visibleTop - extendBuffer * sqrt3;
+			const x1 = x + y1 / sqrt3;
+			const y2 = visibleBottom + extendBuffer * sqrt3;
+			const x2 = x + y2 / sqrt3;
+
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+		}
+
+		for (let x = xStart; x <= xEnd; x += step) {
+			const y1 = visibleTop - extendBuffer * sqrt3;
+			const x1 = x - y1 / sqrt3;
+			const y2 = visibleBottom + extendBuffer * sqrt3;
+			const x2 = x - y2 / sqrt3;
+
+			ctx.beginPath();
+			ctx.moveTo(x1, y1);
+			ctx.lineTo(x2, y2);
+			ctx.stroke();
+		}
 	}
-	ctx.stroke();
 
-	ctx.beginPath();
-	for (let x = startDX1; x <= visibleRight + visibleBottom * 2; x += step) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x + (visibleBottom - visibleTop) / sqrt3, visibleBottom);
+	if (minorVisible) {
+		drawIsometricLineSet(minorStep, true);
 	}
-	ctx.stroke();
-
-	ctx.beginPath();
-	for (let x = startDX2; x <= visibleRight + visibleBottom * 2; x += step) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x - (visibleBottom - visibleTop) / sqrt3, visibleBottom);
-	}
-	ctx.stroke();
-
-	const majorStartHY = getGridAlignment(visibleTop, majorStep * sqrt3 / 2);
-	const majorStartDX1 = getGridAlignment(visibleLeft, majorStep);
-	const majorStartDX2 = getGridAlignment(visibleLeft, majorStep);
-
-	ctx.strokeStyle = 'rgba(94, 106, 94, 0.3)';
-	ctx.lineWidth = 1.5 / app.view.scale;
-	
-	ctx.beginPath();
-	for (let y = majorStartHY; y <= visibleBottom; y += majorStep * sqrt3 / 2) {
-		ctx.moveTo(visibleLeft, y);
-		ctx.lineTo(visibleRight, y);
-	}
-	ctx.stroke();
-
-	ctx.beginPath();
-	for (let x = majorStartDX1; x <= visibleRight + visibleBottom * 2; x += majorStep) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x + (visibleBottom - visibleTop) / sqrt3, visibleBottom);
-	}
-	ctx.stroke();
-
-	ctx.beginPath();
-	for (let x = majorStartDX2; x <= visibleRight + visibleBottom * 2; x += majorStep) {
-		ctx.moveTo(x, visibleTop);
-		ctx.lineTo(x - (visibleBottom - visibleTop) / sqrt3, visibleBottom);
-	}
-	ctx.stroke();
+	drawIsometricLineSet(majorStep, false);
 }
 
 function renderPolarGrid(ctx, visibleLeft, visibleTop, visibleRight, visibleBottom, baseUnit, magnetAngle = 15) {

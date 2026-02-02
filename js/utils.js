@@ -111,26 +111,78 @@ export function snapCartesian(x, y, angle = null) {
 }
 
 export function snapIsometric(x, y, magnetAngle = 15) {
-	const step = getAdaptiveSnapStep(UI_CONSTANTS.GRID_SIZE, app.view.scale);
-	const sqrt3 = Math.sqrt(3);
+	const minorStep = UI_CONSTANTS.GRID_SIZE;
+	const majorStep = minorStep * 5;
 	const tolerance = (UI_CONSTANTS.HIT_TOLERANCE / app.view.scale) * 2;
-	
-	const u = x + y / sqrt3;
-	const v = y * 2 / sqrt3;
-	
-	const u_snapped = getGridAlignmentSnap(u, step);
-	const v_snapped = getGridAlignmentSnap(v, step);
-	
-	const px = u_snapped - v_snapped / 2;
-	const py = v_snapped * sqrt3 / 2;
-	
-	const dx = x - px;
-	const dy = y - py;
-	if (Math.sqrt(dx * dx + dy * dy) < tolerance) {
-		return { x: px, y: py };
+	const sqrt3 = Math.sqrt(3);
+	const sqrt3_2 = sqrt3 / 2;
+
+	const candidates = [];
+
+	for (const step of [minorStep, majorStep]) {
+		const horizSpacing = step * sqrt3_2;
+
+		const horizIdx = Math.round(y / horizSpacing);
+		const hy1 = horizIdx * horizSpacing;
+		const hy2 = (horizIdx - 1) * horizSpacing;
+		const hy3 = (horizIdx + 1) * horizSpacing;
+
+		for (const hy of [hy1, hy2, hy3]) {
+			if (Math.abs(y - hy) < tolerance) {
+				candidates.push({
+					x: x,
+					y: hy,
+					dist: Math.abs(y - hy),
+					type: 'horiz'
+				});
+			}
+		}
+
+		const xMin = x - tolerance * 3;
+		const xMax = x + tolerance * 3;
+		const xGridMin = Math.floor(xMin / step) * step;
+		const xGridMax = Math.ceil(xMax / step) * step;
+
+		for (let xBase = xGridMin; xBase <= xGridMax; xBase += step) {
+			const yMin = y - tolerance * 3;
+			const yMax = y + tolerance * 3;
+			const yGridMin = Math.floor(yMin / horizSpacing) * horizSpacing;
+			const yGridMax = Math.ceil(yMax / horizSpacing) * horizSpacing;
+
+			for (let hy = yGridMin; hy <= yGridMax; hy += horizSpacing) {
+				const slope1 = sqrt3;
+				const x1 = xBase + hy / slope1;
+				const dist1 = Math.sqrt((x - x1) ** 2 + (y - hy) ** 2);
+				if (dist1 < tolerance * 2) {
+					candidates.push({
+						x: x1,
+						y: hy,
+						dist: dist1,
+						type: 'diag60'
+					});
+				}
+
+				const slope2 = -sqrt3;
+				const x2 = xBase + hy / slope2;
+				const dist2 = Math.sqrt((x - x2) ** 2 + (y - hy) ** 2);
+				if (dist2 < tolerance * 2) {
+					candidates.push({
+						x: x2,
+						y: hy,
+						dist: dist2,
+						type: 'diag120'
+					});
+				}
+			}
+		}
 	}
-	
-	return { x, y };
+
+	if (candidates.length === 0) {
+		return { x, y };
+	}
+
+	candidates.sort((a, b) => a.dist - b.dist);
+	return { x: candidates[0].x, y: candidates[0].y };
 }
 
 export function snapPolar(x, y, centerX = 0, centerY = 0, magnetAngle = 15) {

@@ -127,6 +127,8 @@ export function createToolsUI() {
 		wrapper.appendChild(button);
 		wrapper.appendChild(description);
 
+		attachTooltipEvents(wrapper);
+
 		const targetContainer = containers[config.group] || containers.drawing;
 		if (targetContainer) {
 			targetContainer.appendChild(wrapper);
@@ -1294,4 +1296,36 @@ export function createCustomSelect(id, options, defaultValue, onChange, isGlobal
 	container.appendChild(trigger);
 	container.appendChild(list);
 	return container;
+}
+
+function attachTooltipEvents(wrapper) {
+	const description = wrapper.querySelector('.tool-btn-description');
+	if (!description) return;
+
+	wrapper.addEventListener('mouseenter', () => {
+		const rect = wrapper.getBoundingClientRect();
+		description.style.display = 'block';
+		
+		const tooltipWidth = description.offsetWidth;
+		const tooltipHeight = description.offsetHeight;
+		
+		let left = rect.left + rect.width / 2 - tooltipWidth / 2;
+		let top = rect.bottom + 6;
+		
+		if (left < 4) left = 4;
+		if (left + tooltipWidth > window.innerWidth - 4) {
+			left = window.innerWidth - tooltipWidth - 4;
+		}
+		
+		if (top + tooltipHeight > window.innerHeight - 4) {
+			top = rect.top - tooltipHeight - 6;
+		}
+		
+		description.style.left = `${left}px`;
+		description.style.top = `${top}px`;
+	});
+
+	wrapper.addEventListener('mouseleave', () => {
+		description.style.display = 'none';
+	});
 }

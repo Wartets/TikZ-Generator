@@ -294,7 +294,7 @@ body {
 }
 
 .tool-btn-description {
-	position: absolute;
+	position: fixed;
 	display: none;
 	font-size: 0.65rem;
 	color: var(--text-main);
@@ -307,19 +307,11 @@ body {
 	font-weight: 500;
 	white-space: normal;
 	word-wrap: break-word;
-	z-index: 1000;
-	top: 100%;
-	left: 50%;
-	transform: translateX(-50%);
+	z-index: 10000;
 	min-width: 120px;
 	max-width: 140px;
-	margin-top: 4px;
 	pointer-events: none;
 	box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-}
-
-.tool-item-wrapper:hover .tool-btn-description {
-	display: block;
 }
 
 .tool-btn i {
